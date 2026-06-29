@@ -3,8 +3,12 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from sqlalchemy import DateTime, func
+from sqlalchemy import JSON, DateTime, func
+from sqlalchemy.dialects.postgresql import JSONB as _PGJSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+
+# JSONB on Postgres, plain JSON on SQLite (so unit tests run without a DB server).
+JSONB = _PGJSONB().with_variant(JSON(), "sqlite")
 
 
 class Base(DeclarativeBase):
