@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Import exports (may contain catalog data)
+scripts/exports/
+
+# OS / editor
+.DS_Store
+Thumbs.db
