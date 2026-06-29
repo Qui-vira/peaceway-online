@@ -26,6 +26,10 @@ async def lifespan(app: FastAPI):
     app.state.bot = bot
     app.state.dp = dp
 
+    from app.scheduler.jobs import start_scheduler
+
+    start_scheduler()
+
     if settings.webhook_base_url:
         url = settings.webhook_base_url.rstrip("/") + "/webhook/telegram"
         await bot.set_webhook(url, drop_pending_updates=True)

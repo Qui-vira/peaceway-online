@@ -1,0 +1,230 @@
+"""Staff order-action handlers (role-gated), with automation + audit + customer updates."""
+from __future__ import annotations
+
+from aiogram import Bot, F, Router
+from aiogram.fsm.context import FSMContext
+from aiogram.types import CallbackQuery, Message
+from sqlalchemy import select
+
+from app.bot.staff.states import StaffFlow
+from app.core.db import get_session
+from app.core.logging import get_logger
+from app.core.security import can, resolve_role
+from app.models import (
+    AuditLog,
+    Customer,
+    DeliveryStatus,
+    Order,
+    OrderStatus,
+    RiderAssignment,
+    RxStatus,
+)
+from app.services import orders as orders_svc
+
+router = Router(name="staff-orders")
+log = get_logger("staff-orders")
+
+# callback action -> permission key in security.ACTION_ROLES
+_ACTION_PERM = {
+    "pay_approve": "approve_payment",
+    "pay_reject": "reject_payment",
+    "packaging": "start_packaging",
+    "ready": "ready_for_dispatch",
+    "assign": "assign_rider",
+    "dispatched": "mark_dispatched",
+    "delivered": "mark_delivered",
+    "cancel": "cancel_order",
+    "msg": "message_customer",
+    "rx_approve": "review_prescription",
+    "rx_reject": "review_prescription",
+}
+
+
+async def _notify_customer(bot: Bot, order: Order, text: str) -> None:
+    async with get_session() as session:
+        customer = await session.get(Customer, order.customer_id)
+    if customer:
+        try:
+            await bot.send_message(customer.telegram_id, text)
+        except Exception as exc:  # noqa: BLE001
+            log.error("notify_customer_failed", order=order.code, error=str(exc))
+
+
+async def _audit(session, call: CallbackQuery, role, action: str, code: str) -> None:
+    session.add(
+        AuditLog(
+            actor_telegram_id=call.from_user.id,
+            actor_role=role.value if role else None,
+            action=action,
+            entity="order",
+            entity_id=code,
+        )
+    )
+
+
+async def _refresh(call: CallbackQuery, code: str, role) -> None:
+    from app.bot.keyboards.staff import order_actions
+    from app.services.alerts import order_summary
+
+    async with get_session() as session:
+        order = (await session.execute(select(Order).where(Order.code == code))).scalar_one_or_none()
+        if order:
+            await call.message.edit_text(order_summary(order), reply_markup=order_actions(order, role))
+
+
+@router.callback_query(F.data.startswith("act:"))
+async def handle_action(call: CallbackQuery, state: FSMContext) -> None:
+    _, action, code = call.data.split(":", 2)
+    role = resolve_role(call.from_user.id)
+    perm = _ACTION_PERM.get(action)
+    if perm is None or not can(role, perm):
+        await call.answer("Not authorised for this action.", show_alert=True)
+        return
+
+    # Interactive actions delegate to FSM capture.
+    if action == "assign":
+        await state.set_state(StaffFlow.assign_rider)
+        await state.update_data(order_code=code)
+        await call.message.answer(f"🛵 Send rider details for {code} as: <i>Name, Phone</i>")
+        await call.answer()
+        return
+    if action == "msg":
+        await state.set_state(StaffFlow.message_customer)
+        await state.update_data(order_code=code)
+        await call.message.answer(f"💬 Type the message to send the customer for {code}:")
+        await call.answer()
+        return
+
+    bot = call.bot
+    downstream = None
+    customer_msg = None
+
+    async with get_session() as session:
+        order = (await session.execute(select(Order).where(Order.code == code))).scalar_one_or_none()
+        if order is None:
+            await call.answer("Order not found.", show_alert=True)
+            return
+        by = f"{role.value}:{call.from_user.id}"
+
+        if action == "pay_approve":
+            await orders_svc.transition_status(session, order, OrderStatus.PAYMENT_APPROVED, by)
+            customer_msg = f"✅ Payment approved for {code}. We're preparing your order."
+            # Automation: OTC -> auto PROCESSING; alert packaging.
+            if order.rx_status == RxStatus.NOT_REQUIRED:
+                await orders_svc.transition_status(session, order, OrderStatus.PROCESSING, "system", "Auto: OTC paid")
+                await orders_svc.transition_delivery(session, order, DeliveryStatus.PACKAGING, "system")
+            downstream = ("packaging", order.id)
+
+        elif action == "pay_reject":
+            await orders_svc.transition_status(session, order, OrderStatus.REJECTED, by, "Payment rejected")
+            customer_msg = f"❌ Payment for {code} could not be verified. Please contact support."
+
+        elif action == "packaging":
+            await orders_svc.transition_status(session, order, OrderStatus.PROCESSING, by)
+            await orders_svc.transition_delivery(session, order, DeliveryStatus.PACKAGING, by)
+            customer_msg = f"📦 Your order {code} is being packaged."
+
+        elif action == "ready":
+            await orders_svc.transition_delivery(session, order, DeliveryStatus.READY_FOR_DISPATCH, by)
+            downstream = ("dispatch", order.id)
+
+        elif action == "dispatched":
+            await orders_svc.transition_status(session, order, OrderStatus.DISPATCHED, by)
+            await orders_svc.transition_delivery(session, order, DeliveryStatus.IN_TRANSIT, by)
+            customer_msg = f"🚚 Your order {code} has been dispatched and is on the way!"
+
+        elif action == "delivered":
+            await orders_svc.transition_status(session, order, OrderStatus.DELIVERED, by)
+            await orders_svc.transition_delivery(session, order, DeliveryStatus.DELIVERED, by)
+            customer_msg = f"🏁 Your order {code} has been delivered. Thank you for choosing us!"
+            downstream = ("followup", order.id)
+
+        elif action == "cancel":
+            await orders_svc.transition_status(session, order, OrderStatus.CANCELLED, by)
+            customer_msg = f"🚫 Your order {code} has been cancelled. Contact support for help."
+
+        elif action == "rx_approve":
+            await orders_svc.transition_rx(session, order, RxStatus.APPROVED_FOR_PAYMENT, by)
+            await orders_svc.transition_status(session, order, OrderStatus.AWAITING_PAYMENT, by)
+            customer_msg = f"✅ Your prescription for {code} was approved. You can now pay."
+
+        elif action == "rx_reject":
+            await orders_svc.transition_rx(session, order, RxStatus.REJECTED_BY_PHARMACIST, by)
+            await orders_svc.transition_status(session, order, OrderStatus.REJECTED, by)
+            customer_msg = f"⛔ Your prescription order {code} was not approved. Please contact our pharmacist."
+
+        await _audit(session, call, role, action, code)
+        order_snapshot = order
+
+    if customer_msg:
+        await _notify_customer(bot, order_snapshot, customer_msg)
+
+    # Fire downstream staff alerts.
+    if downstream:
+        kind, oid = downstream
+        try:
+            if kind == "packaging":
+                from app.services.alerts import alert_payment_approved
+
+                await alert_payment_approved(bot, oid)
+            elif kind == "dispatch":
+                from app.services.alerts import alert_ready_for_dispatch
+
+                await alert_ready_for_dispatch(bot, oid)
+            elif kind == "followup":
+                from app.scheduler.jobs import schedule_followup
+
+                schedule_followup(bot, oid)
+        except Exception as exc:  # noqa: BLE001
+            log.error("downstream_alert_failed", kind=kind, error=str(exc))
+
+    await _refresh(call, code, role)
+    await call.answer("Done ✅")
+
+
+@router.message(StaffFlow.assign_rider, F.text)
+async def capture_rider(message: Message, state: FSMContext) -> None:
+    data = await state.get_data()
+    code = data.get("order_code")
+    await state.clear()
+    parts = [p.strip() for p in message.text.split(",", 1)]
+    rider_name = parts[0]
+    rider_phone = parts[1] if len(parts) > 1 else None
+
+    async with get_session() as session:
+        order = (await session.execute(select(Order).where(Order.code == code))).scalar_one_or_none()
+        if order is None:
+            await message.answer("Order not found.")
+            return
+        session.add(
+            RiderAssignment(order_id=order.id, rider_name=rider_name, rider_phone=rider_phone, is_manual=True)
+        )
+        await orders_svc.transition_delivery(session, order, DeliveryStatus.RIDER_ASSIGNED, f"manual:{message.from_user.id}")
+        order_snapshot = order
+    await _notify_customer(
+        message.bot, order_snapshot, f"🛵 A rider has been assigned to your order {code}."
+    )
+    await message.answer(f"✅ Rider {rider_name} assigned to {code}.")
+
+
+@router.message(StaffFlow.message_customer, F.text)
+async def capture_message(message: Message, state: FSMContext) -> None:
+    data = await state.get_data()
+    code = data.get("order_code")
+    await state.clear()
+    async with get_session() as session:
+        order = (await session.execute(select(Order).where(Order.code == code))).scalar_one_or_none()
+        if order is None:
+            await message.answer("Order not found.")
+            return
+        order_snapshot = order
+    await _notify_customer(
+        message.bot, order_snapshot, f"💬 Message from {get_pharmacy_name()} about {code}:\n\n{message.text}"
+    )
+    await message.answer("✅ Message sent to customer.")
+
+
+def get_pharmacy_name() -> str:
+    from app.core.config import get_settings
+
+    return get_settings().pharmacy_name

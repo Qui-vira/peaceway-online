@@ -14,6 +14,9 @@ log = get_logger("run_polling")
 
 async def main() -> None:
     configure_logging()
+    from app.scheduler.jobs import start_scheduler
+
+    start_scheduler()
     bot = build_bot()
     dp = build_dispatcher()
     await bot.delete_webhook(drop_pending_updates=True)
