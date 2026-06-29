@@ -72,7 +72,20 @@ Delivery, payment, off-ramp, and handling fees are always **added on top** of th
 product price and never reduce product profit. All fees are admin-editable.
 
 ## Phases
-- **Phase 1 (this):** ordering, pricing, payments, staff ops, alerts, follow-up. ✅
-- **Phase 2:** logistics provider APIs (Kwik/Fez/Gokada — official APIs only), live
-  tracking, GPS/map. Tables already in the schema.
-- **Phase 3:** optional crypto off-ramp (manual settlement).
+- **Phase 1:** ordering, pricing, payments (bank proof), staff ops, alerts, follow-up. ✅
+- **Phase 2:** logistics provider framework (Manual working; Kwik/Fez/Gokada/Custom
+  credential-gated against their **official** APIs), "Track My Order", `/webhook/logistics`,
+  GPS→Telegram map / tracking-link button. ✅
+  - To enable a partner: add its API key env var, then implement the three methods in
+    `app/services/delivery/providers/api.py` against the partner's official API docs, and
+    re-run `python scripts/seed_providers.py`.
+- **Phase 3:** payment-method chooser, Flutterwave (official Standard API + verified
+  webhook, auto-disabled until keys set), optional crypto off-ramp with manual on-chain +
+  Naira settlement confirmation. ✅
+  - Crypto stays disabled until you set `enable_crypto` (admin) **and** `CRYPTO_WALLETS`.
+
+### Extra seed/setup scripts
+```bash
+python scripts/seed_providers.py       # register logistics providers (manual enabled)
+python scripts/seed_demo_listing.py    # price a few OTC items for testing
+```
