@@ -35,6 +35,7 @@ def order_actions(order: Order, role: StaffRole | None) -> InlineKeyboardMarkup:
     if order.status in (OrderStatus.PROCESSING, OrderStatus.DISPATCHED):
         if can(role, "assign_rider"):
             kb.button(text="🛵 Assign Rider", callback_data=f"act:assign:{code}")
+            kb.button(text="🚀 Book Delivery", callback_data=f"act:book:{code}")
         if can(role, "mark_dispatched"):
             kb.button(text="📨 Mark Dispatched", callback_data=f"act:dispatched:{code}")
         if can(role, "mark_delivered"):

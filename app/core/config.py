@@ -79,6 +79,10 @@ class Settings(BaseSettings):
     kwik_api_key: str = ""
     fez_api_key: str = ""
     gokada_api_key: str = ""
+    custom_api_key: str = ""
+
+    # Crypto off-ramp (Phase 3 — optional, manual settlement)
+    crypto_wallets: str = ""  # "NETWORK:TOKEN:ADDRESS" entries, comma-separated
 
     # Runtime
     env: str = "development"
