@@ -9,15 +9,79 @@ from aiogram.types import CallbackQuery, Message
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy import select
 
+from sqlalchemy import select as _select
+
 from app.bot.customer.states import PaymentFlow
 from app.bot.keyboards.customer import back_to_menu
 from app.core.config import get_settings
 from app.core.db import get_session
 from app.core.logging import get_logger
-from app.models import Order, OrderStatus, Payment, PaymentMethod
+from app.models import FeeSetting, Order, OrderStatus, Payment, PaymentMethod
+from app.services.payments.crypto import crypto_enabled
 
 router = Router(name="customer-payment")
 log = get_logger("payment")
+
+
+async def show_payment_methods(call: CallbackQuery, order_code: str, total) -> None:
+    """Offer enabled payment methods for an order."""
+    async with get_session() as session:
+        fee = await session.get(FeeSetting, 1)
+    s = get_settings()
+    kb = InlineKeyboardBuilder()
+    if not fee or fee.enable_bank:
+        kb.button(text="🏦 Bank Transfer", callback_data=f"pm:bank:{order_code}")
+    if (not fee or fee.enable_flutterwave) and s.flutterwave_enabled:
+        kb.button(text="💳 Pay with Flutterwave", callback_data=f"pm:flw:{order_code}")
+    if crypto_enabled(fee):
+        kb.button(text="🪙 Pay with Crypto", callback_data=f"pm:crypto:{order_code}")
+    kb.button(text="⬅️ Main Menu", callback_data="menu:home")
+    kb.adjust(1)
+    await call.message.edit_text(
+        f"💳 <b>Payment for {order_code}</b>\nAmount: <b>₦{total:,.0f}</b>\n\nChoose how to pay:",
+        reply_markup=kb.as_markup(),
+    )
+
+
+@router.callback_query(F.data.startswith("pm:bank:"))
+async def chose_bank(call: CallbackQuery) -> None:
+    code = call.data.split("pm:bank:", 1)[1]
+    async with get_session() as session:
+        order = (await session.execute(_select(Order).where(Order.code == code))).scalar_one_or_none()
+        if order is None:
+            await call.answer("Order not found.", show_alert=True)
+            return
+        order.payment_method = PaymentMethod.BANK_TRANSFER
+        total = order.total
+    await show_payment_instructions(call, code, total)
+    await call.answer()
+
+
+@router.callback_query(F.data.startswith("pm:flw:"))
+async def chose_flutterwave(call: CallbackQuery) -> None:
+    code = call.data.split("pm:flw:", 1)[1]
+    from app.services.payments.flutterwave import create_payment_link
+
+    async with get_session() as session:
+        order = (await session.execute(_select(Order).where(Order.code == code))).scalar_one_or_none()
+        if order is None:
+            await call.answer("Order not found.", show_alert=True)
+            return
+        order.payment_method = PaymentMethod.FLUTTERWAVE
+        amount, name = order.total, order.delivery_name
+    link = await create_payment_link(order_code=code, amount=amount, email="", name=name or "Customer")
+    if not link:
+        await call.answer("Flutterwave is not available right now. Please use bank transfer.", show_alert=True)
+        return
+    kb = InlineKeyboardBuilder()
+    kb.button(text="💳 Pay Now", url=link)
+    kb.button(text="⬅️ Main Menu", callback_data="menu:home")
+    kb.adjust(1)
+    await call.message.edit_text(
+        f"💳 Tap below to pay ₦{amount:,.0f} for {code} securely via Flutterwave.",
+        reply_markup=kb.as_markup(),
+    )
+    await call.answer()
 
 
 async def show_payment_instructions(call: CallbackQuery, order_code: str, total: Decimal) -> None:

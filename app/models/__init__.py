@@ -1,6 +1,7 @@
 """Import all models so Base.metadata is fully populated (Alembic, create_all)."""
 from app.models.base import Base, TimestampMixin
 from app.models.catalog import Product, ProductAlias, ProductPricing
+from app.models.crypto import CryptoPayment, CryptoStatus
 from app.models.logistics import (
     DeliveryOrder,
     DeliveryQuote,
@@ -37,6 +38,8 @@ __all__ = [
     "Product",
     "ProductAlias",
     "ProductPricing",
+    "CryptoPayment",
+    "CryptoStatus",
     "Customer",
     "Order",
     "OrderItem",

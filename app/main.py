@@ -12,6 +12,7 @@ from fastapi import FastAPI
 from app.bot.dispatcher import build_bot, build_dispatcher
 from app.core.config import get_settings
 from app.core.logging import configure_logging, get_logger
+from app.webhooks import flutterwave as flutterwave_webhook
 from app.webhooks import logistics as logistics_webhook
 from app.webhooks import telegram as telegram_webhook
 
@@ -47,6 +48,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="Peaceway Online", lifespan=lifespan)
 app.include_router(telegram_webhook.router)
 app.include_router(logistics_webhook.router)
+app.include_router(flutterwave_webhook.router)
 
 
 @app.get("/health")

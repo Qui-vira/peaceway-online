@@ -185,7 +185,7 @@ async def confirm(call: CallbackQuery, state: FSMContext) -> None:
             reply_markup=back_to_menu(),
         )
     else:
-        from app.bot.customer.payment import show_payment_instructions
+        from app.bot.customer.payment import show_payment_methods
 
-        await show_payment_instructions(call, order_code, quote.total)
+        await show_payment_methods(call, order_code, quote.total)
     await call.answer()

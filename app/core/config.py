@@ -131,6 +131,16 @@ class Settings(BaseSettings):
     def email_enabled(self) -> bool:
         return bool(self.smtp_host and self.smtp_from_email)
 
+    @property
+    def crypto_wallet_list(self) -> list[dict]:
+        """Parse CRYPTO_WALLETS ("NETWORK:TOKEN:ADDRESS,...") into dicts."""
+        out: list[dict] = []
+        for entry in (self.crypto_wallets or "").split(","):
+            parts = [p.strip() for p in entry.split(":")]
+            if len(parts) == 3 and all(parts):
+                out.append({"network": parts[0], "token": parts[1], "address": parts[2]})
+        return out
+
 
 @lru_cache
 def get_settings() -> Settings:

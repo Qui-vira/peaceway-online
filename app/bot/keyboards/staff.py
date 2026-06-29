@@ -5,7 +5,7 @@ from aiogram.types import InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from app.core.security import can
-from app.models import Order, OrderStatus, RxStatus
+from app.models import Order, OrderStatus, PaymentMethod, RxStatus
 from app.models.ops import StaffRole
 
 
@@ -20,11 +20,21 @@ def order_actions(order: Order, role: StaffRole | None) -> InlineKeyboardMarkup:
             kb.button(text="✅ Approve Rx", callback_data=f"act:rx_approve:{code}")
             kb.button(text="⛔ Reject Rx", callback_data=f"act:rx_reject:{code}")
 
+    is_crypto = order.payment_method == PaymentMethod.CRYPTO
+
     if order.status == OrderStatus.PAYMENT_SUBMITTED:
         if can(role, "approve_payment"):
-            kb.button(text="✅ Approve Payment", callback_data=f"act:pay_approve:{code}")
+            if is_crypto:
+                kb.button(text="🔗 Confirm On-chain", callback_data=f"act:crypto_confirm:{code}")
+            else:
+                kb.button(text="✅ Approve Payment", callback_data=f"act:pay_approve:{code}")
         if can(role, "reject_payment"):
             kb.button(text="❌ Reject Payment", callback_data=f"act:pay_reject:{code}")
+
+    # After on-chain confirmation, owner manually confirms the Naira settlement.
+    if is_crypto and order.status in (OrderStatus.PAYMENT_APPROVED, OrderStatus.PROCESSING):
+        if can(role, "edit_pricing"):  # owner-level
+            kb.button(text="💵 Mark Naira Settled", callback_data=f"act:crypto_settled:{code}")
 
     if order.status in (OrderStatus.PAYMENT_APPROVED, OrderStatus.PROCESSING):
         if can(role, "start_packaging"):

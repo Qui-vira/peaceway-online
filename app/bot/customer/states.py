@@ -23,5 +23,9 @@ class PaymentFlow(StatesGroup):
     waiting_proof = State()
 
 
+class CryptoFlow(StatesGroup):
+    waiting_tx_hash = State()
+
+
 class AskFlow(StatesGroup):
     waiting_question = State()
