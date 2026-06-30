@@ -9,7 +9,7 @@ from sqlalchemy import select
 from app.bot.staff.states import StaffFlow
 from app.core.db import get_session
 from app.core.logging import get_logger
-from app.core.security import can, resolve_role
+from app.core.security import get_role_keys, has, log_activity, primary_role, touch_activity
 from app.models import (
     AuditLog,
     Customer,
@@ -35,8 +35,8 @@ _ACTION_PERM = {
     "delivered": "mark_delivered",
     "cancel": "cancel_order",
     "msg": "message_customer",
-    "rx_approve": "review_prescription",
-    "rx_reject": "review_prescription",
+    "rx_approve": "approve_prescription",
+    "rx_reject": "approve_prescription",
 }
 
 
@@ -50,11 +50,11 @@ async def _notify_customer(bot: Bot, order: Order, text: str) -> None:
             log.error("notify_customer_failed", order=order.code, error=str(exc))
 
 
-async def _audit(session, call: CallbackQuery, role, action: str, code: str) -> None:
+async def _audit(session, call: CallbackQuery, role_keys: set[str], action: str, code: str) -> None:
     session.add(
         AuditLog(
             actor_telegram_id=call.from_user.id,
-            actor_role=role.value if role else None,
+            actor_role=",".join(sorted(role_keys)) if role_keys else None,
             action=action,
             entity="order",
             entity_id=code,
@@ -62,24 +62,25 @@ async def _audit(session, call: CallbackQuery, role, action: str, code: str) -> 
     )
 
 
-async def _refresh(call: CallbackQuery, code: str, role) -> None:
+async def _refresh(call: CallbackQuery, code: str, role_keys: set[str]) -> None:
     from app.bot.keyboards.staff import order_actions
     from app.services.alerts import order_summary
 
     async with get_session() as session:
         order = (await session.execute(select(Order).where(Order.code == code))).scalar_one_or_none()
         if order:
-            await call.message.edit_text(order_summary(order), reply_markup=order_actions(order, role))
+            await call.message.edit_text(order_summary(order), reply_markup=order_actions(order, role_keys))
 
 
 @router.callback_query(F.data.startswith("act:"))
 async def handle_action(call: CallbackQuery, state: FSMContext) -> None:
     _, action, code = call.data.split(":", 2)
-    role = resolve_role(call.from_user.id)
+    role_keys = await get_role_keys(call.from_user.id)
     perm = _ACTION_PERM.get(action)
-    if perm is None or not can(role, perm):
+    if perm is None or not has(role_keys, perm):
         await call.answer("Not authorised for this action.", show_alert=True)
         return
+    await touch_activity(call.from_user.id)
 
     # Interactive actions delegate to FSM capture.
     if action == "assign":
@@ -104,7 +105,7 @@ async def handle_action(call: CallbackQuery, state: FSMContext) -> None:
         if order is None:
             await call.answer("Order not found.", show_alert=True)
             return
-        by = f"{role.value}:{call.from_user.id}"
+        by = f"{primary_role(role_keys) or 'staff'}:{call.from_user.id}"
 
         if action == "pay_approve":
             await orders_svc.transition_status(session, order, OrderStatus.PAYMENT_APPROVED, by)
@@ -153,7 +154,7 @@ async def handle_action(call: CallbackQuery, state: FSMContext) -> None:
             await orders_svc.transition_status(session, order, OrderStatus.REJECTED, by)
             customer_msg = f"⛔ Your prescription order {code} was not approved. Please contact our pharmacist."
 
-        await _audit(session, call, role, action, code)
+        await _audit(session, call, role_keys, action, code)
         order_snapshot = order
 
     if customer_msg:
@@ -178,7 +179,7 @@ async def handle_action(call: CallbackQuery, state: FSMContext) -> None:
         except Exception as exc:  # noqa: BLE001
             log.error("downstream_alert_failed", kind=kind, error=str(exc))
 
-    await _refresh(call, code, role)
+    await _refresh(call, code, role_keys)
     await call.answer("Done ✅")
 
 

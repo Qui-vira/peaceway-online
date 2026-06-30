@@ -22,6 +22,7 @@ def build_dispatcher() -> Dispatcher:
 
     # Routers are imported lazily so model/db imports stay ordered.
     from app.bot.customer import cart, catalog, checkout, crypto, followup, menu, payment, support, track
+    from app.bot.staff import admins as staff_admins
     from app.bot.staff import crypto as staff_crypto
     from app.bot.staff import delivery as staff_delivery
     from app.bot.staff import orders as staff_orders
@@ -31,6 +32,7 @@ def build_dispatcher() -> Dispatcher:
     # staff_delivery & staff_crypto must precede staff_orders so their specific
     # `act:book:` / `act:crypto_*` callbacks aren't caught by the generic `act:` handler.
     dp.include_router(staff_panel.router)
+    dp.include_router(staff_admins.router)
     dp.include_router(staff_delivery.router)
     dp.include_router(staff_crypto.router)
     dp.include_router(staff_orders.router)

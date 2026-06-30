@@ -1,32 +1,64 @@
-from app.core.config import Settings
-from app.core.security import can, resolve_role
-from app.models.ops import StaffRole
+from app.core import rbac
+from app.core.security import has, primary_role
 
 
-def _settings():
-    return Settings(
-        owner_telegram_ids="100",
-        pharmacist_telegram_ids="200",
-        dispatcher_telegram_ids="300",
-        _env_file=None,
-    )
+def test_owner_wildcard_grants_most_permissions():
+    owner = {rbac.SYSTEM_OWNER}
+    assert has(owner, "view_all_orders")
+    assert has(owner, "edit_pricing")
+    assert has(owner, "manage_admins")
 
 
-def test_owner_resolves():
-    assert resolve_role(100, _settings()) == StaffRole.OWNER
+def test_prescription_safety_override_excludes_owner():
+    # Hard rule: only pharmacists approve prescriptions — NOT the System Owner.
+    assert has({rbac.SYSTEM_OWNER}, "approve_prescription") is False
+    assert has({rbac.LEAD_PHARMACIST}, "approve_prescription") is True
+    assert has({rbac.PHARMACIST_ADMIN}, "approve_prescription") is True
 
 
-def test_pharmacist_resolves():
-    assert resolve_role(200, _settings()) == StaffRole.PHARMACIST
+def test_sales_support_cannot_approve_payment_or_rx():
+    s = {rbac.SALES_SUPPORT}
+    assert has(s, "message_customer") is True
+    assert has(s, "approve_payment") is False
+    assert has(s, "approve_prescription") is False
+    assert has(s, "edit_pricing") is False
 
 
-def test_unknown_is_none():
-    assert resolve_role(999, _settings()) is None
+def test_finance_payment_permissions():
+    f = {rbac.FINANCE}
+    assert has(f, "approve_payment") is True
+    assert has(f, "reject_payment") is True
+    assert has(f, "approve_prescription") is False
+    assert has(f, "edit_pricing") is False
 
 
-def test_action_permissions():
-    assert can(StaffRole.PHARMACIST, "review_prescription") is True
-    assert can(StaffRole.PHARMACIST, "edit_pricing") is False
-    assert can(StaffRole.OWNER, "edit_pricing") is True
-    assert can(StaffRole.DISPATCHER, "mark_dispatched") is True
-    assert can(None, "approve_payment") is False
+def test_packaging_and_dispatcher_scopes():
+    assert has({rbac.PACKAGING}, "start_packaging") is True
+    assert has({rbac.PACKAGING}, "approve_payment") is False
+    assert has({rbac.DISPATCHER}, "mark_delivered") is True
+    assert has({rbac.DISPATCHER}, "view_delivery_address") is True
+    assert has({rbac.DISPATCHER}, "edit_pricing") is False
+
+
+def test_multi_role_union():
+    both = {rbac.FINANCE, rbac.PACKAGING}
+    assert has(both, "approve_payment") is True
+    assert has(both, "start_packaging") is True
+
+
+def test_primary_role_picks_highest():
+    # ROLES is ordered by privilege; primary_role returns the earliest-listed match.
+    assert primary_role({rbac.DISPATCHER, rbac.SYSTEM_OWNER}) == rbac.SYSTEM_OWNER
+    assert primary_role({rbac.DISPATCHER, rbac.FINANCE}) == rbac.DISPATCHER
+    assert primary_role(set()) is None
+
+
+def test_every_role_has_a_menu():
+    for role_key in rbac.ROLES:
+        assert rbac.menu_for({role_key}), f"{role_key} has no menu"
+
+
+def test_menu_merge_dedupes():
+    menu = rbac.menu_for({rbac.SYSTEM_OWNER, rbac.FINANCE})
+    callbacks = [cb for _, cb in menu]
+    assert len(callbacks) == len(set(callbacks))

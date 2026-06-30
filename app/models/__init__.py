@@ -1,4 +1,12 @@
 """Import all models so Base.metadata is fully populated (Alembic, create_all)."""
+from app.models.admin import (
+    AdminActivityLog,
+    AdminRoleAssignment,
+    AdminUser,
+    Permission,
+    Role,
+    RolePermission,
+)
 from app.models.base import Base, TimestampMixin
 from app.models.catalog import Product, ProductAlias, ProductPricing
 from app.models.crypto import CryptoPayment, CryptoStatus
@@ -65,4 +73,10 @@ __all__ = [
     "TrackingLink",
     "DeliveryTrackingEvent",
     "DeliveryWebhookEvent",
+    "AdminUser",
+    "AdminRoleAssignment",
+    "AdminActivityLog",
+    "Role",
+    "Permission",
+    "RolePermission",
 ]

@@ -11,7 +11,6 @@ from app.bot.keyboards.customer import back_to_menu
 from app.core.db import get_session
 from app.core.logging import get_logger
 from app.models import Customer, PharmacistQuestion
-from app.models.ops import StaffRole
 
 router = Router(name="customer-support")
 log = get_logger("support")
@@ -61,10 +60,12 @@ async def ask_received(message: Message, state: FSMContext) -> None:
 
 
 async def _alert_pharmacist(bot, cust_name, cust_id, text: str) -> None:
-    from app.core.config import get_settings
+    from app.core import rbac
+    from app.services.rbac_service import recipients_for_roles
 
-    s = get_settings()
-    recipients = s.pharmacist_ids | s.owner_ids
+    recipients, _emails = await recipients_for_roles(
+        {rbac.LEAD_PHARMACIST, rbac.PHARMACIST_ADMIN, rbac.SYSTEM_OWNER}
+    )
     body = (
         f"💬 <b>New pharmacist question</b>\n"
         f"From: {cust_name or 'customer'} (id <code>{cust_id}</code>)\n\n{text}"

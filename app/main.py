@@ -29,8 +29,14 @@ async def lifespan(app: FastAPI):
     app.state.dp = dp
 
     from app.scheduler.jobs import start_scheduler
+    from app.services.rbac_service import seed_roles_and_permissions
 
     start_scheduler()
+    # Keep the roles/permissions catalog in sync with the code matrix.
+    try:
+        await seed_roles_and_permissions()
+    except Exception as exc:  # noqa: BLE001
+        log.error("rbac_seed_failed", error=str(exc))
 
     if settings.webhook_base_url:
         url = settings.webhook_base_url.rstrip("/") + "/webhook/telegram"

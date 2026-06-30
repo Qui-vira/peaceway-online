@@ -7,7 +7,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy import select
 
 from app.core.db import get_session
-from app.core.security import can, resolve_role
+from app.core.security import get_role_keys, has
 from app.models import Order
 from app.services.delivery.registry import enabled_providers
 from app.services.delivery.service import book_delivery
@@ -17,8 +17,8 @@ router = Router(name="staff-delivery")
 
 @router.callback_query(F.data.startswith("act:book:"))
 async def choose_provider(call: CallbackQuery) -> None:
-    role = resolve_role(call.from_user.id)
-    if not can(role, "assign_rider"):
+    role_keys = await get_role_keys(call.from_user.id)
+    if not has(role_keys, "assign_rider"):
         await call.answer("Not authorised.", show_alert=True)
         return
     code = call.data.split("act:book:", 1)[1]
@@ -38,8 +38,8 @@ async def choose_provider(call: CallbackQuery) -> None:
 
 @router.callback_query(F.data.startswith("book:"))
 async def do_book(call: CallbackQuery) -> None:
-    role = resolve_role(call.from_user.id)
-    if not can(role, "assign_rider"):
+    role_keys = await get_role_keys(call.from_user.id)
+    if not has(role_keys, "assign_rider"):
         await call.answer("Not authorised.", show_alert=True)
         return
     _, provider_key, code = call.data.split(":", 2)
