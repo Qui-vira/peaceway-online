@@ -6,15 +6,59 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 
 def main_menu() -> InlineKeyboardMarkup:
-    kb = InlineKeyboardBuilder()
-    kb.button(text="🛒 Order Medicine", callback_data="menu:order")
-    kb.button(text="💬 Ask the Pharmacist", callback_data="menu:ask")
-    kb.button(text="📍 Check Delivery Areas", callback_data="menu:areas")
-    kb.button(text="⭐ Popular Products", callback_data="menu:popular")
-    kb.button(text="🧑‍⚕️ Speak to a Human", callback_data="menu:human")
-    kb.button(text="📦 Track My Order", callback_data="menu:track")
-    kb.adjust(1)
-    return kb.as_markup()
+    """Main menu as a 2-column grid (callbacks unchanged). Renders identically on
+    mobile and desktop Telegram."""
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text="🛒 Order Medicine", callback_data="menu:order"),
+                InlineKeyboardButton(text="💬 Ask Pharmacist", callback_data="menu:ask"),
+            ],
+            [
+                InlineKeyboardButton(text="📍 Delivery Areas", callback_data="menu:areas"),
+                InlineKeyboardButton(text="⭐ Popular Products", callback_data="menu:popular"),
+            ],
+            [
+                InlineKeyboardButton(text="👨‍⚕️ Speak to Human", callback_data="menu:human"),
+                InlineKeyboardButton(text="📦 Track Order", callback_data="menu:track"),
+            ],
+        ]
+    )
+
+
+def help_menu() -> InlineKeyboardMarkup:
+    """/help quick actions in the same 2-column grid style."""
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text="📋 How It Works", callback_data="menu:how"),
+                InlineKeyboardButton(text="🛒 Order Medicine", callback_data="menu:order"),
+            ],
+            [
+                InlineKeyboardButton(text="💬 Ask Pharmacist", callback_data="menu:ask"),
+                InlineKeyboardButton(text="📦 Track Order", callback_data="menu:track"),
+            ],
+            [
+                InlineKeyboardButton(text="🏠 Main Menu", callback_data="menu:home"),
+            ],
+        ]
+    )
+
+
+def how_it_works_menu() -> InlineKeyboardMarkup:
+    """How It Works quick actions, same grid style."""
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text="🛒 Order Medicine", callback_data="menu:order"),
+                InlineKeyboardButton(text="📍 Delivery Areas", callback_data="menu:areas"),
+            ],
+            [
+                InlineKeyboardButton(text="💬 Ask Pharmacist", callback_data="menu:ask"),
+                InlineKeyboardButton(text="🏠 Main Menu", callback_data="menu:home"),
+            ],
+        ]
+    )
 
 
 def back_to_menu() -> InlineKeyboardMarkup:

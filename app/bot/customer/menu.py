@@ -2,11 +2,11 @@
 from __future__ import annotations
 
 from aiogram import F, Router
-from aiogram.filters import CommandStart
+from aiogram.filters import Command, CommandStart
 from aiogram.types import CallbackQuery, Message
 from sqlalchemy import select
 
-from app.bot.keyboards.customer import back_to_menu, main_menu
+from app.bot.keyboards.customer import back_to_menu, help_menu, how_it_works_menu, main_menu
 from app.core.db import get_session
 from app.core.config import get_settings
 from app.models import Customer
@@ -17,6 +17,23 @@ WELCOME = (
     "Welcome to <b>Peaceway Online</b>.\n\n"
     "Your licensed pharmacy in Igando is now online and delivering across Lagos.\n\n"
     "What do you need today?"
+)
+
+HELP_TEXT = (
+    "ℹ️ <b>Peaceway Online — Help</b>\n\n"
+    "I'm your pharmacy assistant. You can order medicine, ask our pharmacist a question, "
+    "check delivery areas, and track your order — all here in chat.\n\n"
+    "Use the buttons below or send /start anytime to return to the main menu."
+)
+
+HOW_IT_WORKS_TEXT = (
+    "📋 <b>How It Works</b>\n\n"
+    "1️⃣ <b>Order Medicine</b> — search or browse, then add items to your cart.\n"
+    "2️⃣ <b>Checkout</b> — enter your delivery details and pick your area.\n"
+    "3️⃣ <b>Pay</b> — transfer to our account and upload your proof of payment.\n"
+    "4️⃣ <b>We prepare & dispatch</b> — you get live updates as your order moves.\n"
+    "5️⃣ <b>Delivered</b> — we check in 24 hours later to confirm all is well.\n\n"
+    "💊 Prescription medicines are reviewed by our pharmacist before they're supplied."
 )
 
 
@@ -33,6 +50,28 @@ async def _ensure_customer(telegram_id: int, name: str | None) -> None:
 async def cmd_start(message: Message) -> None:
     await _ensure_customer(message.from_user.id, message.from_user.full_name)
     await message.answer(WELCOME, reply_markup=main_menu())
+
+
+@router.message(Command("help"))
+async def cmd_help(message: Message) -> None:
+    await message.answer(HELP_TEXT, reply_markup=help_menu())
+
+
+@router.message(Command("howitworks"))
+async def cmd_how(message: Message) -> None:
+    await message.answer(HOW_IT_WORKS_TEXT, reply_markup=how_it_works_menu())
+
+
+@router.callback_query(F.data == "menu:how")
+async def how_it_works(call: CallbackQuery) -> None:
+    await call.message.edit_text(HOW_IT_WORKS_TEXT, reply_markup=how_it_works_menu())
+    await call.answer()
+
+
+@router.callback_query(F.data == "menu:help")
+async def help_cb(call: CallbackQuery) -> None:
+    await call.message.edit_text(HELP_TEXT, reply_markup=help_menu())
+    await call.answer()
 
 
 @router.callback_query(F.data == "menu:home")
