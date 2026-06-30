@@ -30,3 +30,12 @@ class PharmacistFlow(StatesGroup):
 class RequestAdminFlow(StatesGroup):
     message = State()           # capture message/note body to send to customer
     price = State()             # capture price for "Send Price to Customer" action
+
+
+class OrderAdminFlow(StatesGroup):
+    search = State()            # capture order reference/code search query
+
+
+class PaymentAdminFlow(StatesGroup):
+    message = State()           # capture freetext message to customer about a payment
+    clearer = State()           # capture "request clearer proof" note

@@ -121,14 +121,14 @@ def _order_list_kb(orders: list[Order]):
 
 
 # Menu callbacks that map to an "open orders" list, by the permission they need.
+# Note: staff:orders, staff:payments, staff:paystatus have dedicated handlers in
+# orders_admin.py / payments_admin.py (richer detail, filters, search) and are
+# intentionally excluded here.
 _ORDER_VIEWS = {
-    "staff:orders": "view_customer_orders",
     "staff:dashboard": "view_all_orders",
-    "staff:payments": "approve_payment",
     "staff:paid": "see_paid_orders",
     "staff:deliveries": "view_assigned_deliveries",
     "staff:medorders": "view_medicine_orders",
-    "staff:paystatus": "view_payment_status",
 }
 
 

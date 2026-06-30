@@ -20,6 +20,7 @@ from app.models import (
     RxStatus,
 )
 from app.services import orders as orders_svc
+from app.services import payments_admin as payments_admin_svc
 
 router = Router(name="staff-orders")
 log = get_logger("staff-orders")
@@ -108,16 +109,17 @@ async def handle_action(call: CallbackQuery, state: FSMContext) -> None:
         by = f"{primary_role(role_keys) or 'staff'}:{call.from_user.id}"
 
         if action == "pay_approve":
-            await orders_svc.transition_status(session, order, OrderStatus.PAYMENT_APPROVED, by)
+            payment = await payments_admin_svc.latest_pending_payment(session, order.id)
+            ok, err = await payments_admin_svc.approve_payment(session, order, payment, by)
+            if not ok:
+                await call.answer(err, show_alert=True)
+                return
             customer_msg = f"✅ Payment approved for {code}. We're preparing your order."
-            # Automation: OTC -> auto PROCESSING; alert packaging.
-            if order.rx_status == RxStatus.NOT_REQUIRED:
-                await orders_svc.transition_status(session, order, OrderStatus.PROCESSING, "system", "Auto: OTC paid")
-                await orders_svc.transition_delivery(session, order, DeliveryStatus.PACKAGING, "system")
             downstream = ("packaging", order.id)
 
         elif action == "pay_reject":
-            await orders_svc.transition_status(session, order, OrderStatus.REJECTED, by, "Payment rejected")
+            payment = await payments_admin_svc.latest_pending_payment(session, order.id)
+            await payments_admin_svc.reject_payment(session, order, payment, by)
             customer_msg = f"❌ Payment for {code} could not be verified. Please contact support."
 
         elif action == "packaging":
