@@ -103,7 +103,9 @@ async def show_payment_instructions(call: CallbackQuery, order_code: str, total:
         f"Amount: <b>₦{total:,.0f}</b>\n\n"
         f"Transfer to any of these accounts:\n\n"
         f"{bank_block}\n\n"
-        f"Use <b>{order_code}</b> as the transfer narration/reference, then upload your proof of payment."
+        f"💡 You can pay from any bank or OPay app — just transfer to the account number above.\n\n"
+        f"Use <b>{order_code}</b> as the transfer narration/reference, then tap "
+        f"<b>Upload Proof of Payment</b> below."
     )
     kb = InlineKeyboardBuilder()
     kb.button(text="📤 Upload Proof of Payment", callback_data=f"pay:proof:{order_code}")
