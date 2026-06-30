@@ -42,3 +42,11 @@ class ProductRequestFlow(StatesGroup):
     quantity = State()
     note = State()
     area = State()
+
+
+class EmailGateFlow(StatesGroup):
+    waiting_email = State()
+
+
+class ProfileFlow(StatesGroup):
+    waiting_email = State()

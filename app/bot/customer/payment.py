@@ -114,9 +114,7 @@ async def show_payment_instructions(call: CallbackQuery, order_code: str, total:
     await call.message.edit_text(text, reply_markup=kb.as_markup())
 
 
-@router.callback_query(F.data.startswith("pay:proof:"))
-async def ask_proof(call: CallbackQuery, state: FSMContext) -> None:
-    order_code = call.data.split("pay:proof:", 1)[1]
+async def _render_ask_proof(call: CallbackQuery, state: FSMContext, order_code: str) -> None:
     await state.set_state(PaymentFlow.waiting_proof)
     await state.update_data(pay_order_code=order_code)
     await call.message.edit_text(
@@ -124,6 +122,18 @@ async def ask_proof(call: CallbackQuery, state: FSMContext) -> None:
         reply_markup=back_to_menu(),
     )
     await call.answer()
+
+
+@router.callback_query(F.data.startswith("pay:proof:"))
+async def ask_proof(call: CallbackQuery, state: FSMContext) -> None:
+    from app.bot.customer.email_gate import ensure_email
+
+    order_code = call.data.split("pay:proof:", 1)[1]
+    if not await ensure_email(
+        call, state, source="payment", resume=lambda: _render_ask_proof(call, state, order_code)
+    ):
+        return
+    await _render_ask_proof(call, state, order_code)
 
 
 @router.message(PaymentFlow.waiting_proof, F.photo)

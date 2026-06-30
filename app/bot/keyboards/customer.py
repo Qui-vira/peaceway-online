@@ -24,6 +24,7 @@ def main_menu() -> InlineKeyboardMarkup:
             ],
             [
                 InlineKeyboardButton(text="📋 How It Works", callback_data="menu:how"),
+                InlineKeyboardButton(text="👤 My Profile", callback_data="menu:profile"),
             ],
         ]
     )

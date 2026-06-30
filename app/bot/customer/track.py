@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from aiogram import F, Router
 from aiogram.filters import Command
+from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy import select
@@ -68,8 +69,7 @@ def _tracking_kb(orders):
     return kb.as_markup()
 
 
-@router.callback_query(F.data == "menu:track")
-async def track_menu(call: CallbackQuery) -> None:
+async def _render_track_menu(call: CallbackQuery) -> None:
     orders = await _active_orders(call.from_user.id)
     if not orders:
         await call.message.edit_text(
@@ -83,17 +83,33 @@ async def track_menu(call: CallbackQuery) -> None:
     await call.answer()
 
 
-@router.message(Command("track"))
-async def track_command(message: Message) -> None:
-    orders = await _active_orders(message.from_user.id)
-    if not orders:
-        await message.answer(
-            "📦 You have no active orders to track right now.", reply_markup=back_to_menu()
-        )
+@router.callback_query(F.data == "menu:track")
+async def track_menu(call: CallbackQuery, state: FSMContext) -> None:
+    from app.bot.customer.email_gate import ensure_email
+
+    if not await ensure_email(call, state, source="tracking", resume=lambda: _render_track_menu(call)):
         return
-    await message.answer(
-        "📦 <b>Track My Order</b>\nSelect an order:", reply_markup=_tracking_kb(orders)
-    )
+    await _render_track_menu(call)
+
+
+@router.message(Command("track"))
+async def track_command(message: Message, state: FSMContext) -> None:
+    from app.bot.customer.email_gate import ensure_email
+
+    async def _resume():
+        orders = await _active_orders(message.from_user.id)
+        if not orders:
+            await message.answer(
+                "📦 You have no active orders to track right now.", reply_markup=back_to_menu()
+            )
+            return
+        await message.answer(
+            "📦 <b>Track My Order</b>\nSelect an order:", reply_markup=_tracking_kb(orders)
+        )
+
+    if not await ensure_email(message, state, source="tracking", resume=_resume):
+        return
+    await _resume()
 
 
 @router.callback_query(F.data.startswith("track:"))

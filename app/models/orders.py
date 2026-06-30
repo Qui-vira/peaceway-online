@@ -5,8 +5,12 @@ import enum
 from decimal import Decimal
 from uuid import UUID, uuid4
 
+from datetime import datetime
+
 from sqlalchemy import (
     BigInteger,
+    Boolean,
+    DateTime,
     Enum as SAEnum,
     ForeignKey,
     Integer,
@@ -69,7 +73,46 @@ class Customer(Base, TimestampMixin):
     # Saved delivery addresses [{address, area, landmark, preferred_time, note}]
     addresses: Mapped[list | None] = mapped_column(JSONB)
 
+    email: Mapped[str | None] = mapped_column(String(255))
+    email_verified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    email_collected_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # order|pharmacist|prescription|product_request|support|tracking|community|payment|follow_up
+    email_source: Mapped[str | None] = mapped_column(String(40))
+    email_opt_in: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    email_opt_in_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    email_updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
     orders: Mapped[list["Order"]] = relationship(back_populates="customer")
+
+
+class CustomerContactEvent(Base, TimestampMixin):
+    """Append-only history of every email add/update/remove for a customer."""
+
+    __tablename__ = "customer_contact_events"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    customer_id: Mapped[UUID] = mapped_column(ForeignKey("customers.id", ondelete="CASCADE"), nullable=False, index=True)
+    telegram_user_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    event_type: Mapped[str] = mapped_column(String(20), nullable=False)  # added|updated|removed
+    old_email: Mapped[str | None] = mapped_column(String(255))
+    new_email: Mapped[str | None] = mapped_column(String(255))
+    source_flow: Mapped[str | None] = mapped_column(String(40))
+
+
+class CustomerPreferences(Base, TimestampMixin):
+    """Notification opt-ins. Promotions/community default OFF (true opt-in required)."""
+
+    __tablename__ = "customer_preferences"
+
+    customer_id: Mapped[UUID] = mapped_column(
+        ForeignKey("customers.id", ondelete="CASCADE"), primary_key=True
+    )
+    receive_order_updates: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    receive_product_request_updates: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    receive_pharmacist_replies: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    receive_delivery_updates: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    receive_promotions: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    receive_community_updates: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
 
 class Order(Base, TimestampMixin):

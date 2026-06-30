@@ -3,13 +3,14 @@ from __future__ import annotations
 
 from aiogram import F, Router
 from aiogram.filters import Command, CommandStart
+from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 from sqlalchemy import select
 
 from app.bot.keyboards.customer import back_to_menu, help_menu, how_it_works_menu, main_menu
 from app.core.db import get_session
 from app.core.config import get_settings
-from app.models import Customer
+from app.services.customers import get_or_create_customer
 
 router = Router(name="customer-menu")
 
@@ -59,11 +60,7 @@ HOW_IT_WORKS_TEXT = (
 
 async def _ensure_customer(telegram_id: int, name: str | None) -> None:
     async with get_session() as session:
-        existing = (
-            await session.execute(select(Customer).where(Customer.telegram_id == telegram_id))
-        ).scalar_one_or_none()
-        if existing is None:
-            session.add(Customer(telegram_id=telegram_id, full_name=name))
+        await get_or_create_customer(session, telegram_id, name)
 
 
 @router.message(CommandStart())
@@ -119,8 +116,7 @@ async def delivery_areas(call: CallbackQuery) -> None:
     await call.answer()
 
 
-@router.callback_query(F.data == "menu:human")
-async def speak_to_human(call: CallbackQuery) -> None:
+async def _render_speak_to_human(call: CallbackQuery) -> None:
     name = get_settings().pharmacy_name
     text = (
         f"🧑‍⚕️ A team member from {name} will assist you.\n\n"
@@ -129,3 +125,12 @@ async def speak_to_human(call: CallbackQuery) -> None:
     )
     await call.message.edit_text(text, reply_markup=back_to_menu())
     await call.answer()
+
+
+@router.callback_query(F.data == "menu:human")
+async def speak_to_human(call: CallbackQuery, state: FSMContext) -> None:
+    from app.bot.customer.email_gate import ensure_email
+
+    if not await ensure_email(call, state, source="support", resume=lambda: _render_speak_to_human(call)):
+        return
+    await _render_speak_to_human(call)

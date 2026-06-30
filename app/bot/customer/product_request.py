@@ -13,15 +13,15 @@ from app.bot.keyboards.customer import back_cancel, back_to_menu
 from app.core import rbac
 from app.core.db import get_session
 from app.core.logging import get_logger
-from app.models import Customer, DeliveryZone, ProductRequest
+from app.models import DeliveryZone, ProductRequest
+from app.services.customers import get_or_create_customer
 from app.services.rbac_service import recipients_for_roles
 
 router = Router(name="customer-product-request")
 log = get_logger("product_request")
 
 
-@router.callback_query(F.data == "preq:start")
-async def start(call: CallbackQuery, state: FSMContext) -> None:
+async def _render_start(call: CallbackQuery, state: FSMContext) -> None:
     data = await state.get_data()
     prefill = data.get("last_query")
     await state.set_state(ProductRequestFlow.product_name)
@@ -42,6 +42,15 @@ async def start(call: CallbackQuery, state: FSMContext) -> None:
             reply_markup=back_cancel("menu:order"),
         )
     await call.answer()
+
+
+@router.callback_query(F.data == "preq:start")
+async def start(call: CallbackQuery, state: FSMContext) -> None:
+    from app.bot.customer.email_gate import ensure_email
+
+    if not await ensure_email(call, state, source="product_request", resume=lambda: _render_start(call, state)):
+        return
+    await _render_start(call, state)
 
 
 @router.callback_query(ProductRequestFlow.product_name, F.data == "preq:useprefill")
@@ -121,13 +130,7 @@ async def got_area(call: CallbackQuery, state: FSMContext) -> None:
     await state.clear()
 
     async with get_session() as session:
-        customer = (
-            await session.execute(select(Customer).where(Customer.telegram_id == call.from_user.id))
-        ).scalar_one_or_none()
-        if customer is None:
-            customer = Customer(telegram_id=call.from_user.id, full_name=call.from_user.full_name)
-            session.add(customer)
-            await session.flush()
+        customer = await get_or_create_customer(session, call.from_user.id, call.from_user.full_name)
         req = ProductRequest(
             customer_id=customer.id,
             product_name=data.get("req_name", "(unspecified)"),

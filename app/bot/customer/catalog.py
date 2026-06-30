@@ -55,8 +55,7 @@ def _not_found_kb():
 
 
 # ── Order entry: search or browse ────────────────────────────────────────────
-@router.callback_query(F.data == "menu:order")
-async def order_menu(call: CallbackQuery) -> None:
+async def _render_order_menu(call: CallbackQuery) -> None:
     kb = InlineKeyboardBuilder()
     kb.button(text="🔎 Search by name", callback_data="order:search")
     kb.button(text="🗂 Browse categories", callback_data="order:browse")
@@ -68,6 +67,15 @@ async def order_menu(call: CallbackQuery) -> None:
         reply_markup=kb.as_markup(),
     )
     await call.answer()
+
+
+@router.callback_query(F.data == "menu:order")
+async def order_menu(call: CallbackQuery, state: FSMContext) -> None:
+    from app.bot.customer.email_gate import ensure_email
+
+    if not await ensure_email(call, state, source="order", resume=lambda: _render_order_menu(call)):
+        return
+    await _render_order_menu(call)
 
 
 @router.callback_query(F.data == "order:search")

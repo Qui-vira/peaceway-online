@@ -6,14 +6,14 @@ from uuid import UUID
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
-from sqlalchemy import select
 
 from app.bot.customer.states import PrescriptionFlow
 from app.bot.keyboards.customer import back_cancel, back_to_menu
 from app.core import rbac
 from app.core.db import get_session
 from app.core.logging import get_logger
-from app.models import Customer, Prescription, Product
+from app.models import Prescription, Product
+from app.services.customers import get_or_create_customer
 from app.services.email import send_email
 from app.services.rbac_service import recipients_for_roles
 
@@ -27,11 +27,7 @@ CONFIRMATION = (
 _VALID_DOC_EXT = (".pdf", ".jpg", ".jpeg", ".png")
 
 
-@router.callback_query(F.data.startswith("rx:"))
-async def start_upload(call: CallbackQuery, state: FSMContext) -> None:
-    raw = call.data.split("rx:", 1)[1]
-    product_id = None if raw == "-" else raw
-    origin = f"prod:{product_id}" if product_id else "menu:home"
+async def _render_upload_prompt(call: CallbackQuery, state: FSMContext, product_id: str | None, origin: str) -> None:
     await state.set_state(PrescriptionFlow.waiting_file)
     await state.update_data(rx_product_id=product_id, rx_origin=origin)
     await call.message.edit_text(
@@ -39,6 +35,21 @@ async def start_upload(call: CallbackQuery, state: FSMContext) -> None:
         reply_markup=back_cancel(origin),
     )
     await call.answer()
+
+
+@router.callback_query(F.data.startswith("rx:"))
+async def start_upload(call: CallbackQuery, state: FSMContext) -> None:
+    from app.bot.customer.email_gate import ensure_email
+
+    raw = call.data.split("rx:", 1)[1]
+    product_id = None if raw == "-" else raw
+    origin = f"prod:{product_id}" if product_id else "menu:home"
+    if not await ensure_email(
+        call, state, source="prescription",
+        resume=lambda: _render_upload_prompt(call, state, product_id, origin),
+    ):
+        return
+    await _render_upload_prompt(call, state, product_id, origin)
 
 
 @router.message(PrescriptionFlow.waiting_file, F.photo | F.document)
@@ -61,13 +72,7 @@ async def got_file(message: Message, state: FSMContext) -> None:
         file_type = "document"
 
     async with get_session() as session:
-        customer = (
-            await session.execute(select(Customer).where(Customer.telegram_id == message.from_user.id))
-        ).scalar_one_or_none()
-        if customer is None:
-            customer = Customer(telegram_id=message.from_user.id, full_name=message.from_user.full_name)
-            session.add(customer)
-            await session.flush()
+        customer = await get_or_create_customer(session, message.from_user.id, message.from_user.full_name)
 
         product_name = None
         if product_id:

@@ -80,11 +80,13 @@ def build_dispatcher() -> Dispatcher:
         catalog,
         checkout,
         crypto,
+        email_gate,
         followup,
         menu,
         payment,
         prescription,
         product_request,
+        profile,
         support,
         track,
     )
@@ -115,7 +117,9 @@ def build_dispatcher() -> Dispatcher:
     dp.include_router(staff_orders.router)
     # Fallback LAST so it only catches unhandled staff:* callbacks.
     dp.include_router(staff_fallback.router)
+    dp.include_router(email_gate.router)
     dp.include_router(menu.router)
+    dp.include_router(profile.router)
     dp.include_router(catalog.router)
     dp.include_router(cart.router)
     dp.include_router(checkout.router)
