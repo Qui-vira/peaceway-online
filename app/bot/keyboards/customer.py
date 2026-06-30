@@ -19,8 +19,11 @@ def main_menu() -> InlineKeyboardMarkup:
                 InlineKeyboardButton(text="⭐ Popular Products", callback_data="menu:popular"),
             ],
             [
-                InlineKeyboardButton(text="👨‍⚕️ Speak to Human", callback_data="menu:human"),
+                InlineKeyboardButton(text="👨‍⚕️ Speak to Support", callback_data="menu:human"),
                 InlineKeyboardButton(text="📦 Track Order", callback_data="menu:track"),
+            ],
+            [
+                InlineKeyboardButton(text="📋 How It Works", callback_data="menu:how"),
             ],
         ]
     )

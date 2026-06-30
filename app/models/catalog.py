@@ -4,7 +4,17 @@ from __future__ import annotations
 from decimal import Decimal
 from uuid import UUID, uuid4
 
-from sqlalchemy import Boolean, ForeignKey, Index, Integer, Numeric, String, UniqueConstraint
+from sqlalchemy import (
+    BigInteger,
+    Boolean,
+    ForeignKey,
+    Index,
+    Integer,
+    Numeric,
+    String,
+    Text,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, TimestampMixin
@@ -25,6 +35,7 @@ class Product(Base, TimestampMixin):
     nafdac_number: Mapped[str | None] = mapped_column(String(100), unique=True, index=True)
     category: Mapped[str | None] = mapped_column(String(100), index=True)
 
+    description: Mapped[str | None] = mapped_column(String(1000))
     requires_prescription: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     controlled_substance: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     # Anything not explicitly cleared by a pharmacist needs review before sale.
@@ -77,3 +88,19 @@ class ProductPricing(Base, TimestampMixin):
     is_in_stock: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     product: Mapped[Product] = relationship(back_populates="pricing")
+
+
+class PriceHistory(Base, TimestampMixin):
+    """Audit trail of every price/stock change, for the 'View Price History' view."""
+
+    __tablename__ = "price_history"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    product_id: Mapped[UUID] = mapped_column(
+        ForeignKey("products.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    field: Mapped[str] = mapped_column(String(40), nullable=False)  # selling_price|cost_price|stock|category|...
+    old_value: Mapped[str | None] = mapped_column(String(255))
+    new_value: Mapped[str | None] = mapped_column(String(255))
+    changed_by: Mapped[int | None] = mapped_column(BigInteger)  # admin telegram_id
+    reason: Mapped[str | None] = mapped_column(Text)

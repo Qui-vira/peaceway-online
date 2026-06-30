@@ -85,7 +85,7 @@ async def list_orders(call: CallbackQuery) -> None:
     await call.answer()
 
 
-@router.callback_query(F.data.in_({"staff:rx", "staff:tickets", "staff:escalated", "staff:medorders"}))
+@router.callback_query(F.data.in_({"staff:rx", "staff:escalated", "staff:medorders"}))
 async def list_rx(call: CallbackQuery) -> None:
     role_keys = await get_role_keys(call.from_user.id)
     # Pharmacist inbox / reviews require a medicine-related permission.

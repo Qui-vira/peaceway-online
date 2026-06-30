@@ -114,6 +114,8 @@ ROLE_PERMISSIONS: dict[str, set[str]] = {
         "approve_prescription", "reply_pharmacist_tickets", "review_prescriptions",
         "view_medicine_orders", "view_customer_questions", "escalate_serious_cases",
         "override_safety", "receive_pharmacist_alerts",
+        # Lead Pharmacist may also manage product pricing/stock.
+        "edit_pricing", "view_all_products",
     },
     PHARMACIST_ADMIN: {
         "approve_prescription", "reply_pharmacist_tickets", "review_prescriptions",
@@ -165,6 +167,7 @@ ROLE_MENUS: dict[str, list[tuple[str, str]]] = {
         ("📥 Pharmacist Inbox", "staff:tickets"),
         ("🧾 Medicine Orders", "staff:medorders"),
         ("🆙 Escalated Tickets", "staff:escalated"),
+        ("💊 Products", "staff:products"),
     ],
     PHARMACIST_ADMIN: [
         ("💊 Prescription Reviews", "staff:rx"),

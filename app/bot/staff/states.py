@@ -13,3 +13,14 @@ class AdminFlow(StatesGroup):
     add_telegram_id = State()   # capture new admin's numeric Telegram ID
     add_role = State()          # choose role (inline)
     add_details = State()       # capture "Full Name, email"
+
+
+class ProductAdminFlow(StatesGroup):
+    search = State()            # capture product search query
+    value = State()             # capture a new field value
+    csv_wait = State()          # awaiting a CSV document upload
+    csv_confirm = State()       # awaiting confirm to commit a parsed CSV
+
+
+class PharmacistFlow(StatesGroup):
+    reply = State()             # capture reply to a customer question

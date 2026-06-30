@@ -9,7 +9,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from app.bot.dispatcher import build_bot, build_dispatcher
+from app.bot.dispatcher import build_bot, build_dispatcher, set_bot_commands
 from app.core.config import get_settings
 from app.core.logging import configure_logging, get_logger
 from app.webhooks import flutterwave as flutterwave_webhook
@@ -37,6 +37,11 @@ async def lifespan(app: FastAPI):
         await seed_roles_and_permissions()
     except Exception as exc:  # noqa: BLE001
         log.error("rbac_seed_failed", error=str(exc))
+
+    try:
+        await set_bot_commands(bot)
+    except Exception as exc:  # noqa: BLE001
+        log.error("set_commands_failed", error=str(exc))
 
     if settings.webhook_base_url:
         url = settings.webhook_base_url.rstrip("/") + "/webhook/telegram"

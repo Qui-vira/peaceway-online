@@ -21,10 +21,24 @@ WELCOME = (
 
 HELP_TEXT = (
     "ℹ️ <b>Peaceway Online Help</b>\n\n"
-    "I'm your pharmacy assistant.\n\n"
-    "You can order medicine, ask our pharmacist a question, check delivery areas, "
-    "and track your order, all here in chat.\n\n"
-    "Use the buttons below, or send /start anytime to return to the main menu."
+    "🛒 <b>How to order</b>\n"
+    "Tap Order Medicine, search or browse, add to cart, then checkout.\n\n"
+    "💳 <b>Payment</b>\n"
+    "After checkout, transfer to our account and upload your proof of payment. "
+    "We confirm it before preparing your order.\n\n"
+    "🚚 <b>Delivery</b>\n"
+    "Pick your area at checkout to see the delivery fee. We deliver across Lagos.\n\n"
+    "💬 <b>Ask the Pharmacist</b>\n"
+    "Tap Ask the Pharmacist to send a question. Our pharmacist replies here in chat.\n\n"
+    "📦 <b>Track your order</b>\n"
+    "Tap Track Order or send /track to see your order status and delivery progress.\n\n"
+    "👨‍⚕️ <b>Contact support</b>\n"
+    "Tap Speak to Support for help with anything.\n\n"
+    "💊 <b>Prescription safety</b>\n"
+    "Some medicines need pharmacist review or a valid prescription before we can supply them. "
+    "We never give diagnosis or emergency advice. For serious symptoms, please see a pharmacist "
+    "in person or seek urgent medical care.\n\n"
+    "Send /start anytime to return to the main menu."
 )
 
 HOW_IT_WORKS_TEXT = (

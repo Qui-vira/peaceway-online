@@ -19,7 +19,10 @@ async def main() -> None:
     start_scheduler()
     bot = build_bot()
     dp = build_dispatcher()
+    from app.bot.dispatcher import set_bot_commands
+
     await bot.delete_webhook(drop_pending_updates=True)
+    await set_bot_commands(bot)
     log.info("polling_start")
     await dp.start_polling(bot)
 

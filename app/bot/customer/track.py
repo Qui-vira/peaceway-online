@@ -2,7 +2,8 @@
 from __future__ import annotations
 
 from aiogram import F, Router
-from aiogram.types import CallbackQuery
+from aiogram.filters import Command
+from aiogram.types import CallbackQuery, Message
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy import select
 
@@ -41,35 +42,58 @@ _DELIVERY_LABEL = {
 }
 
 
-@router.callback_query(F.data == "menu:track")
-async def track_menu(call: CallbackQuery) -> None:
+async def _active_orders(telegram_id: int):
     async with get_session() as session:
         customer = (
-            await session.execute(select(Customer).where(Customer.telegram_id == call.from_user.id))
+            await session.execute(select(Customer).where(Customer.telegram_id == telegram_id))
         ).scalar_one_or_none()
-        orders = []
-        if customer:
-            orders = (
-                await session.execute(
-                    select(Order)
-                    .where(Order.customer_id == customer.id, Order.status.in_(_ACTIVE))
-                    .order_by(Order.created_at.desc())
-                    .limit(10)
-                )
-            ).scalars().all()
+        if not customer:
+            return []
+        return (
+            await session.execute(
+                select(Order)
+                .where(Order.customer_id == customer.id, Order.status.in_(_ACTIVE))
+                .order_by(Order.created_at.desc())
+                .limit(10)
+            )
+        ).scalars().all()
+
+
+def _tracking_kb(orders):
+    kb = InlineKeyboardBuilder()
+    for o in orders:
+        kb.button(text=f"{o.code} · {o.status.value}", callback_data=f"track:{o.code}")
+    kb.button(text="⬅️ Main Menu", callback_data="menu:home")
+    kb.adjust(1)
+    return kb.as_markup()
+
+
+@router.callback_query(F.data == "menu:track")
+async def track_menu(call: CallbackQuery) -> None:
+    orders = await _active_orders(call.from_user.id)
     if not orders:
         await call.message.edit_text(
             "📦 You have no active orders to track right now.", reply_markup=back_to_menu()
         )
         await call.answer()
         return
-    kb = InlineKeyboardBuilder()
-    for o in orders:
-        kb.button(text=f"{o.code} · {o.status.value}", callback_data=f"track:{o.code}")
-    kb.button(text="⬅️ Main Menu", callback_data="menu:home")
-    kb.adjust(1)
-    await call.message.edit_text("📦 <b>Track My Order</b>\nSelect an order:", reply_markup=kb.as_markup())
+    await call.message.edit_text(
+        "📦 <b>Track My Order</b>\nSelect an order:", reply_markup=_tracking_kb(orders)
+    )
     await call.answer()
+
+
+@router.message(Command("track"))
+async def track_command(message: Message) -> None:
+    orders = await _active_orders(message.from_user.id)
+    if not orders:
+        await message.answer(
+            "📦 You have no active orders to track right now.", reply_markup=back_to_menu()
+        )
+        return
+    await message.answer(
+        "📦 <b>Track My Order</b>\nSelect an order:", reply_markup=_tracking_kb(orders)
+    )
 
 
 @router.callback_query(F.data.startswith("track:"))

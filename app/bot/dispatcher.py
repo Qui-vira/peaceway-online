@@ -5,8 +5,28 @@ from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.fsm.storage.memory import MemoryStorage
+from aiogram.types import (
+    BotCommand,
+    BotCommandScopeAllPrivateChats,
+    BotCommandScopeChat,
+)
 
 from app.core.config import get_settings
+from app.core.logging import get_logger
+
+log = get_logger("dispatcher")
+
+# Commands every customer sees in the Telegram "/" menu.
+PUBLIC_COMMANDS = [
+    BotCommand(command="start", description="Start / main menu"),
+    BotCommand(command="help", description="How to use Peaceway Online"),
+    BotCommand(command="howitworks", description="How ordering works"),
+    BotCommand(command="track", description="Track my order"),
+    BotCommand(command="myid", description="Show my Telegram ID"),
+]
+
+# Extra commands shown only to staff (added on top of the public set).
+STAFF_EXTRA_COMMANDS = [BotCommand(command="admin", description="Staff panel")]
 
 
 def build_bot() -> Bot:
@@ -17,6 +37,40 @@ def build_bot() -> Bot:
     )
 
 
+async def set_bot_commands(bot: Bot) -> None:
+    """Register slash commands with Telegram so they appear in the '/' menu.
+
+    Public set for all private chats; owners/staff additionally get /admin scoped
+    to their own chat.
+    """
+    await bot.set_my_commands(PUBLIC_COMMANDS, scope=BotCommandScopeAllPrivateChats())
+
+    # Owner(s) from env + any active admins get the staff command set in their chat.
+    staff_ids: set[int] = set(get_settings().owner_ids)
+    try:
+        from sqlalchemy import select
+
+        from app.core.db import get_session
+        from app.models import AdminUser
+
+        async with get_session() as session:
+            rows = (
+                await session.execute(select(AdminUser.telegram_id).where(AdminUser.is_active.is_(True)))
+            ).scalars().all()
+            staff_ids |= set(rows)
+    except Exception as exc:  # noqa: BLE001
+        log.error("staff_commands_lookup_failed", error=str(exc))
+
+    for tid in staff_ids:
+        try:
+            await bot.set_my_commands(
+                PUBLIC_COMMANDS + STAFF_EXTRA_COMMANDS, scope=BotCommandScopeChat(chat_id=tid)
+            )
+        except Exception as exc:  # noqa: BLE001
+            log.error("set_staff_commands_failed", telegram_id=tid, error=str(exc))
+    log.info("bot_commands_registered", public=len(PUBLIC_COMMANDS), staff_chats=len(staff_ids))
+
+
 def build_dispatcher() -> Dispatcher:
     dp = Dispatcher(storage=MemoryStorage())
 
@@ -25,17 +79,26 @@ def build_dispatcher() -> Dispatcher:
     from app.bot.staff import admins as staff_admins
     from app.bot.staff import crypto as staff_crypto
     from app.bot.staff import delivery as staff_delivery
+    from app.bot.staff import fallback as staff_fallback
     from app.bot.staff import orders as staff_orders
     from app.bot.staff import panel as staff_panel
+    from app.bot.staff import pharmacist as staff_pharmacist
+    from app.bot.staff import products as staff_products
+    from app.bot.staff import products_csv as staff_products_csv
 
     # Staff routers first so staff commands take precedence.
     # staff_delivery & staff_crypto must precede staff_orders so their specific
     # `act:book:` / `act:crypto_*` callbacks aren't caught by the generic `act:` handler.
     dp.include_router(staff_panel.router)
     dp.include_router(staff_admins.router)
+    dp.include_router(staff_products.router)
+    dp.include_router(staff_products_csv.router)
+    dp.include_router(staff_pharmacist.router)
     dp.include_router(staff_delivery.router)
     dp.include_router(staff_crypto.router)
     dp.include_router(staff_orders.router)
+    # Fallback LAST so it only catches unhandled staff:* callbacks.
+    dp.include_router(staff_fallback.router)
     dp.include_router(menu.router)
     dp.include_router(catalog.router)
     dp.include_router(cart.router)

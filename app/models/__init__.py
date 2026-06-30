@@ -8,7 +8,7 @@ from app.models.admin import (
     RolePermission,
 )
 from app.models.base import Base, TimestampMixin
-from app.models.catalog import Product, ProductAlias, ProductPricing
+from app.models.catalog import PriceHistory, Product, ProductAlias, ProductPricing
 from app.models.crypto import CryptoPayment, CryptoStatus
 from app.models.logistics import (
     DeliveryOrder,
@@ -46,6 +46,7 @@ __all__ = [
     "Product",
     "ProductAlias",
     "ProductPricing",
+    "PriceHistory",
     "CryptoPayment",
     "CryptoStatus",
     "Customer",
