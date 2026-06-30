@@ -88,20 +88,25 @@ async def ask_search(call: CallbackQuery, state: FSMContext) -> None:
     await call.answer()
 
 
-@router.message(SearchFlow.waiting_query, F.text)
-async def do_search(message: Message, state: FSMContext) -> None:
-    await state.clear()
-    query = message.text
+async def render_search_results(answerable, state: FSMContext, query: str) -> None:
+    """Search and reply with results. `answerable` just needs `.answer(text, reply_markup=...)`
+    (a Message works directly; callers can pass `call.message` too)."""
     async with get_session() as session:
         results = await catalog.search_products(session, query)
     if not results:
-        await message.answer(
+        await answerable.answer(
             f"😕 No products found for “{query}”.\n\nWhat would you like to do?",
             reply_markup=_not_found_kb(),
         )
         return
     await state.update_data(last_list_kind="search", last_query=query)
-    await message.answer(f"Results for “{query}”:", reply_markup=_results_kb(results))
+    await answerable.answer(f"Results for “{query}”:", reply_markup=_results_kb(results))
+
+
+@router.message(SearchFlow.waiting_query, F.text)
+async def do_search(message: Message, state: FSMContext) -> None:
+    await state.clear()
+    await render_search_results(message, state, message.text)
 
 
 @router.callback_query(F.data == "order:browse")

@@ -40,8 +40,15 @@ class ProductRequestFlow(StatesGroup):
     strength = State()
     form = State()
     quantity = State()
-    note = State()
     area = State()
+    phone = State()
+    email = State()
+    urgency = State()
+    note = State()
+
+
+class TrackRequestsFlow(StatesGroup):
+    reply = State()
 
 
 class EmailGateFlow(StatesGroup):

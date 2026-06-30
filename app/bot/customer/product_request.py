@@ -1,5 +1,6 @@
 """Custom product/supplement request flow ("Request This Product" /
-"I couldn't find my medicine")."""
+"I couldn't find my medicine"). Treated as a customer lead: collects contact
+details and urgency so Peaceway can follow up, not just a one-shot ticket."""
 from __future__ import annotations
 
 from aiogram import F, Router
@@ -14,11 +15,18 @@ from app.core import rbac
 from app.core.db import get_session
 from app.core.logging import get_logger
 from app.models import DeliveryZone, ProductRequest
-from app.services.customers import get_or_create_customer
+from app.services.customers import get_or_create_customer, is_valid_email, save_email
 from app.services.rbac_service import recipients_for_roles
 
 router = Router(name="customer-product-request")
 log = get_logger("product_request")
+
+_URGENCY_LABELS = {
+    "TODAY": "🔥 Today",
+    "WITHIN_24H": "⏰ Within 24 hours",
+    "THIS_WEEK": "🗓 This week",
+    "JUST_CHECKING": "🤔 Just checking",
+}
 
 
 async def _render_start(call: CallbackQuery, state: FSMContext) -> None:
@@ -100,14 +108,6 @@ async def got_form(message: Message, state: FSMContext) -> None:
 @router.message(ProductRequestFlow.quantity, F.text)
 async def got_quantity(message: Message, state: FSMContext) -> None:
     await state.update_data(req_quantity=message.text.strip())
-    await state.set_state(ProductRequestFlow.note)
-    await message.answer("🗒 Any extra note? — or type <i>skip</i>", reply_markup=back_cancel("menu:order"))
-
-
-@router.message(ProductRequestFlow.note, F.text)
-async def got_note(message: Message, state: FSMContext) -> None:
-    val = message.text.strip()
-    await state.update_data(req_note=None if val.lower() == "skip" else val)
     async with get_session() as session:
         zones = (
             await session.execute(
@@ -126,11 +126,100 @@ async def got_note(message: Message, state: FSMContext) -> None:
 @router.callback_query(ProductRequestFlow.area, F.data.startswith("preqzone:"))
 async def got_area(call: CallbackQuery, state: FSMContext) -> None:
     area = call.data.split("preqzone:", 1)[1]
+    await state.update_data(req_area=area)
+
+    async with get_session() as session:
+        customer = await get_or_create_customer(session, call.from_user.id, call.from_user.full_name)
+        saved_phone = customer.phone
+
+    if saved_phone:
+        await state.update_data(req_phone=saved_phone)
+        await _ask_email_step(call.message, state)
+    else:
+        await state.set_state(ProductRequestFlow.phone)
+        await call.message.edit_text(
+            "📞 Your phone number for this request?", reply_markup=back_cancel("menu:order")
+        )
+    await call.answer()
+
+
+@router.message(ProductRequestFlow.phone, F.text)
+async def got_phone(message: Message, state: FSMContext) -> None:
+    await state.update_data(req_phone=message.text.strip())
+    await _ask_email_step(message, state)
+
+
+async def _ask_email_step(target, state: FSMContext) -> None:
+    telegram_id = target.chat.id if hasattr(target, "chat") else target.from_user.id
+    async with get_session() as session:
+        customer = await get_or_create_customer(session, telegram_id, None)
+        existing_email = customer.email
+
+    if existing_email:
+        await state.update_data(req_email=existing_email)
+        await _ask_urgency(target, state)
+        return
+
+    await state.set_state(ProductRequestFlow.email)
+    text = "📧 Your email? (so we can notify you when it's available) — or type <i>skip</i>"
+    if hasattr(target, "edit_text"):
+        await target.edit_text(text, reply_markup=back_cancel("menu:order"))
+    else:
+        await target.answer(text, reply_markup=back_cancel("menu:order"))
+
+
+@router.message(ProductRequestFlow.email, F.text)
+async def got_email(message: Message, state: FSMContext) -> None:
+    val = message.text.strip()
+    if val.lower() != "skip":
+        if not is_valid_email(val):
+            await message.answer(
+                "That email does not look correct. Please enter a valid email like "
+                "name@example.com, or type skip."
+            )
+            return
+        await state.update_data(req_email=val)
+        async with get_session() as session:
+            customer = await get_or_create_customer(session, message.from_user.id, message.from_user.full_name)
+            await save_email(session, customer, val, "product_request", message.from_user.id)
+    await _ask_urgency(message, state)
+
+
+def _urgency_kb():
+    kb = InlineKeyboardBuilder()
+    for key, label in _URGENCY_LABELS.items():
+        kb.button(text=label, callback_data=f"prequrg:{key}")
+    kb.adjust(2)
+    return kb.as_markup()
+
+
+async def _ask_urgency(target, state: FSMContext) -> None:
+    await state.set_state(ProductRequestFlow.urgency)
+    text = "⏱ How urgently do you need this?"
+    if hasattr(target, "edit_text"):
+        await target.edit_text(text, reply_markup=_urgency_kb())
+    else:
+        await target.answer(text, reply_markup=_urgency_kb())
+
+
+@router.callback_query(ProductRequestFlow.urgency, F.data.startswith("prequrg:"))
+async def got_urgency(call: CallbackQuery, state: FSMContext) -> None:
+    urgency = call.data.split("prequrg:", 1)[1]
+    await state.update_data(req_urgency=urgency)
+    await state.set_state(ProductRequestFlow.note)
+    await call.message.edit_text("🗒 Any extra note? — or type <i>skip</i>", reply_markup=back_cancel("menu:order"))
+    await call.answer()
+
+
+@router.message(ProductRequestFlow.note, F.text)
+async def got_note(message: Message, state: FSMContext) -> None:
+    val = message.text.strip()
+    await state.update_data(req_note=None if val.lower() == "skip" else val)
     data = await state.get_data()
     await state.clear()
 
     async with get_session() as session:
-        customer = await get_or_create_customer(session, call.from_user.id, call.from_user.full_name)
+        customer = await get_or_create_customer(session, message.from_user.id, message.from_user.full_name)
         req = ProductRequest(
             customer_id=customer.id,
             product_name=data.get("req_name", "(unspecified)"),
@@ -138,28 +227,52 @@ async def got_area(call: CallbackQuery, state: FSMContext) -> None:
             form=data.get("req_form"),
             quantity=data.get("req_quantity"),
             note=data.get("req_note"),
-            delivery_area=area,
+            delivery_area=data.get("req_area"),
+            customer_phone=data.get("req_phone"),
+            customer_email=data.get("req_email") or customer.email,
+            urgency=data.get("req_urgency"),
         )
         session.add(req)
         await session.flush()
+        from app.services.product_requests import add_message
+
+        await add_message(
+            session, req, "customer",
+            data.get("req_note") or f"Requested {req.product_name} ({req.quantity or '?'} units)",
+        )
         cust_name = customer.full_name
-        req_name, req_strength, req_form, req_qty, req_area, req_is_med = (
-            req.product_name, req.strength, req.form, req.quantity, req.delivery_area, req.is_medicine,
+        req_id = req.id
+        snapshot = (
+            req.product_name, req.strength, req.form, req.quantity, req.delivery_area,
+            req.customer_phone, req.urgency, req.is_medicine,
         )
 
     try:
-        await _alert(call.bot, cust_name, call.from_user.id, req_name, req_strength, req_form, req_qty, req_area, req_is_med)
+        await _alert(message.bot, cust_name, message.from_user.id, *snapshot)
     except Exception as exc:  # noqa: BLE001
         log.error("product_request_alert_failed", error=str(exc))
 
-    await call.message.edit_text(
-        "✅ Thank you! We've received your request and our team will get back to you about availability.",
-        reply_markup=back_to_menu(),
+    kb = InlineKeyboardBuilder()
+    if not data.get("req_email"):
+        kb.button(text="✉️ Add Email", callback_data="preq:addemail")
+    kb.button(text="📋 Track My Request", callback_data="menu:track_requests")
+    kb.button(text="🏠 Main Menu", callback_data="menu:home")
+    kb.adjust(1)
+    await message.answer(
+        "✅ Thank you. Peaceway has received your request. We will check availability and update you "
+        "here. You can also add your email so we can notify you when it becomes available.",
+        reply_markup=kb.as_markup(),
     )
-    await call.answer()
 
 
-async def _alert(bot, cust_name, cust_tid, name, strength, form, qty, area, is_medicine) -> None:
+@router.callback_query(F.data == "preq:addemail")
+async def add_email_cta(call: CallbackQuery, state: FSMContext) -> None:
+    from app.bot.customer.profile import ask_update_email
+
+    await ask_update_email(call, state)
+
+
+async def _alert(bot, cust_name, cust_tid, name, strength, form, qty, area, phone, urgency, is_medicine) -> None:
     roles = {rbac.SALES_SUPPORT, rbac.SYSTEM_OWNER}
     if is_medicine:
         roles |= {rbac.LEAD_PHARMACIST, rbac.PHARMACIST_ADMIN}
@@ -171,7 +284,9 @@ async def _alert(bot, cust_name, cust_tid, name, strength, form, qty, area, is_m
         + (f"Strength: {strength}\n" if strength else "")
         + (f"Form: {form}\n" if form else "")
         + (f"Qty: {qty}\n" if qty else "")
-        + f"Area: {area}"
+        + f"Area: {area}\n"
+        + (f"Phone: {phone}\n" if phone else "")
+        + (f"Urgency: {_URGENCY_LABELS.get(urgency, urgency)}\n" if urgency else "")
     )
     for tid in telegram_ids:
         try:

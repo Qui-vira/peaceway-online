@@ -3,12 +3,14 @@ prescriptions, and audit logs."""
 from __future__ import annotations
 
 import enum
+from datetime import datetime
 from decimal import Decimal
 from uuid import UUID, uuid4
 
 from sqlalchemy import (
     BigInteger,
     Boolean,
+    DateTime,
     Enum as SAEnum,
     ForeignKey,
     Integer,
@@ -111,8 +113,39 @@ class Prescription(Base, TimestampMixin):
     note: Mapped[str | None] = mapped_column(Text)
 
 
+class ProductRequestStatus(str, enum.Enum):
+    """Lifecycle of a product request, treated as a customer lead, not a
+    closed ticket. Stored as a plain string column (see Prescription.review_status
+    for the same lightweight pattern) — application-validated, not DB-enforced,
+    so adding a status never needs a risky column-type migration."""
+
+    NEW = "NEW"
+    CHECKING_AVAILABILITY = "CHECKING_AVAILABILITY"
+    NEEDS_MORE_INFO = "NEEDS_MORE_INFO"
+    AVAILABLE = "AVAILABLE"
+    NOT_AVAILABLE = "NOT_AVAILABLE"
+    ORDERED_FROM_SUPPLIER = "ORDERED_FROM_SUPPLIER"
+    READY_TO_ORDER = "READY_TO_ORDER"
+    CUSTOMER_NOTIFIED = "CUSTOMER_NOTIFIED"
+    CONVERTED_TO_ORDER = "CONVERTED_TO_ORDER"
+    FULFILLED = "FULFILLED"
+    CLOSED = "CLOSED"
+    REJECTED = "REJECTED"
+
+
+class RequestUrgency(str, enum.Enum):
+    TODAY = "TODAY"
+    WITHIN_24H = "WITHIN_24H"
+    THIS_WEEK = "THIS_WEEK"
+    JUST_CHECKING = "JUST_CHECKING"
+
+
 class ProductRequest(Base, TimestampMixin):
-    """Customer request for a medicine/supplement we don't currently stock."""
+    """Customer request for a medicine/supplement we don't currently stock.
+
+    Treated as a lead with a full lifecycle and message thread, not a closed
+    admin task — see ProductRequestMessage / ProductRequestStatusEvent.
+    """
 
     __tablename__ = "product_requests"
 
@@ -125,7 +158,48 @@ class ProductRequest(Base, TimestampMixin):
     note: Mapped[str | None] = mapped_column(Text)
     delivery_area: Mapped[str | None] = mapped_column(String(120))
     is_medicine: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
-    status: Mapped[str] = mapped_column(String(20), default="NEW", nullable=False)  # NEW|REVIEWED|FULFILLED|REJECTED
+    status: Mapped[str] = mapped_column(String(30), default=ProductRequestStatus.NEW.value, nullable=False)
+
+    customer_phone: Mapped[str | None] = mapped_column(String(50))
+    customer_email: Mapped[str | None] = mapped_column(String(255))
+    urgency: Mapped[str | None] = mapped_column(String(20))
+    admin_notes: Mapped[str | None] = mapped_column(Text)
+    customer_visible_message: Mapped[str | None] = mapped_column(Text)
+    last_customer_update_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    last_admin_update_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    notified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    converted_order_id: Mapped[UUID | None] = mapped_column(ForeignKey("orders.id", ondelete="SET NULL"))
+    closed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class ProductRequestMessage(Base, TimestampMixin):
+    """One message in a product-request thread (customer, admin, or system)."""
+
+    __tablename__ = "product_request_messages"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    product_request_id: Mapped[UUID] = mapped_column(
+        ForeignKey("product_requests.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    sender_type: Mapped[str] = mapped_column(String(20), nullable=False)  # customer|admin|system
+    sender_admin_id: Mapped[int | None] = mapped_column(BigInteger)
+    message_text: Mapped[str] = mapped_column(Text, nullable=False)
+    attachment_file_id: Mapped[str | None] = mapped_column(String(255))
+
+
+class ProductRequestStatusEvent(Base, TimestampMixin):
+    """Full status timeline for a product request."""
+
+    __tablename__ = "product_request_status_events"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    product_request_id: Mapped[UUID] = mapped_column(
+        ForeignKey("product_requests.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    old_status: Mapped[str | None] = mapped_column(String(30))
+    new_status: Mapped[str] = mapped_column(String(30), nullable=False)
+    changed_by_admin_id: Mapped[int | None] = mapped_column(BigInteger)
+    customer_visible_message: Mapped[str | None] = mapped_column(Text)
 
 
 class AuditLog(Base, TimestampMixin):

@@ -38,9 +38,20 @@ async def _pending_counts(role_keys: set[str]) -> dict[str, int]:
                 )
             ).scalar() or 0
         if has(role_keys, "view_product_requests"):
+            # Needs attention if brand-new, or the customer's last message is
+            # newer than the last admin response (an unread reply).
             counts["requests"] = (
                 await session.execute(
-                    select(func.count()).select_from(ProductRequest).where(ProductRequest.status == "NEW")
+                    select(func.count()).select_from(ProductRequest).where(
+                        (ProductRequest.status == "NEW")
+                        | (
+                            ProductRequest.last_customer_update_at.is_not(None)
+                            & (
+                                ProductRequest.last_admin_update_at.is_(None)
+                                | (ProductRequest.last_customer_update_at > ProductRequest.last_admin_update_at)
+                            )
+                        )
+                    )
                 )
             ).scalar() or 0
     return counts

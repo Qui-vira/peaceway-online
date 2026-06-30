@@ -89,6 +89,7 @@ def build_dispatcher() -> Dispatcher:
         profile,
         support,
         track,
+        track_requests,
     )
     from app.bot.staff import admins as staff_admins
     from app.bot.staff import crypto as staff_crypto
@@ -126,6 +127,7 @@ def build_dispatcher() -> Dispatcher:
     dp.include_router(payment.router)
     dp.include_router(crypto.router)
     dp.include_router(track.router)
+    dp.include_router(track_requests.router)
     dp.include_router(prescription.router)
     dp.include_router(product_request.router)
     dp.include_router(support.router)

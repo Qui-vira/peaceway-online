@@ -25,3 +25,8 @@ class ProductAdminFlow(StatesGroup):
 
 class PharmacistFlow(StatesGroup):
     reply = State()             # capture reply to a customer question
+
+
+class RequestAdminFlow(StatesGroup):
+    message = State()           # capture message/note body to send to customer
+    price = State()             # capture price for "Send Price to Customer" action
