@@ -66,14 +66,32 @@ class DeliveryZone(Base, TimestampMixin):
 
 
 class PharmacistQuestion(Base, TimestampMixin):
+    """A pharmacist-inbox ticket. The original question + reply are kept for
+    backward-compat display; the full thread lives in PharmacistMessage."""
+
     __tablename__ = "pharmacist_questions"
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     customer_id: Mapped[UUID] = mapped_column(ForeignKey("customers.id"), nullable=False)
+    product_id: Mapped[UUID | None] = mapped_column(ForeignKey("products.id", ondelete="SET NULL"))
     question: Mapped[str] = mapped_column(Text, nullable=False)
     answer: Mapped[str | None] = mapped_column(Text)
     answered_by: Mapped[str | None] = mapped_column(String(120))
     is_answered: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+
+
+class PharmacistMessage(Base, TimestampMixin):
+    """One message in a pharmacist-inbox ticket thread (customer or pharmacist)."""
+
+    __tablename__ = "pharmacist_messages"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    question_id: Mapped[UUID] = mapped_column(
+        ForeignKey("pharmacist_questions.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    sender: Mapped[str] = mapped_column(String(20), nullable=False)  # "customer" | "pharmacist"
+    telegram_id: Mapped[int | None] = mapped_column(BigInteger)
+    body: Mapped[str] = mapped_column(Text, nullable=False)
 
 
 class Prescription(Base, TimestampMixin):
@@ -82,10 +100,32 @@ class Prescription(Base, TimestampMixin):
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     customer_id: Mapped[UUID] = mapped_column(ForeignKey("customers.id"), nullable=False)
     order_id: Mapped[UUID | None] = mapped_column(ForeignKey("orders.id", ondelete="SET NULL"))
+    product_id: Mapped[UUID | None] = mapped_column(ForeignKey("products.id", ondelete="SET NULL"))
+    question_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("pharmacist_questions.id", ondelete="SET NULL")
+    )
     file_id: Mapped[str] = mapped_column(String(255), nullable=False)  # Telegram file_id
+    file_type: Mapped[str] = mapped_column(String(20), default="image", nullable=False)  # image|document
     review_status: Mapped[str] = mapped_column(String(40), default="PENDING", nullable=False)
     reviewed_by: Mapped[str | None] = mapped_column(String(120))
     note: Mapped[str | None] = mapped_column(Text)
+
+
+class ProductRequest(Base, TimestampMixin):
+    """Customer request for a medicine/supplement we don't currently stock."""
+
+    __tablename__ = "product_requests"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    customer_id: Mapped[UUID] = mapped_column(ForeignKey("customers.id"), nullable=False)
+    product_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    strength: Mapped[str | None] = mapped_column(String(100))
+    form: Mapped[str | None] = mapped_column(String(100))
+    quantity: Mapped[str | None] = mapped_column(String(100))
+    note: Mapped[str | None] = mapped_column(Text)
+    delivery_area: Mapped[str | None] = mapped_column(String(120))
+    is_medicine: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    status: Mapped[str] = mapped_column(String(20), default="NEW", nullable=False)  # NEW|REVIEWED|FULFILLED|REJECTED
 
 
 class AuditLog(Base, TimestampMixin):

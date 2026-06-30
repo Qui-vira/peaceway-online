@@ -29,3 +29,16 @@ class CryptoFlow(StatesGroup):
 
 class AskFlow(StatesGroup):
     waiting_question = State()
+
+
+class PrescriptionFlow(StatesGroup):
+    waiting_file = State()
+
+
+class ProductRequestFlow(StatesGroup):
+    product_name = State()
+    strength = State()
+    form = State()
+    quantity = State()
+    note = State()
+    area = State()

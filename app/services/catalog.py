@@ -6,7 +6,7 @@ from uuid import UUID
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models import Product, ProductAlias
+from app.models import Product, ProductAlias, ProductPricing
 
 
 def _like(term: str) -> str:
@@ -51,11 +51,32 @@ async def get_product(session: AsyncSession, product_id: UUID) -> Product | None
     ).scalar_one_or_none()
 
 
+def is_buyable(p: Product) -> bool:
+    """Single source of truth for 'can a customer add this to cart right now'."""
+    return bool(
+        p.is_listed
+        and not p.requires_prescription
+        and not p.requires_review
+        and p.pricing
+        and p.pricing.is_in_stock
+        and p.pricing.selling_price
+        and p.pricing.selling_price > 0
+    )
+
+
 async def popular_products(session: AsyncSession, limit: int = 10) -> list[Product]:
-    """Listed, in-stock products (placeholder for true popularity ranking)."""
+    """Only products a customer can actually buy right now: listed, not Rx/review,
+    priced, and in stock. Mirrors `is_buyable` at the SQL level."""
     stmt = (
         select(Product)
-        .where(Product.is_listed.is_(True))
+        .join(ProductPricing, ProductPricing.product_id == Product.id)
+        .where(
+            Product.is_listed.is_(True),
+            Product.requires_prescription.is_(False),
+            Product.requires_review.is_(False),
+            ProductPricing.is_in_stock.is_(True),
+            ProductPricing.selling_price > 0,
+        )
         .order_by(Product.name)
         .limit(limit)
     )

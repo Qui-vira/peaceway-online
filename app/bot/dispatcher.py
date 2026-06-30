@@ -75,7 +75,19 @@ def build_dispatcher() -> Dispatcher:
     dp = Dispatcher(storage=MemoryStorage())
 
     # Routers are imported lazily so model/db imports stay ordered.
-    from app.bot.customer import cart, catalog, checkout, crypto, followup, menu, payment, support, track
+    from app.bot.customer import (
+        cart,
+        catalog,
+        checkout,
+        crypto,
+        followup,
+        menu,
+        payment,
+        prescription,
+        product_request,
+        support,
+        track,
+    )
     from app.bot.staff import admins as staff_admins
     from app.bot.staff import crypto as staff_crypto
     from app.bot.staff import delivery as staff_delivery
@@ -83,8 +95,10 @@ def build_dispatcher() -> Dispatcher:
     from app.bot.staff import orders as staff_orders
     from app.bot.staff import panel as staff_panel
     from app.bot.staff import pharmacist as staff_pharmacist
+    from app.bot.staff import prescriptions as staff_prescriptions
     from app.bot.staff import products as staff_products
     from app.bot.staff import products_csv as staff_products_csv
+    from app.bot.staff import requests as staff_requests
 
     # Staff routers first so staff commands take precedence.
     # staff_delivery & staff_crypto must precede staff_orders so their specific
@@ -94,6 +108,8 @@ def build_dispatcher() -> Dispatcher:
     dp.include_router(staff_products.router)
     dp.include_router(staff_products_csv.router)
     dp.include_router(staff_pharmacist.router)
+    dp.include_router(staff_prescriptions.router)
+    dp.include_router(staff_requests.router)
     dp.include_router(staff_delivery.router)
     dp.include_router(staff_crypto.router)
     dp.include_router(staff_orders.router)
@@ -106,6 +122,8 @@ def build_dispatcher() -> Dispatcher:
     dp.include_router(payment.router)
     dp.include_router(crypto.router)
     dp.include_router(track.router)
+    dp.include_router(prescription.router)
+    dp.include_router(product_request.router)
     dp.include_router(support.router)
     dp.include_router(followup.router)
     return dp

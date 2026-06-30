@@ -54,12 +54,18 @@ async def products_home(call: CallbackQuery) -> None:
     await call.answer()
 
 
+def _back_to_products_kb():
+    kb = InlineKeyboardBuilder()
+    kb.button(text="⬅️ Back", callback_data="staff:products")
+    return kb.as_markup()
+
+
 @router.callback_query(F.data == "padmin:search")
 async def ask_search(call: CallbackQuery, state: FSMContext) -> None:
     if await _guard(call) is None:
         return
     await state.set_state(ProductAdminFlow.search)
-    await call.message.edit_text("🔎 Type the product name to search.")
+    await call.message.edit_text("🔎 Type the product name to search.", reply_markup=_back_to_products_kb())
     await call.answer()
 
 
@@ -69,11 +75,12 @@ async def do_search(message: Message, state: FSMContext) -> None:
     async with get_session() as session:
         results = await catalog.search_products(session, message.text, limit=12)
     if not results:
-        await message.answer(f"No products found for “{message.text}”.")
+        await message.answer(f"No products found for “{message.text}”.", reply_markup=_back_to_products_kb())
         return
     kb = InlineKeyboardBuilder()
     for p in results:
         kb.button(text=p.name[:60], callback_data=f"padmin:view:{p.id}")
+    kb.button(text="⬅️ Back", callback_data="staff:products")
     kb.adjust(1)
     await message.answer(f"Results for “{message.text}”:", reply_markup=kb.as_markup())
 
@@ -111,6 +118,7 @@ def _detail_kb(p: Product):
         callback_data=f"padmin:rx:{p.id}",
     )
     kb.button(text="🕘 View Price History", callback_data=f"padmin:hist:{p.id}")
+    kb.button(text="🔎 Search Another", callback_data="padmin:search")
     kb.button(text="🏠 Staff Menu", callback_data="staff:home")
     kb.adjust(1)
     return kb.as_markup()

@@ -1,7 +1,8 @@
 """Pharmacist Inbox: view and reply to customer medication questions.
 
-Gated on `reply_pharmacist_tickets`. Replies are DM'd to the customer; the
-question is marked answered and the action is audited.
+Gated on `reply_pharmacist_tickets`. Replies are DM'd to the customer; each
+turn is appended to the thread (PharmacistMessage) so the full conversation
+history is preserved.
 """
 from __future__ import annotations
 
@@ -16,7 +17,8 @@ from sqlalchemy import select
 from app.bot.staff.states import PharmacistFlow
 from app.core.db import get_session
 from app.core.security import get_role_keys, has, log_activity, primary_role
-from app.models import Customer, PharmacistQuestion
+from app.models import Customer, PharmacistQuestion, Product
+from app.services.pharmacist_inbox import add_pharmacist_reply, get_thread
 
 router = Router(name="staff-pharmacist")
 
@@ -43,7 +45,10 @@ async def inbox(call: CallbackQuery) -> None:
             )
         ).scalars().all()
     if not questions:
-        await call.message.edit_text("📥 Pharmacist Inbox is empty. No open questions.")
+        await call.message.edit_text(
+            "📥 Pharmacist Inbox is empty. No open questions.",
+            reply_markup=_back_kb(),
+        )
         await call.answer()
         return
     kb = InlineKeyboardBuilder()
@@ -54,6 +59,12 @@ async def inbox(call: CallbackQuery) -> None:
     kb.adjust(1)
     await call.message.edit_text("📥 <b>Pharmacist Inbox</b>\nOpen questions:", reply_markup=kb.as_markup())
     await call.answer()
+
+
+def _back_kb():
+    kb = InlineKeyboardBuilder()
+    kb.button(text="🏠 Staff Menu", callback_data="staff:home")
+    return kb.as_markup()
 
 
 @router.callback_query(F.data.startswith("ptkt:open:"))
@@ -67,11 +78,22 @@ async def open_ticket(call: CallbackQuery) -> None:
         if q is None:
             await call.answer("Not found.", show_alert=True)
             return
-        when = q.created_at.strftime("%Y-%m-%d %H:%M")
-        text = f"💬 <b>Customer question</b>\n<i>{when}</i>\n\n{q.question}"
+        product = await session.get(Product, q.product_id) if q.product_id else None
+        thread = await get_thread(session, qid)
+
+        lines = ["💬 <b>Conversation</b>"]
+        if product:
+            lines.append(f"Product: <b>{product.name}</b>")
+        lines.append("")
+        for m in thread:
+            when = m.created_at.strftime("%m-%d %H:%M")
+            who = "🧑 Customer" if m.sender == "customer" else "👨‍⚕️ Pharmacist"
+            lines.append(f"<i>{when}</i> {who}: {m.body}")
+        text = "\n".join(lines)
+
     kb = InlineKeyboardBuilder()
     kb.button(text="✍️ Reply", callback_data=f"ptkt:reply:{qid}")
-    kb.button(text="⬅️ Back", callback_data="staff:tickets")
+    kb.button(text="⬅️ Back to Inbox", callback_data="staff:tickets")
     kb.adjust(1)
     await call.message.edit_text(text, reply_markup=kb.as_markup())
     await call.answer()
@@ -85,7 +107,9 @@ async def ask_reply(call: CallbackQuery, state: FSMContext) -> None:
     qid = call.data.split("ptkt:reply:", 1)[1]
     await state.set_state(PharmacistFlow.reply)
     await state.update_data(question_id=qid)
-    await call.message.edit_text("✍️ Type your reply to the customer:")
+    kb = InlineKeyboardBuilder()
+    kb.button(text="⬅️ Back", callback_data=f"ptkt:open:{qid}")
+    await call.message.edit_text("✍️ Type your reply to the customer:", reply_markup=kb.as_markup())
     await call.answer()
 
 
@@ -107,9 +131,7 @@ async def send_reply(message: Message, state: FSMContext) -> None:
         if q is None:
             await message.answer("Question not found.")
             return
-        q.answer = answer
-        q.is_answered = True
-        q.answered_by = by
+        await add_pharmacist_reply(session, q, message.from_user.id, answer, by)
         customer = await session.get(Customer, q.customer_id)
         customer_chat = customer.telegram_id if customer else None
 
@@ -129,5 +151,9 @@ async def send_reply(message: Message, state: FSMContext) -> None:
 
     kb = InlineKeyboardBuilder()
     kb.button(text="📥 Back to Inbox", callback_data="staff:tickets")
-    note = "Reply sent to the customer ✅" if delivered else "Saved, but the customer couldn't be DM'd (they may need to /start the bot)."
+    note = (
+        "Reply sent to the customer ✅"
+        if delivered
+        else "Saved, but the customer couldn't be DM'd (they may need to /start the bot)."
+    )
     await message.answer(note, reply_markup=kb.as_markup())

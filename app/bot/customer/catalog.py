@@ -10,7 +10,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from app.bot.customer import cart_store
 from app.bot.customer.states import SearchFlow
-from app.bot.keyboards.customer import back_to_menu
+from app.bot.keyboards.customer import back_cancel, back_to_menu
 from app.core.db import get_session
 from app.models import Product
 from app.services import catalog
@@ -18,16 +18,7 @@ from app.services import catalog
 router = Router(name="customer-catalog")
 
 
-def _is_buyable(p: Product) -> bool:
-    return bool(
-        p.is_listed
-        and not p.requires_prescription
-        and not p.requires_review
-        and p.pricing
-        and p.pricing.is_in_stock
-        and p.pricing.selling_price
-        and p.pricing.selling_price > 0
-    )
+_is_buyable = catalog.is_buyable  # shared single source of truth
 
 
 def _product_line(p: Product) -> str:
@@ -42,11 +33,23 @@ def _product_line(p: Product) -> str:
     return f"{label} · ask pharmacist"
 
 
-def _results_kb(products: list[Product]):
+def _results_kb(products: list[Product], back_cb: str = "menu:order"):
     kb = InlineKeyboardBuilder()
     for p in products:
         kb.button(text=_product_line(p)[:60], callback_data=f"prod:{p.id}")
-    kb.button(text="⬅️ Main Menu", callback_data="menu:home")
+    kb.button(text="⬅️ Back", callback_data=back_cb)
+    kb.button(text="🏠 Main Menu", callback_data="menu:home")
+    kb.adjust(1)
+    return kb.as_markup()
+
+
+def _not_found_kb():
+    """Action row for 'no results' / unpriced products — never a dead end."""
+    kb = InlineKeyboardBuilder()
+    kb.button(text="💬 Ask Pharmacist", callback_data="menu:ask")
+    kb.button(text="📝 Request This Product", callback_data="preq:start")
+    kb.button(text="🔎 Search Again", callback_data="order:search")
+    kb.button(text="🏠 Main Menu", callback_data="menu:home")
     kb.adjust(1)
     return kb.as_markup()
 
@@ -58,7 +61,7 @@ async def order_menu(call: CallbackQuery) -> None:
     kb.button(text="🔎 Search by name", callback_data="order:search")
     kb.button(text="🗂 Browse categories", callback_data="order:browse")
     kb.button(text="🧺 View cart", callback_data="cart:view")
-    kb.button(text="⬅️ Main Menu", callback_data="menu:home")
+    kb.button(text="🏠 Main Menu", callback_data="menu:home")
     kb.adjust(1)
     await call.message.edit_text(
         "🛒 <b>Order Medicine</b>\n\nSearch for a product or browse our categories.",
@@ -72,7 +75,7 @@ async def ask_search(call: CallbackQuery, state: FSMContext) -> None:
     await state.set_state(SearchFlow.waiting_query)
     await call.message.edit_text(
         "🔎 Type the medicine name you're looking for (e.g. <i>Paracetamol</i>).",
-        reply_markup=back_to_menu(),
+        reply_markup=back_cancel("menu:order"),
     )
     await call.answer()
 
@@ -80,17 +83,17 @@ async def ask_search(call: CallbackQuery, state: FSMContext) -> None:
 @router.message(SearchFlow.waiting_query, F.text)
 async def do_search(message: Message, state: FSMContext) -> None:
     await state.clear()
+    query = message.text
     async with get_session() as session:
-        results = await catalog.search_products(session, message.text)
+        results = await catalog.search_products(session, query)
     if not results:
         await message.answer(
-            f"No products found for “{message.text}”. Try another name or browse categories.",
-            reply_markup=back_to_menu(),
+            f"😕 No products found for “{query}”.\n\nWhat would you like to do?",
+            reply_markup=_not_found_kb(),
         )
         return
-    await message.answer(
-        f"Results for “{message.text}”:", reply_markup=_results_kb(results)
-    )
+    await state.update_data(last_list_kind="search", last_query=query)
+    await message.answer(f"Results for “{query}”:", reply_markup=_results_kb(results))
 
 
 @router.callback_query(F.data == "order:browse")
@@ -100,27 +103,31 @@ async def browse_categories(call: CallbackQuery) -> None:
     kb = InlineKeyboardBuilder()
     for c in cats:
         kb.button(text=c, callback_data=f"cat:{c}")
-    kb.button(text="⬅️ Main Menu", callback_data="menu:home")
+    kb.button(text="⬅️ Back", callback_data="menu:order")
+    kb.button(text="🏠 Main Menu", callback_data="menu:home")
     kb.adjust(1)
     await call.message.edit_text("🗂 <b>Categories</b>", reply_markup=kb.as_markup())
     await call.answer()
 
 
 @router.callback_query(F.data.startswith("cat:"))
-async def category_products(call: CallbackQuery) -> None:
+async def category_products(call: CallbackQuery, state: FSMContext) -> None:
     name = call.data.split("cat:", 1)[1]
     async with get_session() as session:
         products = await catalog.products_in_category(session, name)
     if not products:
-        await call.message.edit_text("No products in this category yet.", reply_markup=back_to_menu())
+        await call.message.edit_text(
+            "No products in this category yet.", reply_markup=back_cancel("order:browse")
+        )
         await call.answer()
         return
-    await call.message.edit_text(f"🗂 <b>{name}</b>", reply_markup=_results_kb(products))
+    await state.update_data(last_list_kind="category", last_category=name)
+    await call.message.edit_text(f"🗂 <b>{name}</b>", reply_markup=_results_kb(products, "order:browse"))
     await call.answer()
 
 
 @router.callback_query(F.data == "menu:popular")
-async def popular(call: CallbackQuery) -> None:
+async def popular(call: CallbackQuery, state: FSMContext) -> None:
     async with get_session() as session:
         products = await catalog.popular_products(session)
     if not products:
@@ -130,7 +137,38 @@ async def popular(call: CallbackQuery) -> None:
         )
         await call.answer()
         return
-    await call.message.edit_text("⭐ <b>Popular Products</b>", reply_markup=_results_kb(products))
+    await state.update_data(last_list_kind="popular")
+    await call.message.edit_text(
+        "⭐ <b>Popular Products</b>", reply_markup=_results_kb(products, "menu:home")
+    )
+    await call.answer()
+
+
+@router.callback_query(F.data == "catalog:back")
+async def back_to_last_list(call: CallbackQuery, state: FSMContext) -> None:
+    data = await state.get_data()
+    kind = data.get("last_list_kind")
+    async with get_session() as session:
+        if kind == "search" and data.get("last_query"):
+            results = await catalog.search_products(session, data["last_query"])
+            await call.message.edit_text(
+                f"Results for “{data['last_query']}”:", reply_markup=_results_kb(results)
+            )
+        elif kind == "category" and data.get("last_category"):
+            results = await catalog.products_in_category(session, data["last_category"])
+            await call.message.edit_text(
+                f"🗂 <b>{data['last_category']}</b>", reply_markup=_results_kb(results, "order:browse")
+            )
+        elif kind == "popular":
+            results = await catalog.popular_products(session)
+            await call.message.edit_text(
+                "⭐ <b>Popular Products</b>", reply_markup=_results_kb(results, "menu:home")
+            )
+        else:
+            await call.message.edit_text(
+                "🛒 <b>Order Medicine</b>\n\nSearch for a product or browse our categories.",
+                reply_markup=back_to_menu(),
+            )
     await call.answer()
 
 
@@ -161,20 +199,22 @@ async def product_card(call: CallbackQuery) -> None:
             price = f"₦{p.pricing.selling_price:,.0f}"
             text = f"{title}\n{body}\n\n💵 <b>{price}</b>\n✅ In stock"
             kb.button(text=f"➕ Add to Cart ({price})", callback_data=f"add:{p.id}")
+            kb.button(text="🧺 View Cart", callback_data="cart:view")
         elif p.requires_prescription or p.requires_review:
             text = (
                 f"{title}\n{body}\n\n💊 <b>This medicine requires pharmacist review or a valid "
                 "prescription before it can be supplied.</b>"
             )
             kb.button(text="📄 Upload Prescription", callback_data=f"rx:{p.id}")
-            kb.button(text="💬 Ask Pharmacist", callback_data="menu:ask")
+            kb.button(text="💬 Ask Pharmacist", callback_data=f"askp:{p.id}")
+            kb.button(text="📝 Request This Product", callback_data="preq:start")
         else:
-            text = (
-                f"{title}\n{body}\n\nℹ️ <b>Ask pharmacist for price & availability.</b>"
-            )
-            kb.button(text="💬 Ask Pharmacist", callback_data="menu:ask")
-        kb.button(text="🧺 View Cart", callback_data="cart:view")
-        kb.button(text="⬅️ Main Menu", callback_data="menu:home")
+            text = f"{title}\n{body}\n\nℹ️ <b>Ask pharmacist for price & availability.</b>"
+            kb.button(text="💬 Ask Pharmacist", callback_data=f"askp:{p.id}")
+            kb.button(text="📝 Request This Product", callback_data="preq:start")
+        kb.button(text="🔎 Search Again", callback_data="order:search")
+        kb.button(text="⬅️ Back to results", callback_data="catalog:back")
+        kb.button(text="🏠 Main Menu", callback_data="menu:home")
         kb.adjust(1)
         await call.message.edit_text(text, reply_markup=kb.as_markup())
     await call.answer()

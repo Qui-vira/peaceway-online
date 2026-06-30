@@ -3,16 +3,68 @@ from __future__ import annotations
 
 from aiogram import F, Router
 from aiogram.filters import Command
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import CallbackQuery, InlineKeyboardMarkup, Message
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-from sqlalchemy import select
+from sqlalchemy import func, select
 
 from app.core import rbac
 from app.core.db import get_session
 from app.core.security import get_role_keys, has, primary_role, touch_activity
-from app.models import Order, OrderStatus, RxStatus
+from app.models import Order, OrderStatus, PharmacistQuestion, Prescription, ProductRequest, RxStatus
 
 router = Router(name="staff-panel")
+
+# Menu callback -> count key, for badging menu labels with unread/pending counts.
+_COUNT_TARGETS = {
+    "staff:tickets": "tickets",
+    "staff:prescriptions": "prescriptions",
+    "staff:requests": "requests",
+}
+
+
+async def _pending_counts(role_keys: set[str]) -> dict[str, int]:
+    counts = {"tickets": 0, "prescriptions": 0, "requests": 0}
+    async with get_session() as session:
+        if has(role_keys, "reply_pharmacist_tickets"):
+            counts["tickets"] = (
+                await session.execute(
+                    select(func.count()).select_from(PharmacistQuestion).where(PharmacistQuestion.is_answered.is_(False))
+                )
+            ).scalar() or 0
+        if has(role_keys, "review_prescriptions"):
+            counts["prescriptions"] = (
+                await session.execute(
+                    select(func.count()).select_from(Prescription).where(Prescription.review_status == "PENDING")
+                )
+            ).scalar() or 0
+        if has(role_keys, "view_product_requests"):
+            counts["requests"] = (
+                await session.execute(
+                    select(func.count()).select_from(ProductRequest).where(ProductRequest.status == "NEW")
+                )
+            ).scalar() or 0
+    return counts
+
+
+async def render_panel(role_keys: set[str]) -> tuple[str, InlineKeyboardMarkup]:
+    """Build the staff panel text + keyboard, with unread counts and an alert
+    banner for pharmacist-relevant items. Shared by /admin and the 'Staff Menu'
+    back button so both stay in sync."""
+    items = rbac.menu_for(role_keys)
+    counts = await _pending_counts(role_keys)
+    total = counts["tickets"] + counts["prescriptions"] + counts["requests"]
+    banner = f"⚠️ You have {total} new item(s) needing attention.\n\n" if total else ""
+
+    kb = InlineKeyboardBuilder()
+    for label, cb in items:
+        count_key = _COUNT_TARGETS.get(cb)
+        text = f"{label} ({counts[count_key]})" if count_key and counts.get(count_key) else label
+        kb.button(text=text, callback_data=cb)
+    kb.adjust(1)
+
+    role_names = ", ".join(rbac.role_label(r) for r in sorted(role_keys))
+    text = f"{banner}🛠 <b>Staff Panel</b>\nRoles: <b>{role_names}</b>"
+    return text, kb.as_markup()
 
 
 @router.message(Command("myid"))
@@ -30,15 +82,8 @@ async def admin_panel(message: Message) -> None:
         await message.answer("⛔ You are not authorised to access the staff panel.")
         return
     await touch_activity(message.from_user.id)
-    items = rbac.menu_for(role_keys)
-    kb = InlineKeyboardBuilder()
-    for label, cb in items:
-        kb.button(text=label, callback_data=cb)
-    kb.adjust(1)
-    role_names = ", ".join(rbac.role_label(r) for r in sorted(role_keys))
-    await message.answer(
-        f"🛠 <b>Staff Panel</b>\nRoles: <b>{role_names}</b>", reply_markup=kb.as_markup()
-    )
+    text, kb = await render_panel(role_keys)
+    await message.answer(text, reply_markup=kb)
 
 
 def _order_list_kb(orders: list[Order]):

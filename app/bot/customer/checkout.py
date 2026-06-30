@@ -1,4 +1,8 @@
-"""Checkout: collect delivery details, show profit-protected totals, create order."""
+"""Checkout: collect delivery details, show profit-protected totals, create order.
+
+Every step has a Back button (to the previous step, preserving already-entered
+data) and a Cancel button (to Main Menu, clearing the flow).
+"""
 from __future__ import annotations
 
 from decimal import Decimal
@@ -11,7 +15,7 @@ from sqlalchemy import select
 
 from app.bot.customer import cart_store
 from app.bot.customer.states import CheckoutFlow
-from app.bot.keyboards.customer import back_to_menu
+from app.bot.keyboards.customer import back_cancel
 from app.core.db import get_session
 from app.models import DeliveryZone, FeeSetting, PaymentMethod
 from app.services.orders import create_order
@@ -19,38 +23,34 @@ from app.services.pricing import FeeConfig, QuoteItem, quote_order
 
 router = Router(name="customer-checkout")
 
-
-@router.callback_query(F.data == "checkout:start")
-async def start(call: CallbackQuery, state: FSMContext) -> None:
-    cart = await cart_store.get_cart(state)
-    if not cart:
-        await call.answer("Your cart is empty.", show_alert=True)
-        return
-    await state.set_state(CheckoutFlow.full_name)
-    await call.message.edit_text(
-        "📝 <b>Delivery details</b>\n\nWhat is the full name of the person receiving the order?",
-        reply_markup=back_to_menu(),
-    )
-    await call.answer()
-
-
-@router.message(CheckoutFlow.full_name, F.text)
-async def got_name(message: Message, state: FSMContext) -> None:
-    await state.update_data(full_name=message.text.strip())
-    await state.set_state(CheckoutFlow.phone)
-    await message.answer("📞 Phone number for delivery?")
-
-
-@router.message(CheckoutFlow.phone, F.text)
-async def got_phone(message: Message, state: FSMContext) -> None:
-    await state.update_data(phone=message.text.strip())
-    await state.set_state(CheckoutFlow.address)
-    await message.answer("🏠 Delivery address (street, house number)?")
+_STEP_TEXT = {
+    "name": "📝 <b>Delivery details</b>\n\nWhat is the full name of the person receiving the order?",
+    "phone": "📞 Phone number for delivery?",
+    "address": "🏠 Delivery address (street, house number)?",
+    "landmark": "🏁 Any landmark to help the rider find you?",
+    "time": "🕒 Preferred delivery time? (e.g. <i>Today before 5pm</i>, or type <i>Any</i>)",
+    "note": "🗒 Any extra note for your order? (or type <i>None</i>)",
+}
+# Each step's Back button returns to the previous step's callback (or a real screen).
+_STEP_BACK = {
+    "name": "cart:view",
+    "phone": "checkout:back:name",
+    "address": "checkout:back:phone",
+    "landmark": "checkout:back:area",
+    "time": "checkout:back:landmark",
+    "note": "checkout:back:time",
+}
+_STEP_STATE = {
+    "name": CheckoutFlow.full_name,
+    "phone": CheckoutFlow.phone,
+    "address": CheckoutFlow.address,
+    "landmark": CheckoutFlow.landmark,
+    "time": CheckoutFlow.preferred_time,
+    "note": CheckoutFlow.note,
+}
 
 
-@router.message(CheckoutFlow.address, F.text)
-async def got_address(message: Message, state: FSMContext) -> None:
-    await state.update_data(address=message.text.strip())
+async def _zones_kb():
     async with get_session() as session:
         zones = (
             await session.execute(
@@ -60,9 +60,55 @@ async def got_address(message: Message, state: FSMContext) -> None:
     kb = InlineKeyboardBuilder()
     for z in zones:
         kb.button(text=f"{z.name} · ₦{z.fee:,.0f}", callback_data=f"zone:{z.name}")
-    kb.adjust(1)
+    kb.button(text="⬅️ Back", callback_data="checkout:back:address")
+    kb.button(text="❌ Cancel", callback_data="menu:home")
+    kb.adjust(2)
+    return kb.as_markup()
+
+
+@router.callback_query(F.data == "checkout:start")
+async def start(call: CallbackQuery, state: FSMContext) -> None:
+    cart = await cart_store.get_cart(state)
+    if not cart:
+        await call.answer("Your cart is empty.", show_alert=True)
+        return
+    await state.set_state(CheckoutFlow.full_name)
+    await call.message.edit_text(_STEP_TEXT["name"], reply_markup=back_cancel("cart:view"))
+    await call.answer()
+
+
+@router.callback_query(F.data.startswith("checkout:back:"))
+async def go_back(call: CallbackQuery, state: FSMContext) -> None:
+    step = call.data.split("checkout:back:", 1)[1]
+    if step == "area":
+        await state.set_state(CheckoutFlow.area)
+        await call.message.edit_text("📍 Choose your delivery area:", reply_markup=await _zones_kb())
+        await call.answer()
+        return
+    await state.set_state(_STEP_STATE[step])
+    await call.message.edit_text(_STEP_TEXT[step], reply_markup=back_cancel(_STEP_BACK[step]))
+    await call.answer()
+
+
+@router.message(CheckoutFlow.full_name, F.text)
+async def got_name(message: Message, state: FSMContext) -> None:
+    await state.update_data(full_name=message.text.strip())
+    await state.set_state(CheckoutFlow.phone)
+    await message.answer(_STEP_TEXT["phone"], reply_markup=back_cancel(_STEP_BACK["phone"]))
+
+
+@router.message(CheckoutFlow.phone, F.text)
+async def got_phone(message: Message, state: FSMContext) -> None:
+    await state.update_data(phone=message.text.strip())
+    await state.set_state(CheckoutFlow.address)
+    await message.answer(_STEP_TEXT["address"], reply_markup=back_cancel(_STEP_BACK["address"]))
+
+
+@router.message(CheckoutFlow.address, F.text)
+async def got_address(message: Message, state: FSMContext) -> None:
+    await state.update_data(address=message.text.strip())
     await state.set_state(CheckoutFlow.area)
-    await message.answer("📍 Choose your delivery area:", reply_markup=kb.as_markup())
+    await message.answer("📍 Choose your delivery area:", reply_markup=await _zones_kb())
 
 
 @router.callback_query(CheckoutFlow.area, F.data.startswith("zone:"))
@@ -70,7 +116,7 @@ async def got_area(call: CallbackQuery, state: FSMContext) -> None:
     area = call.data.split("zone:", 1)[1]
     await state.update_data(area=area)
     await state.set_state(CheckoutFlow.landmark)
-    await call.message.edit_text("🏁 Any landmark to help the rider find you?")
+    await call.message.edit_text(_STEP_TEXT["landmark"], reply_markup=back_cancel(_STEP_BACK["landmark"]))
     await call.answer()
 
 
@@ -78,14 +124,14 @@ async def got_area(call: CallbackQuery, state: FSMContext) -> None:
 async def got_landmark(message: Message, state: FSMContext) -> None:
     await state.update_data(landmark=message.text.strip())
     await state.set_state(CheckoutFlow.preferred_time)
-    await message.answer("🕒 Preferred delivery time? (e.g. <i>Today before 5pm</i>, or type <i>Any</i>)")
+    await message.answer(_STEP_TEXT["time"], reply_markup=back_cancel(_STEP_BACK["time"]))
 
 
 @router.message(CheckoutFlow.preferred_time, F.text)
 async def got_time(message: Message, state: FSMContext) -> None:
     await state.update_data(preferred_time=message.text.strip())
     await state.set_state(CheckoutFlow.note)
-    await message.answer("🗒 Any extra note for your order? (or type <i>None</i>)")
+    await message.answer(_STEP_TEXT["note"], reply_markup=back_cancel(_STEP_BACK["note"]))
 
 
 async def _load_fee_and_zone(area: str) -> tuple[FeeConfig, Decimal]:
@@ -141,8 +187,9 @@ async def got_note(message: Message, state: FSMContext) -> None:
 
     kb = InlineKeyboardBuilder()
     kb.button(text="✅ Confirm Order", callback_data="checkout:confirm")
+    kb.button(text="⬅️ Back", callback_data="checkout:back:note")
     kb.button(text="❌ Cancel", callback_data="menu:home")
-    kb.adjust(1)
+    kb.adjust(1, 2)
     await message.answer(_summary_text(data, quote), reply_markup=kb.as_markup())
 
 
@@ -182,6 +229,8 @@ async def confirm(call: CallbackQuery, state: FSMContext) -> None:
     await state.clear()
 
     if has_rx:
+        from app.bot.keyboards.customer import back_to_menu
+
         await call.message.edit_text(
             f"🧾 Order <b>{order_code}</b> received.\n\n💊 Your order contains a medicine that "
             "requires pharmacist review before payment. Our pharmacist will review it shortly.",

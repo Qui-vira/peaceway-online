@@ -204,18 +204,12 @@ async def view_logs(call: CallbackQuery) -> None:
 
 @router.callback_query(F.data == "staff:home")
 async def staff_home(call: CallbackQuery) -> None:
-    from app.bot.staff.panel import admin_panel
+    from app.bot.staff.panel import render_panel
 
-    # Re-render the panel via a fresh message edit.
     role_keys = await get_role_keys(call.from_user.id)
     if not role_keys:
         await call.answer("Not authorised.", show_alert=True)
         return
-    items = rbac.menu_for(role_keys)
-    kb = InlineKeyboardBuilder()
-    for label, cb in items:
-        kb.button(text=label, callback_data=cb)
-    kb.adjust(1)
-    role_names = ", ".join(rbac.role_label(r) for r in sorted(role_keys))
-    await call.message.edit_text(f"🛠 <b>Staff Panel</b>\nRoles: <b>{role_names}</b>", reply_markup=kb.as_markup())
+    text, kb = await render_panel(role_keys)
+    await call.message.edit_text(text, reply_markup=kb)
     await call.answer()
