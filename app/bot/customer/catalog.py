@@ -36,10 +36,10 @@ def _product_line(p: Product) -> str:
         bits.append(p.strength)
     label = " ".join(bits)
     if _is_buyable(p):
-        return f"{label} — ₦{p.pricing.selling_price:,.0f}"
+        return f"{label} · ₦{p.pricing.selling_price:,.0f}"
     if p.requires_prescription:
-        return f"{label} — 💊 Rx"
-    return f"{label} — ask pharmacist"
+        return f"{label} · 💊 Rx"
+    return f"{label} · ask pharmacist"
 
 
 def _results_kb(products: list[Product]):

@@ -30,7 +30,7 @@ async def _require_owner(call_or_msg) -> set[str] | None:
 def _admins_kb(admins: list[AdminUser]):
     kb = InlineKeyboardBuilder()
     for a in admins:
-        roles = ",".join(sorted(x.role_key for x in a.assignments)) or "—"
+        roles = ",".join(sorted(x.role_key for x in a.assignments)) or "none"
         flag = "🟢" if a.is_active else "🔴"
         kb.button(text=f"{flag} {a.full_name or a.telegram_id} · {roles}", callback_data=f"adm:view:{a.telegram_id}")
     kb.button(text="➕ Add Admin", callback_data="adm:add")
@@ -62,12 +62,12 @@ async def view_admin(call: CallbackQuery) -> None:
         if admin is None:
             await call.answer("Not found.", show_alert=True)
             return
-        roles = ", ".join(rbac.role_label(x.role_key) for x in admin.assignments) or "—"
+        roles = ", ".join(rbac.role_label(x.role_key) for x in admin.assignments) or "none"
         last = admin.last_activity_at.strftime("%Y-%m-%d %H:%M") if admin.last_activity_at else "never"
         text = (
             f"👤 <b>{admin.full_name or admin.telegram_id}</b>\n"
             f"Telegram ID: <code>{admin.telegram_id}</code>\n"
-            f"Email: {admin.email or '—'}\n"
+            f"Email: {admin.email or '-'}\n"
             f"Roles: {roles}\n"
             f"Status: {'🟢 Active' if admin.is_active else '🔴 Disabled'}\n"
             f"Last activity: {last}\n"

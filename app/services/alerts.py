@@ -38,7 +38,7 @@ def order_summary(order: Order, include_contact: bool = True) -> str:
     lines.append("")
     for it in order.items:
         rx = " 💊Rx" if it.requires_prescription else ""
-        lines.append(f"• {it.product_name} ×{it.quantity} — ₦{it.line_total:,.0f}{rx}")
+        lines.append(f"• {it.product_name} ×{it.quantity} · ₦{it.line_total:,.0f}{rx}")
     lines.append("")
     method = order.payment_method.value if order.payment_method else "unpaid"
     lines.append(f"💰 <b>Total: ₦{order.total:,.0f}</b>  ({method})")
@@ -65,7 +65,7 @@ async def notify_roles(bot: Bot, order: Order, roles: set[str], header: str) -> 
     plain = text.replace("<b>", "").replace("</b>", "")
     from app.core.config import get_settings
 
-    email_ok = await send_email(emails, f"[{get_settings().pharmacy_name}] {header} — {order.code}", plain)
+    email_ok = await send_email(emails, f"[{get_settings().pharmacy_name}] {header}: {order.code}", plain)
 
     if not dm_ok and not email_ok:
         log.warning("alert_no_delivery", order=order.code, header=header,
@@ -83,13 +83,13 @@ async def _load_order(order_id: UUID) -> Order | None:
 async def alert_payment_submitted(bot: Bot, order_id: UUID) -> None:
     order = await _load_order(order_id)
     if order:
-        await notify_roles(bot, order, {rbac.FINANCE, rbac.SALES_SUPPORT}, "💳 Payment proof submitted — please verify")
+        await notify_roles(bot, order, {rbac.FINANCE, rbac.SALES_SUPPORT}, "💳 Payment proof submitted, please verify")
 
 
 async def alert_payment_approved(bot: Bot, order_id: UUID) -> None:
     order = await _load_order(order_id)
     if order:
-        await notify_roles(bot, order, {rbac.PACKAGING}, "✅ Payment approved — ready to package")
+        await notify_roles(bot, order, {rbac.PACKAGING}, "✅ Payment approved, ready to package")
 
 
 async def alert_ready_for_dispatch(bot: Bot, order_id: UUID) -> None:

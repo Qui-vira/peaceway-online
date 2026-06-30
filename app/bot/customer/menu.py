@@ -20,19 +20,25 @@ WELCOME = (
 )
 
 HELP_TEXT = (
-    "ℹ️ <b>Peaceway Online — Help</b>\n\n"
-    "I'm your pharmacy assistant. You can order medicine, ask our pharmacist a question, "
-    "check delivery areas, and track your order — all here in chat.\n\n"
-    "Use the buttons below or send /start anytime to return to the main menu."
+    "ℹ️ <b>Peaceway Online Help</b>\n\n"
+    "I'm your pharmacy assistant.\n\n"
+    "You can order medicine, ask our pharmacist a question, check delivery areas, "
+    "and track your order, all here in chat.\n\n"
+    "Use the buttons below, or send /start anytime to return to the main menu."
 )
 
 HOW_IT_WORKS_TEXT = (
     "📋 <b>How It Works</b>\n\n"
-    "1️⃣ <b>Order Medicine</b> — search or browse, then add items to your cart.\n"
-    "2️⃣ <b>Checkout</b> — enter your delivery details and pick your area.\n"
-    "3️⃣ <b>Pay</b> — transfer to our account and upload your proof of payment.\n"
-    "4️⃣ <b>We prepare & dispatch</b> — you get live updates as your order moves.\n"
-    "5️⃣ <b>Delivered</b> — we check in 24 hours later to confirm all is well.\n\n"
+    "1️⃣ <b>Order Medicine</b>\n"
+    "Search or browse, then add items to your cart.\n\n"
+    "2️⃣ <b>Checkout</b>\n"
+    "Enter your delivery details and pick your area.\n\n"
+    "3️⃣ <b>Pay</b>\n"
+    "Transfer to our account and upload your proof of payment.\n\n"
+    "4️⃣ <b>We prepare and dispatch</b>\n"
+    "You get live updates as your order moves.\n\n"
+    "5️⃣ <b>Delivered</b>\n"
+    "We check in 24 hours later to confirm all is well.\n\n"
     "💊 Prescription medicines are reviewed by our pharmacist before they're supplied."
 )
 
@@ -91,8 +97,8 @@ async def delivery_areas(call: CallbackQuery) -> None:
             )
         ).scalars().all()
     if zones:
-        lines = "\n".join(f"• <b>{z.name}</b> — ₦{z.fee:,.0f}" for z in zones)
-        text = f"📍 <b>Delivery areas & fees</b>\n\n{lines}\n\nDon't see your area? Choose “Other Lagos areas”."
+        lines = "\n".join(f"• <b>{z.name}</b>  ₦{z.fee:,.0f}" for z in zones)
+        text = f"📍 <b>Delivery areas and fees</b>\n\n{lines}\n\nDon't see your area? Choose “Other Lagos areas”."
     else:
         text = "Delivery areas are being set up. Please check back shortly."
     await call.message.edit_text(text, reply_markup=back_to_menu())

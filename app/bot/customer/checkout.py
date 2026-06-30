@@ -59,7 +59,7 @@ async def got_address(message: Message, state: FSMContext) -> None:
         ).scalars().all()
     kb = InlineKeyboardBuilder()
     for z in zones:
-        kb.button(text=f"{z.name} — ₦{z.fee:,.0f}", callback_data=f"zone:{z.name}")
+        kb.button(text=f"{z.name} · ₦{z.fee:,.0f}", callback_data=f"zone:{z.name}")
     kb.adjust(1)
     await state.set_state(CheckoutFlow.area)
     await message.answer("📍 Choose your delivery area:", reply_markup=kb.as_markup())
@@ -105,10 +105,10 @@ async def _load_fee_and_zone(area: str) -> tuple[FeeConfig, Decimal]:
 
 
 def _summary_text(data: dict, quote) -> str:
-    lines = ["🧾 <b>Confirm your order</b>\n"]
+    lines = ["🧾 <b>Confirm your order</b>", ""]
     for i in data["cart"]:
         lt = Decimal(i["unit_price"]) * i["qty"]
-        lines.append(f"• {i['name']} ×{i['qty']} — ₦{lt:,.0f}")
+        lines.append(f"• {i['name']} ×{i['qty']} · ₦{lt:,.0f}")
     lines.append("")
     lines.append(f"Subtotal: ₦{quote.subtotal:,.0f}")
     lines.append(f"Delivery ({data['area']}): ₦{quote.delivery_fee:,.0f}")
@@ -116,9 +116,12 @@ def _summary_text(data: dict, quote) -> str:
         lines.append(f"Payment fee: ₦{quote.payment_fee:,.0f}")
     if quote.handling_fee:
         lines.append(f"Handling: ₦{quote.handling_fee:,.0f}")
-    lines.append(f"<b>Total: ₦{quote.total:,.0f}</b>\n")
-    lines.append(f"Deliver to: {data.get('full_name')} — {data.get('phone')}")
-    lines.append(f"{data.get('address')}, {data.get('area')}")
+    lines.append("")
+    lines.append(f"<b>Total: ₦{quote.total:,.0f}</b>")
+    lines.append("")
+    lines.append(f"Deliver to: {data.get('full_name')}")
+    lines.append(f"Phone: {data.get('phone')}")
+    lines.append(f"Address: {data.get('address')}, {data.get('area')}")
     if data.get("landmark"):
         lines.append(f"Landmark: {data['landmark']}")
     return "\n".join(lines)
