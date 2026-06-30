@@ -62,6 +62,8 @@ PERMISSIONS: dict[str, str] = {
     "receive_pharmacist_alerts": "Receive pharmacist alerts",
     "request_more_info": "Request more customer information",
     "convert_conversation_to_order": "Convert approved conversations into orders",
+    # Customer CRM
+    "view_customers": "View customer profiles and messaging CRM",
     # Sales / support
     "view_customer_orders": "View customer orders",
     "help_complete_orders": "Help customers complete orders",
@@ -116,19 +118,20 @@ ROLE_PERMISSIONS: dict[str, set[str]] = {
         "approve_prescription", "reply_pharmacist_tickets", "review_prescriptions",
         "view_medicine_orders", "view_customer_questions", "escalate_serious_cases",
         "override_safety", "receive_pharmacist_alerts", "view_product_requests",
-        # Lead Pharmacist may also manage product pricing/stock and view (not
-        # manage) the staff directory.
         "edit_pricing", "view_all_products", "view_staff_directory",
+        "view_customers",
     },
     PHARMACIST_ADMIN: {
         "approve_prescription", "reply_pharmacist_tickets", "review_prescriptions",
         "view_medicine_orders", "request_more_info", "convert_conversation_to_order",
         "receive_pharmacist_alerts", "view_product_requests",
+        "view_customers",
     },
     SALES_SUPPORT: {
         "view_customer_orders", "help_complete_orders", "answer_availability",
         "view_payment_status", "escalate_to_pharmacist", "escalate_to_owner",
         "message_customer", "receive_support_alerts", "view_product_requests",
+        "view_customers",
     },
     COMMUNITY_MANAGER: {
         "send_announcements", "reply_general_messages", "view_support_tickets",
@@ -158,6 +161,7 @@ ROLE_MENUS: dict[str, list[tuple[str, str]]] = {
         ("📊 System Dashboard", "staff:dashboard"),
         ("🧾 Orders", "staff:orders"),
         ("💊 Products", "staff:products"),
+        ("👤 Customers", "staff:customers"),
         ("👥 Staff", "staff:admins"),
         ("💵 Payments", "staff:payments"),
         ("💊 Prescription Order Reviews", "staff:rx"),
@@ -188,6 +192,7 @@ ROLE_MENUS: dict[str, list[tuple[str, str]]] = {
     SALES_SUPPORT: [
         ("💬 Customer Messages", "staff:messages"),
         ("🧾 Orders", "staff:orders"),
+        ("👤 Customers", "staff:customers"),
         ("💵 Payment Status", "staff:paystatus"),
         ("📝 Product Requests", "staff:requests"),
         ("➡️ Escalate to Pharmacist", "staff:esc_pharm"),

@@ -83,6 +83,8 @@ class Customer(Base, TimestampMixin):
     email_updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     orders: Mapped[list["Order"]] = relationship(back_populates="customer")
+    messages: Mapped[list["CustomerMessage"]] = relationship(back_populates="customer")
+    notes: Mapped[list["CustomerNote"]] = relationship(back_populates="customer")
 
 
 class CustomerContactEvent(Base, TimestampMixin):
@@ -113,6 +115,44 @@ class CustomerPreferences(Base, TimestampMixin):
     receive_delivery_updates: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     receive_promotions: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     receive_community_updates: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+
+
+class CustomerMessage(Base, TimestampMixin):
+    """Messages between admins and customers via the bot, with delivery status."""
+
+    __tablename__ = "customer_messages"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    customer_id: Mapped[UUID] = mapped_column(
+        ForeignKey("customers.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    telegram_user_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    sender_type: Mapped[str] = mapped_column(String(10), nullable=False)  # admin|customer|system
+    sender_admin_id: Mapped[int | None] = mapped_column(BigInteger)
+    message_text: Mapped[str] = mapped_column(Text, nullable=False)
+    attachment_file_id: Mapped[str | None] = mapped_column(String(255))
+    related_order_id: Mapped[UUID | None] = mapped_column(ForeignKey("orders.id", ondelete="SET NULL"))
+    message_purpose: Mapped[str | None] = mapped_column(String(50))
+    delivery_status: Mapped[str] = mapped_column(String(10), default="pending", nullable=False)
+    error_message: Mapped[str | None] = mapped_column(Text)
+    sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+    customer: Mapped["Customer"] = relationship(back_populates="messages")
+
+
+class CustomerNote(Base, TimestampMixin):
+    """Internal-only staff notes on a customer (never shown to the customer)."""
+
+    __tablename__ = "customer_notes"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    customer_id: Mapped[UUID] = mapped_column(
+        ForeignKey("customers.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    admin_telegram_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    note_text: Mapped[str] = mapped_column(Text, nullable=False)
+
+    customer: Mapped["Customer"] = relationship(back_populates="notes")
 
 
 class Order(Base, TimestampMixin):

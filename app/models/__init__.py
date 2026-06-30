@@ -37,6 +37,8 @@ from app.models.ops import (
 from app.models.orders import (
     Customer,
     CustomerContactEvent,
+    CustomerMessage,
+    CustomerNote,
     CustomerPreferences,
     DeliveryStatus,
     Order,
@@ -59,6 +61,8 @@ __all__ = [
     "CryptoStatus",
     "Customer",
     "CustomerContactEvent",
+    "CustomerMessage",
+    "CustomerNote",
     "CustomerPreferences",
     "Order",
     "OrderItem",
