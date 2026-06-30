@@ -56,6 +56,28 @@ DM a user who has never started the bot.)
 6. Run the catalog import once (Railway shell or locally pointed at the Railway DB):
    `python scripts/import_pharmaos.py --commit && python scripts/seed_zones.py`.
 
+## Roles & permissions (RBAC)
+Eight roles, each with a fixed permission set defined in [`app/core/rbac.py`](app/core/rbac.py)
+(the single source of truth, seeded into `roles`/`permissions`/`role_permissions`):
+**System Owner, Lead Pharmacist, Pharmacist Admin, Sales/Support, Community Manager,
+Packaging, Dispatcher, Finance**. Each role sees its own Telegram menu and only the
+buttons it's allowed. Two hard rules enforced in code:
+- **Safety:** only Lead Pharmacist & Pharmacist Admin can approve prescription orders —
+  *not even the System Owner*.
+- **Privacy:** customer contact details are hidden from roles that don't need them
+  (e.g. packaging sees area only, not phone/address).
+
+Admins live in `admin_users` (+ `admin_role_assignments`); every admin action is written
+to `admin_activity_logs`.
+
+### Bootstrap & managing staff
+1. Set `OWNER_TELEGRAM_IDS` to your numeric Telegram ID (get it via `/myid`). This
+   bootstraps you as **System Owner** even before any DB rows exist.
+2. Open the bot → `/admin` → **Staff** → **Add Admin**: enter each staffer's Telegram ID
+   (from their `/myid`), pick a role, add name/email. They must `/start` the bot first to
+   receive alerts.
+3. `python scripts/seed_rbac.py` syncs the role/permission catalog (also done on startup).
+
 ## ⚠️ Security
 The bot token was shared in plain text during setup. **Rotate it via @BotFather**
 (`/revoke`) before launch and store the new token only in Railway env vars.
