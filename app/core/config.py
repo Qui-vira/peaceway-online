@@ -41,10 +41,12 @@ class Settings(BaseSettings):
     # Pharmacy identity
     pharmacy_name: str = "Peaceway Pharmacy"
 
-    # Bank transfer
+    # Bank transfer (single, legacy) — used as fallback when bank_accounts is empty
     bank_account_name: str = ""
     bank_account_number: str = ""
     bank_name: str = ""
+    # Multiple accounts: "Bank|Account Name|Number" entries separated by ";"
+    bank_accounts: str = ""
 
     # Flutterwave
     flutterwave_secret_key: str = ""
@@ -130,6 +132,26 @@ class Settings(BaseSettings):
     @property
     def email_enabled(self) -> bool:
         return bool(self.smtp_host and self.smtp_from_email)
+
+    @property
+    def bank_account_list(self) -> list[dict]:
+        """Parsed list of payment accounts.
+
+        From BANK_ACCOUNTS ("Bank|Name|Number;..."), falling back to the single
+        legacy BANK_* fields. Returns [{bank, name, number}].
+        """
+        out: list[dict] = []
+        for entry in (self.bank_accounts or "").split(";"):
+            parts = [p.strip() for p in entry.split("|")]
+            if len(parts) == 3 and parts[2]:
+                out.append({"bank": parts[0], "name": parts[1], "number": parts[2]})
+        if not out and self.bank_account_number:
+            out.append({
+                "bank": self.bank_name,
+                "name": self.bank_account_name,
+                "number": self.bank_account_number,
+            })
+        return out
 
     @property
     def crypto_wallet_list(self) -> list[dict]:

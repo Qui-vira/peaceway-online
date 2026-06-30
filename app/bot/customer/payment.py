@@ -86,17 +86,24 @@ async def chose_flutterwave(call: CallbackQuery) -> None:
 
 async def show_payment_instructions(call: CallbackQuery, order_code: str, total: Decimal) -> None:
     s = get_settings()
-    bank_block = (
-        f"🏦 <b>Bank Transfer</b>\n"
-        f"Bank: {s.bank_name or '(set by admin)'}\n"
-        f"Account Name: {s.bank_account_name or '(set by admin)'}\n"
-        f"Account Number: <code>{s.bank_account_number or '(set by admin)'}</code>\n"
-    )
+    accounts = s.bank_account_list
+    if accounts:
+        blocks = []
+        for a in accounts:
+            blocks.append(
+                f"🏦 <b>{a['bank'] or 'Bank'}</b>\n"
+                f"Account Name: {a['name'] or '-'}\n"
+                f"Account Number: <code>{a['number']}</code>"
+            )
+        bank_block = "\n\n".join(blocks)
+    else:
+        bank_block = "🏦 <b>Bank Transfer</b>\n(payment account being set up by admin)"
     text = (
         f"💳 <b>Payment for {order_code}</b>\n\n"
         f"Amount: <b>₦{total:,.0f}</b>\n\n"
-        f"{bank_block}\n"
-        f"Use <b>{order_code}</b> as the transfer narration, then upload your proof of payment."
+        f"Transfer to any of these accounts:\n\n"
+        f"{bank_block}\n\n"
+        f"Use <b>{order_code}</b> as the transfer narration/reference, then upload your proof of payment."
     )
     kb = InlineKeyboardBuilder()
     kb.button(text="📤 Upload Proof of Payment", callback_data=f"pay:proof:{order_code}")
