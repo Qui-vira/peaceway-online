@@ -43,6 +43,7 @@ async def products_home(call: CallbackQuery) -> None:
         return
     kb = InlineKeyboardBuilder()
     kb.button(text="🔎 Search Product", callback_data="padmin:search")
+    kb.button(text="📷 Scan Product", callback_data="padmin:scan")
     kb.button(text="📤 Import Products (CSV)", callback_data="padmin:csv")
     kb.button(text="🏠 Staff Menu", callback_data="staff:home")
     kb.adjust(1)

@@ -7,6 +7,7 @@ from uuid import UUID, uuid4
 from sqlalchemy import (
     BigInteger,
     Boolean,
+    Float,
     ForeignKey,
     Index,
     Integer,
@@ -17,7 +18,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.models.base import Base, TimestampMixin
+from app.models.base import JSONB, Base, TimestampMixin
 
 
 class Product(Base, TimestampMixin):
@@ -104,3 +105,39 @@ class PriceHistory(Base, TimestampMixin):
     new_value: Mapped[str | None] = mapped_column(String(255))
     changed_by: Mapped[int | None] = mapped_column(BigInteger)  # admin telegram_id
     reason: Mapped[str | None] = mapped_column(Text)
+
+
+class ProductIdentifier(Base, TimestampMixin):
+    """Barcode/SKU/alias mappings that let a scan resolve to a product."""
+
+    __tablename__ = "product_identifiers"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    product_id: Mapped[UUID] = mapped_column(
+        ForeignKey("products.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    identifier_type: Mapped[str] = mapped_column(String(20), nullable=False)  # barcode|sku|ocr_alias|manual_code
+    identifier_value: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
+    source: Mapped[str] = mapped_column(String(20), nullable=False)  # scan|manual|csv
+    confidence_score: Mapped[float | None] = mapped_column(Float)
+    created_by_admin_id: Mapped[int | None] = mapped_column(BigInteger)
+
+    __table_args__ = (
+        UniqueConstraint("identifier_type", "identifier_value", name="uq_product_identifier"),
+    )
+
+
+class ProductScanAttempt(Base, TimestampMixin):
+    """Full audit trail of every admin scan attempt, matched or not."""
+
+    __tablename__ = "product_scan_attempts"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    admin_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    image_file_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    detected_barcode: Mapped[str | None] = mapped_column(String(255))
+    extracted_text: Mapped[str | None] = mapped_column(Text)
+    matched_product_ids: Mapped[list | None] = mapped_column(JSONB)
+    selected_product_id: Mapped[UUID | None] = mapped_column(ForeignKey("products.id", ondelete="SET NULL"))
+    confidence_score: Mapped[float | None] = mapped_column(Float)
+    status: Mapped[str] = mapped_column(String(20), default="pending", nullable=False)  # pending|matched|unmatched|linked|failed

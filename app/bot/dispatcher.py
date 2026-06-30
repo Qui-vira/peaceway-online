@@ -103,6 +103,7 @@ def build_dispatcher() -> Dispatcher:
     from app.bot.staff import products_csv as staff_products_csv
     from app.bot.staff import customers as staff_customers
     from app.bot.staff import requests as staff_requests
+    from app.bot.staff import scan as staff_scan
 
     # Staff routers first so staff commands take precedence.
     # staff_delivery & staff_crypto must precede staff_orders so their specific
@@ -111,6 +112,7 @@ def build_dispatcher() -> Dispatcher:
     dp.include_router(staff_admins.router)
     dp.include_router(staff_products.router)
     dp.include_router(staff_products_csv.router)
+    dp.include_router(staff_scan.router)
     dp.include_router(staff_pharmacist.router)
     dp.include_router(staff_prescriptions.router)
     dp.include_router(staff_requests.router)
