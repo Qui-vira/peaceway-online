@@ -10,7 +10,7 @@ from sqlalchemy import func, select
 from app.core import rbac
 from app.core.db import get_session
 from app.core.security import get_role_keys, has, primary_role, touch_activity
-from app.models import Order, OrderStatus, PharmacistQuestion, Prescription, ProductRequest, RxStatus
+from app.models import AdminUser, Order, OrderStatus, PharmacistQuestion, Prescription, ProductRequest, RxStatus
 
 router = Router(name="staff-panel")
 
@@ -75,11 +75,26 @@ async def my_id(message: Message) -> None:
     )
 
 
+async def _no_access_message(telegram_id: int) -> str:
+    """Distinguish 'never an admin' from a disabled/removed/pending one."""
+    from app.models.admin import AdminStatus
+
+    async with get_session() as session:
+        admin = (
+            await session.execute(select(AdminUser).where(AdminUser.telegram_id == telegram_id))
+        ).scalar_one_or_none()
+    if admin is None:
+        return "⛔ You are not authorised to access the staff panel."
+    if admin.status == AdminStatus.PENDING:
+        return "⏳ Your admin access is pending approval from the System Owner."
+    return "⛔ Your admin access is no longer active."
+
+
 @router.message(Command("admin"))
 async def admin_panel(message: Message) -> None:
     role_keys = await get_role_keys(message.from_user.id)
     if not role_keys:
-        await message.answer("⛔ You are not authorised to access the staff panel.")
+        await message.answer(await _no_access_message(message.from_user.id))
         return
     await touch_activity(message.from_user.id)
     text, kb = await render_panel(role_keys)

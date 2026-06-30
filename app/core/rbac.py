@@ -36,7 +36,8 @@ ROLES: dict[str, str] = {
 PERMISSIONS: dict[str, str] = {
     # System owner / technical
     "manage_env": "Manage environment setup",
-    "manage_admins": "Create/disable admins and assign roles",
+    "manage_admins": "Create/disable/remove admins and assign roles",
+    "view_staff_directory": "View the staff directory (read-only)",
     "manage_db_sync": "Run catalog import / database sync",
     "manage_alert_settings": "Manage alert settings",
     "manage_integrations": "Manage integrations",
@@ -115,8 +116,9 @@ ROLE_PERMISSIONS: dict[str, set[str]] = {
         "approve_prescription", "reply_pharmacist_tickets", "review_prescriptions",
         "view_medicine_orders", "view_customer_questions", "escalate_serious_cases",
         "override_safety", "receive_pharmacist_alerts", "view_product_requests",
-        # Lead Pharmacist may also manage product pricing/stock.
-        "edit_pricing", "view_all_products",
+        # Lead Pharmacist may also manage product pricing/stock and view (not
+        # manage) the staff directory.
+        "edit_pricing", "view_all_products", "view_staff_directory",
     },
     PHARMACIST_ADMIN: {
         "approve_prescription", "reply_pharmacist_tickets", "review_prescriptions",
@@ -174,6 +176,7 @@ ROLE_MENUS: dict[str, list[tuple[str, str]]] = {
         ("🆙 Escalated Tickets", "staff:escalated"),
         ("📝 Product Requests", "staff:requests"),
         ("💊 Products", "staff:products"),
+        ("👥 Staff", "staff:admins"),
     ],
     PHARMACIST_ADMIN: [
         ("💊 Prescription Reviews", "staff:rx"),

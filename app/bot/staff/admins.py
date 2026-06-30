@@ -1,6 +1,8 @@
-"""System Owner staff management: list, add, enable/disable admins; view activity.
+"""Staff management: list/search, add, activate, disable, remove admins + roles.
 
-Gated on the `manage_admins` permission (System Owner only).
+Viewing the directory only needs `view_staff_directory` (Lead Pharmacist gets
+this, read-only). Every mutating action (activate/disable/remove/add/remove
+role) requires `manage_admins` (System Owner only).
 """
 from __future__ import annotations
 
@@ -15,25 +17,43 @@ from app.core import rbac
 from app.core.db import get_session
 from app.core.security import get_role_keys, has, log_activity
 from app.models import AdminActivityLog, AdminUser
+from app.models.admin import AdminStatus
 from app.services import rbac_service
 
 router = Router(name="staff-admins")
 
+_STATUS_FLAG = {
+    AdminStatus.ACTIVE: "🟢",
+    AdminStatus.PENDING: "🟡",
+    AdminStatus.DISABLED: "🔴",
+    AdminStatus.REMOVED: "⚫",
+}
 
-async def _require_owner(call_or_msg) -> set[str] | None:
+
+async def _viewer(call_or_msg) -> set[str] | None:
+    """Anyone with view_staff_directory or manage_admins may open the directory."""
+    role_keys = await get_role_keys(call_or_msg.from_user.id)
+    if not (has(role_keys, "view_staff_directory") or has(role_keys, "manage_admins")):
+        return None
+    return role_keys
+
+
+async def _manager(call_or_msg) -> set[str] | None:
     role_keys = await get_role_keys(call_or_msg.from_user.id)
     if not has(role_keys, "manage_admins"):
         return None
     return role_keys
 
 
-def _admins_kb(admins: list[AdminUser]):
+def _admins_kb(admins: list[AdminUser], can_manage: bool):
     kb = InlineKeyboardBuilder()
     for a in admins:
-        roles = ",".join(sorted(x.role_key for x in a.assignments)) or "none"
-        flag = "🟢" if a.is_active else "🔴"
+        roles = ",".join(sorted(x.role_key for x in a.assignments)) or "no roles"
+        flag = _STATUS_FLAG.get(a.status, "")
         kb.button(text=f"{flag} {a.full_name or a.telegram_id} · {roles}", callback_data=f"adm:view:{a.telegram_id}")
-    kb.button(text="➕ Add Admin", callback_data="adm:add")
+    if can_manage:
+        kb.button(text="🔎 Search Admin", callback_data="adm:search")
+        kb.button(text="➕ Add Admin", callback_data="adm:add")
     kb.button(text="⬅️ Back", callback_data="staff:home")
     kb.adjust(1)
     return kb.as_markup()
@@ -41,62 +61,150 @@ def _admins_kb(admins: list[AdminUser]):
 
 @router.callback_query(F.data == "staff:admins")
 async def list_admins(call: CallbackQuery) -> None:
-    if await _require_owner(call) is None:
-        await call.answer("Only the System Owner can manage staff.", show_alert=True)
+    role_keys = await _viewer(call)
+    if role_keys is None:
+        await call.answer("Not authorised.", show_alert=True)
         return
+    can_manage = has(role_keys, "manage_admins")
     async with get_session() as session:
         admins = (await session.execute(select(AdminUser).order_by(AdminUser.created_at))).scalars().unique().all()
-    text = "👥 <b>Staff</b>" if admins else "👥 <b>Staff</b>\n\nNo admins yet. Add the first one."
-    await call.message.edit_text(text, reply_markup=_admins_kb(admins))
+    text = "👥 <b>Staff</b>" if admins else "👥 <b>Staff</b>\n\nNo admins yet."
+    await call.message.edit_text(text, reply_markup=_admins_kb(admins, can_manage))
     await call.answer()
+
+
+@router.callback_query(F.data == "adm:search")
+async def ask_search(call: CallbackQuery, state: FSMContext) -> None:
+    if await _manager(call) is None:
+        await call.answer("Not authorised.", show_alert=True)
+        return
+    await state.set_state(AdminFlow.search)
+    kb = InlineKeyboardBuilder()
+    kb.button(text="⬅️ Back", callback_data="staff:admins")
+    await call.message.edit_text("🔎 Type a name or numeric Telegram ID to search.", reply_markup=kb.as_markup())
+    await call.answer()
+
+
+@router.message(AdminFlow.search, F.text)
+async def do_search(message: Message, state: FSMContext) -> None:
+    await state.clear()
+    results = await rbac_service.search_admins(message.text)
+    if not results:
+        await message.answer(f"No admins found for “{message.text}”.")
+        return
+    await message.answer("Results:", reply_markup=_admins_kb(results, True))
 
 
 @router.callback_query(F.data.startswith("adm:view:"))
 async def view_admin(call: CallbackQuery) -> None:
-    if await _require_owner(call) is None:
+    role_keys = await _viewer(call)
+    if role_keys is None:
         await call.answer("Not authorised.", show_alert=True)
         return
+    can_manage = has(role_keys, "manage_admins")
     tid = int(call.data.split("adm:view:", 1)[1])
     async with get_session() as session:
         admin = (await session.execute(select(AdminUser).where(AdminUser.telegram_id == tid))).scalar_one_or_none()
         if admin is None:
             await call.answer("Not found.", show_alert=True)
             return
-        roles = ", ".join(rbac.role_label(x.role_key) for x in admin.assignments) or "none"
+        roles = [x.role_key for x in admin.assignments]
         last = admin.last_activity_at.strftime("%Y-%m-%d %H:%M") if admin.last_activity_at else "never"
         text = (
             f"👤 <b>{admin.full_name or admin.telegram_id}</b>\n"
             f"Telegram ID: <code>{admin.telegram_id}</code>\n"
             f"Email: {admin.email or '-'}\n"
-            f"Roles: {roles}\n"
-            f"Status: {'🟢 Active' if admin.is_active else '🔴 Disabled'}\n"
+            f"Roles: {', '.join(rbac.role_label(r) for r in roles) or 'none'}\n"
+            f"Status: {_STATUS_FLAG.get(admin.status, '')} {admin.status.value}\n"
             f"Last activity: {last}\n"
             f"Created: {admin.created_at.strftime('%Y-%m-%d')}"
         )
-        active = admin.is_active
+        status = admin.status
+
     kb = InlineKeyboardBuilder()
-    if active:
-        kb.button(text="🔴 Disable", callback_data=f"adm:disable:{tid}")
-    else:
-        kb.button(text="🟢 Enable", callback_data=f"adm:enable:{tid}")
-    kb.button(text="➕ Add another role", callback_data=f"adm:addrole:{tid}")
+    if can_manage:
+        is_self_owner = tid == call.from_user.id and rbac.SYSTEM_OWNER in roles
+        if status == AdminStatus.PENDING:
+            kb.button(text="✅ Activate", callback_data=f"adm:activate:{tid}")
+        elif status == AdminStatus.ACTIVE:
+            if not is_self_owner:
+                kb.button(text="🔴 Disable", callback_data=f"adm:disable:{tid}")
+        elif status == AdminStatus.DISABLED:
+            kb.button(text="🟢 Reactivate", callback_data=f"adm:activate:{tid}")
+        if status != AdminStatus.REMOVED and not is_self_owner:
+            kb.button(text="🗑 Remove Admin", callback_data=f"adm:remove:{tid}")
+        if roles and status != AdminStatus.REMOVED:
+            for rk in roles:
+                if rk == rbac.SYSTEM_OWNER and is_self_owner:
+                    continue  # cannot remove your own owner role
+                kb.button(text=f"➖ Remove role: {rbac.role_label(rk)}", callback_data=f"adm:rmrole:{rk}:{tid}")
+        if status != AdminStatus.REMOVED:
+            kb.button(text="➕ Add another role", callback_data=f"adm:addrole:{tid}")
     kb.button(text="⬅️ Back", callback_data="staff:admins")
     kb.adjust(1)
     await call.message.edit_text(text, reply_markup=kb.as_markup())
     await call.answer()
 
 
-@router.callback_query(F.data.startswith("adm:disable:") | F.data.startswith("adm:enable:"))
-async def toggle_admin(call: CallbackQuery) -> None:
-    role_keys = await _require_owner(call)
+@router.callback_query(F.data.startswith("adm:activate:"))
+async def activate(call: CallbackQuery) -> None:
+    role_keys = await _manager(call)
     if role_keys is None:
         await call.answer("Not authorised.", show_alert=True)
         return
-    enable = call.data.startswith("adm:enable:")
-    tid = int(call.data.rsplit(":", 1)[1])
-    await rbac_service.set_admin_active(tid, enable)
-    await log_activity(call.from_user.id, role_keys, "enable_admin" if enable else "disable_admin", "admin_user", str(tid))
-    await call.answer("Updated ✅")
+    tid = int(call.data.split("adm:activate:", 1)[1])
+    await rbac_service.activate_admin(tid)
+    await log_activity(call.from_user.id, role_keys, "activate_admin", "admin_user", str(tid))
+    await call.answer("Admin activated ✅")
+    call.data = f"adm:view:{tid}"
+    await view_admin(call)
+
+
+@router.callback_query(F.data.startswith("adm:disable:"))
+async def disable(call: CallbackQuery) -> None:
+    role_keys = await _manager(call)
+    if role_keys is None:
+        await call.answer("Not authorised.", show_alert=True)
+        return
+    tid = int(call.data.split("adm:disable:", 1)[1])
+    if tid == call.from_user.id:
+        await call.answer("You cannot disable your own access.", show_alert=True)
+        return
+    await rbac_service.disable_admin(tid)
+    await log_activity(call.from_user.id, role_keys, "disable_admin", "admin_user", str(tid))
+    await call.answer("Admin access disabled successfully.")
+    call.data = f"adm:view:{tid}"
+    await view_admin(call)
+
+
+@router.callback_query(F.data.startswith("adm:remove:"))
+async def remove(call: CallbackQuery) -> None:
+    role_keys = await _manager(call)
+    if role_keys is None:
+        await call.answer("Not authorised.", show_alert=True)
+        return
+    tid = int(call.data.split("adm:remove:", 1)[1])
+    if tid == call.from_user.id:
+        await call.answer("You cannot remove your own access.", show_alert=True)
+        return
+    await rbac_service.remove_admin(tid)
+    await log_activity(call.from_user.id, role_keys, "remove_admin", "admin_user", str(tid))
+    await call.answer("Admin removed.")
+    call.data = f"adm:view:{tid}"
+    await view_admin(call)
+
+
+@router.callback_query(F.data.startswith("adm:rmrole:"))
+async def remove_role(call: CallbackQuery) -> None:
+    role_keys = await _manager(call)
+    if role_keys is None:
+        await call.answer("Not authorised.", show_alert=True)
+        return
+    _, _, role_key, tid_s = call.data.split(":", 3)
+    tid = int(tid_s)
+    await rbac_service.remove_admin_role(tid, role_key)
+    await log_activity(call.from_user.id, role_keys, "remove_admin_role", "admin_user", str(tid), {"role": role_key})
+    await call.answer("Role removed ✅")
     call.data = f"adm:view:{tid}"
     await view_admin(call)
 
@@ -104,7 +212,7 @@ async def toggle_admin(call: CallbackQuery) -> None:
 # ── Add-admin flow ───────────────────────────────────────────────────────────
 @router.callback_query(F.data == "adm:add")
 async def add_start(call: CallbackQuery, state: FSMContext) -> None:
-    if await _require_owner(call) is None:
+    if await _manager(call) is None:
         await call.answer("Not authorised.", show_alert=True)
         return
     await state.set_state(AdminFlow.add_telegram_id)
@@ -158,15 +266,21 @@ async def add_got_details(message: Message, state: FSMContext) -> None:
     await rbac_service.add_admin(tid, role_key, full_name=full_name, email=email)
     role_keys = await get_role_keys(message.from_user.id)
     await log_activity(message.from_user.id, role_keys, "add_admin", "admin_user", str(tid), {"role": role_key})
+    kb = InlineKeyboardBuilder()
+    kb.button(text="✅ Activate now", callback_data=f"adm:activate:{tid}")
+    kb.button(text="👥 Staff list", callback_data="staff:admins")
+    kb.adjust(1)
     await message.answer(
-        f"✅ Added <b>{full_name or tid}</b> as <b>{rbac.role_label(role_key)}</b>.\n\n"
-        "⚠️ They must open the bot and send /start before they can receive alerts."
+        f"✅ Added <b>{full_name or tid}</b> as <b>{rbac.role_label(role_key)}</b> — status: 🟡 PENDING.\n\n"
+        "They must open the bot and send /start, and you must Activate them before "
+        "they can access /admin or receive alerts.",
+        reply_markup=kb.as_markup(),
     )
 
 
 @router.callback_query(F.data.startswith("adm:addrole:"))
 async def add_role_to_existing(call: CallbackQuery, state: FSMContext) -> None:
-    if await _require_owner(call) is None:
+    if await _manager(call) is None:
         await call.answer("Not authorised.", show_alert=True)
         return
     tid = int(call.data.split("adm:addrole:", 1)[1])

@@ -6,13 +6,23 @@ source of truth). `admin_users` + `admin_role_assignments` hold who has which ro
 """
 from __future__ import annotations
 
+import enum
 from datetime import datetime
 from uuid import UUID, uuid4
 
-from sqlalchemy import BigInteger, Boolean, DateTime, ForeignKey, String, Text, UniqueConstraint
+from sqlalchemy import BigInteger, Boolean, DateTime
+from sqlalchemy import Enum as SAEnum
+from sqlalchemy import ForeignKey, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import JSONB, Base, TimestampMixin
+
+
+class AdminStatus(str, enum.Enum):
+    PENDING = "PENDING"    # added by Owner, awaiting explicit activation
+    ACTIVE = "ACTIVE"
+    DISABLED = "DISABLED"  # temporary suspension
+    REMOVED = "REMOVED"    # soft-removed; roles cleared, audit history kept
 
 
 class Role(Base, TimestampMixin):
@@ -48,7 +58,13 @@ class AdminUser(Base, TimestampMixin):
     telegram_id: Mapped[int] = mapped_column(BigInteger, unique=True, index=True, nullable=False)
     full_name: Mapped[str | None] = mapped_column(String(255))
     email: Mapped[str | None] = mapped_column(String(255))
+    # is_active stays the literal access gate used by every existing query
+    # (get_role_keys, recipients_for_roles) — kept in sync with `status` by the
+    # service layer so no existing SQL filter needs to change.
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    status: Mapped[AdminStatus] = mapped_column(
+        SAEnum(AdminStatus, name="admin_status"), default=AdminStatus.PENDING, nullable=False
+    )
     last_activity_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     assignments: Mapped[list["AdminRoleAssignment"]] = relationship(

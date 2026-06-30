@@ -13,6 +13,7 @@ class AdminFlow(StatesGroup):
     add_telegram_id = State()   # capture new admin's numeric Telegram ID
     add_role = State()          # choose role (inline)
     add_details = State()       # capture "Full Name, email"
+    search = State()            # capture admin search query (name or Telegram ID)
 
 
 class ProductAdminFlow(StatesGroup):
