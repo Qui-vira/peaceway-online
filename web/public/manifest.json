@@ -4,7 +4,7 @@
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "theme_color": "#0B0C09",
+  "theme_color": "#0F673C",
   "background_color": "#0B0C09",
   "icons": [
     {
