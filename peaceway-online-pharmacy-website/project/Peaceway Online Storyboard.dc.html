@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<meta name="design_doc_mode" content="canvas">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0C0D0B;color:#DCDDDB;font-family:'DM Sans',sans-serif;-webkit-font-smoothing:antialiased}
+:root{--g:#0F673C;--g2:#1A8A50;--gl:rgba(15,103,60,0.14);--gg:rgba(15,103,60,0.28);--r:#A80B16;--rl:rgba(168,11,22,0.15);--t:#DCDDDB;--m:#B1BDB0;--m2:rgba(177,189,176,0.45);--bg:#191A17;--bgd:#0C0D0B;--bg2:#141611;--bdr:rgba(255,255,255,0.08);--bdr2:rgba(255,255,255,0.04)}
+.wrap{max-width:1520px;margin:0 auto;padding:56px 56px 120px}
+.divider{height:1px;background:var(--bdr);margin:64px 0}
+.doc-section{margin-bottom:64px}
+.stag{display:inline-block;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--r);font-family:'Syne',sans-serif;font-weight:700;margin-bottom:10px}
+.stitle{font-family:'Syne',sans-serif;font-weight:800;font-size:28px;color:var(--t);margin-bottom:6px;line-height:1.05}
+.ssub{font-size:13.5px;color:var(--m);max-width:580px;line-height:1.65;margin-bottom:32px}
+
+/* HEADER */
+.doc-hdr{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:52px;border-bottom:1px solid var(--bdr);margin-bottom:56px}
+.doc-logo-wrap{display:flex;align-items:center;gap:16px}
+.doc-logo{width:62px;height:62px;border-radius:12px;object-fit:contain;background:var(--bg);padding:4px;border:1px solid var(--bdr)}
+.doc-bname{font-family:'Syne',sans-serif;font-weight:800;font-size:22px;color:var(--t);line-height:1.1}
+.doc-bsub{font-size:12.5px;color:var(--m);margin-top:4px}
+.doc-meta{text-align:right}
+.doc-ver{font-family:'Syne',sans-serif;font-weight:700;font-size:12px;color:var(--g);letter-spacing:.08em;text-transform:uppercase}
+.doc-date{font-size:12px;color:var(--m);margin-top:4px}
+.doc-badge{display:inline-block;margin-top:8px;padding:3px 12px;border-radius:20px;font-size:10px;background:var(--gl);color:var(--g);border:1px solid rgba(15,103,60,.3);font-family:'Syne',sans-serif;font-weight:700;letter-spacing:.06em}
+
+/* CONFIRM GRID */
+.cgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.ccard{background:var(--bg);border-radius:12px;border:1px solid var(--bdr);padding:18px 20px}
+.clabel{font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--r);font-family:'Syne',sans-serif;font-weight:700;margin-bottom:6px}
+.cval{font-size:13px;color:var(--t);line-height:1.65}
+.cnote{font-size:11px;color:var(--m);margin-top:4px}
+
+/* DESIGN SYSTEM */
+.swatch-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:28px}
+.sw-item{display:flex;flex-direction:column;gap:6px;align-items:center}
+.sw{width:60px;height:60px;border-radius:12px;border:1px solid var(--bdr)}
+.sw-hex{font-size:10px;font-family:monospace;color:var(--m);letter-spacing:.04em}
+.sw-name{font-size:9.5px;color:var(--m2);text-align:center;line-height:1.3}
+.type-block{background:var(--bg);border:1px solid var(--bdr);border-radius:16px;padding:24px 28px;display:flex;flex-direction:column;gap:0}
+.type-row{display:flex;align-items:baseline;gap:20px;padding:14px 0;border-bottom:1px solid var(--bdr2)}
+.type-row:last-child{border-bottom:none;padding-bottom:0}
+.type-label{width:130px;flex-shrink:0;font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--m2)}
+.type-sample{flex:1;color:var(--t)}
+.type-note{width:140px;flex-shrink:0;font-size:10px;color:var(--m2);text-align:right}
+
+/* DV FORMAT */
+.dv-turn{padding:0;border:none;margin-bottom:0}
+.dv-thd{display:flex;align-items:baseline;gap:10px;margin-bottom:20px}
+.dv-tid{font:700 10px 'Syne',sans-serif;padding:3px 9px;background:var(--r);color:#fff;border-radius:4px;text-decoration:none;letter-spacing:.06em}
+.dv-tname{font:700 14px 'Syne',sans-serif;color:var(--t)}
+.dv-opts{display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start}
+.dv-opt{flex:none;display:flex;flex-direction:column;gap:8px}
+.dv-oid{font:700 10px 'DM Sans',sans-serif;padding:3px 9px;background:var(--gl);color:var(--g);border:1px solid rgba(15,103,60,.35);border-radius:5px;text-decoration:none;letter-spacing:.04em}
+.dv-olabel{display:flex;align-items:baseline;gap:8px;font:400 11px/1.4 'DM Sans',sans-serif;color:var(--m)}
+.dv-card{border-radius:16px;overflow:hidden;border:1px solid var(--bdr);background:var(--bg);width:480px}
+.dv-meta{padding:20px 22px}
+.dv-dname{font-family:'Syne',sans-serif;font-weight:800;font-size:17px;color:var(--t);margin-bottom:4px}
+.dv-ddesc{font-size:12px;color:var(--m);line-height:1.6;margin-bottom:14px}
+.dv-pal{display:flex;gap:4px;margin-bottom:14px}
+.dv-ps{height:22px;border-radius:6px;flex:1}
+.dv-tyrow{padding-top:13px;border-top:1px solid var(--bdr2)}
+.dv-tylabel{font-size:9.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--m2);margin-bottom:5px}
+.dv-next{margin-top:28px;padding:16px 20px;background:var(--bg);border:1px solid var(--bdr);border-radius:12px;font:13px/1.7 'DM Sans',sans-serif;color:var(--m)}
+
+/* STORYBOARD */
+.sb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px}
+.sb-card{background:var(--bg);border-radius:14px;border:1px solid var(--bdr);overflow:hidden}
+.sb-body{padding:16px 18px}
+.sb-stag{font-size:9px;text-transform:uppercase;letter-spacing:.14em;color:var(--r);font-family:'Syne',sans-serif;font-weight:700}
+.sb-name{font-family:'Syne',sans-serif;font-weight:800;font-size:15px;color:var(--t);margin:3px 0 2px}
+.sb-hl{font-size:11px;color:var(--g);font-style:italic;margin-bottom:12px;line-height:1.4}
+.sb-mock{background:#0E0F0C;position:relative;overflow:hidden;height:170px}
+.sb-keys{display:flex;flex-wrap:wrap;gap:5px;margin-top:12px}
+.sb-key{padding:2px 9px;border-radius:20px;font-size:10px;background:var(--gl);color:var(--g);border:1px solid rgba(15,103,60,.25)}
+.sb-arow{display:flex;align-items:flex-start;gap:6px;margin-top:10px}
+.sb-adot{width:5px;height:5px;border-radius:50%;background:var(--g);flex-shrink:0;margin-top:4px}
+.sb-atext{font-size:10.5px;color:var(--m);line-height:1.5}
+.vid-badge{position:absolute;top:8px;right:8px;padding:2px 8px;border-radius:10px;font-size:8px;background:rgba(15,103,60,.3);color:#4ADE80;border:1px solid rgba(15,103,60,.4);font-family:'DM Sans',sans-serif;font-weight:600;letter-spacing:.04em}
+
+/* ASSET TABLE */
+.at{width:100%;border-collapse:collapse;background:var(--bg);border-radius:14px;overflow:hidden;border:1px solid var(--bdr)}
+.at th{text-align:left;font-family:'Syne',sans-serif;font-weight:700;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--m);padding:11px 16px;border-bottom:1px solid var(--bdr);background:var(--bg2)}
+.at td{padding:11px 16px;border-bottom:1px solid var(--bdr2);font-size:12px;color:var(--t);vertical-align:middle}
+.ok{display:inline-block;padding:2px 9px;border-radius:20px;font-size:9.5px;background:rgba(15,103,60,.2);color:#4ADE80;border:1px solid rgba(15,103,60,.35);font-family:'Syne',sans-serif;font-weight:700}
+.need{display:inline-block;padding:2px 9px;border-radius:20px;font-size:9.5px;background:rgba(168,11,22,.15);color:#F87171;border:1px solid rgba(168,11,22,.35);font-family:'Syne',sans-serif;font-weight:700}
+.later{display:inline-block;padding:2px 9px;border-radius:20px;font-size:9.5px;background:rgba(177,189,176,.08);color:var(--m);border:1px solid var(--bdr);font-family:'Syne',sans-serif;font-weight:700}
+.ph{display:inline-block;padding:2px 9px;border-radius:20px;font-size:9.5px;background:rgba(251,189,35,.1);color:#FBBD23;border:1px solid rgba(251,189,35,.3);font-family:'Syne',sans-serif;font-weight:700}
+
+/* ANIM TABLE */
+.animt{width:100%;border-collapse:collapse;background:var(--bg);border-radius:14px;overflow:hidden;border:1px solid var(--bdr)}
+.animt th{text-align:left;font-family:'Syne',sans-serif;font-weight:700;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--m);padding:11px 16px;border-bottom:1px solid var(--bdr);background:var(--bg2)}
+.animt td{padding:11px 16px;border-bottom:1px solid var(--bdr2);font-size:12px;color:var(--t);vertical-align:top;line-height:1.5}
+.lib{display:inline-block;padding:1px 7px;border-radius:4px;font-size:9.5px;background:var(--gl);color:var(--g);border:1px solid rgba(15,103,60,.3);margin-right:3px;font-family:'DM Sans',sans-serif}
+.animt td:first-child{color:var(--g);font-family:'Syne',sans-serif;font-weight:700;font-size:11px;white-space:nowrap}
+
+/* COMPONENT TREE */
+.ctree{background:var(--bg);border:1px solid var(--bdr);border-radius:14px;padding:24px 28px;font-size:12px;line-height:2;font-family:monospace;overflow-x:auto}
+.cp{color:#DCDDDB;font-weight:600}
+.cs{color:var(--g);padding-left:20px;display:block}
+.cc{color:var(--m);padding-left:40px;display:block}
+.cn{color:rgba(177,189,176,.4);font-size:10.5px;margin-left:8px}
+
+/* PHASE */
+.phase-row{display:flex;gap:20px;padding:22px 0;border-bottom:1px solid var(--bdr2);align-items:flex-start}
+.pnum{width:52px;height:52px;border-radius:14px;background:var(--gl);border:1px solid rgba(15,103,60,.3);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:20px;color:var(--g);flex-shrink:0}
+.pbody{flex:1}
+.pname{font-family:'Syne',sans-serif;font-weight:700;font-size:15px;color:var(--t);margin-bottom:3px}
+.pdesc{font-size:12.5px;color:var(--m);line-height:1.65}
+.ptags{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.ptag{padding:2px 10px;border-radius:20px;font-size:10px;background:rgba(255,255,255,.04);color:var(--m);border:1px solid var(--bdr)}
+.ptag.cur{background:var(--gl);color:var(--g);border-color:rgba(15,103,60,.3)}
+.pbadge{flex-shrink:0;align-self:center}
+.pst-now{padding:4px 12px;border-radius:20px;font-size:10px;background:var(--g);color:#fff;font-family:'Syne',sans-serif;font-weight:700;letter-spacing:.04em}
+.pst-next{padding:4px 12px;border-radius:20px;font-size:10px;background:rgba(255,255,255,.06);color:var(--m);font-family:'Syne',sans-serif;font-weight:700;border:1px solid var(--bdr)}
+
+/* APPROVAL */
+.appr{background:var(--bg);border:1px solid rgba(15,103,60,.3);border-radius:22px;padding:48px;text-align:center;margin-top:80px;position:relative;overflow:hidden}
+.appr-glow{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 120%,rgba(15,103,60,.14) 0%,transparent 65%);pointer-events:none}
+.appr-title{font-family:'Syne',sans-serif;font-weight:800;font-size:26px;color:var(--t);margin-bottom:8px;position:relative}
+.appr-sub{font-size:13.5px;color:var(--m);margin-bottom:32px;position:relative;line-height:1.6}
+.btn-g{display:inline-block;padding:13px 42px;border-radius:40px;background:var(--g);color:#fff;font-family:'Syne',sans-serif;font-weight:700;font-size:13px;letter-spacing:.06em;cursor:pointer;border:none;text-transform:uppercase;margin:0 6px}
+.btn-o{display:inline-block;padding:13px 42px;border-radius:40px;background:transparent;color:var(--t);font-family:'Syne',sans-serif;font-weight:700;font-size:13px;letter-spacing:.06em;cursor:pointer;border:1px solid var(--bdr);text-transform:uppercase;margin:0 6px}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px}
+</style>
+</helmet>
+<div class="wrap">
+
+<!-- ═══ DOCUMENT HEADER ═══ -->
+<div class="doc-hdr">
+  <div class="doc-logo-wrap">
+    <img class="doc-logo" src="uploads/pasted-1782918307538-0.png" alt="Peaceway">
+    <div>
+      <div class="doc-bname">Peaceway Online</div>
+      <div class="doc-bsub">Design Storyboard &amp; Visual Planning Document — Phase 1</div>
+    </div>
+  </div>
+  <div class="doc-meta">
+    <div class="doc-ver">Version 1.0</div>
+    <div class="doc-date">July 2026 · Phase 1: Design Only</div>
+    <div class="doc-badge">⏳ Pending Approval</div>
+  </div>
+</div>
+
+<!-- ═══ BRIEF CONFIRMATION ═══ -->
+<div class="doc-section">
+  <div class="stag">Brief Confirmed</div>
+  <div class="stitle">What we are building</div>
+  <div class="ssub">All key inputs received and locked in below. No coding begins until this storyboard is approved.</div>
+  <div class="cgrid">
+    <div class="ccard"><div class="clabel">Business</div><div class="cval">Peaceway Online<br>Parent: Peaceway Pharmacy</div><div class="cnote">Igando/Agodo Ikotun, Lagos</div></div>
+    <div class="ccard"><div class="clabel">Phase Goal</div><div class="cval">Premium website design — layout, visual story, animations, frontend structure</div><div class="cnote">No bot backend. No payment flow.</div></div>
+    <div class="ccard"><div class="clabel">Telegram</div><div class="cval">@peacewayonline_bot<br>t.me/peacewayonline_bot</div><div class="cnote">CTA placeholder only — Phase 3</div></div>
+    <div class="ccard"><div class="clabel">Brand Colors</div><div class="cval" style="display:flex;gap:7px;flex-wrap:wrap;margin-top:4px"><span style="padding:2px 10px;border-radius:20px;font-size:11px;background:#0F673C;color:#fff">Green #0F673C</span><span style="padding:2px 10px;border-radius:20px;font-size:11px;background:#A80B16;color:#fff">Red #A80B16</span><span style="padding:2px 10px;border-radius:20px;font-size:11px;background:#191A17;color:#B1BDB0;border:1px solid rgba(255,255,255,.12)">Dark #191A17</span></div></div>
+    <div class="ccard"><div class="clabel">Typography Direction</div><div class="cval">Strong geometric display<br>+ humanist body text</div><div class="cnote">Syne 800 display · DM Sans body</div></div>
+    <div class="ccard"><div class="clabel">Sections</div><div class="cval">10 website sections<br>+ Footer</div><div class="cnote">All fully storyboarded below</div></div>
+    <div class="ccard"><div class="clabel">Assets Provided</div><div class="cval">Logo ✓ · Building photo ✓<br>10 Seedance videos ✓</div><div class="cnote">All 10 videos assigned to sections</div></div>
+    <div class="ccard"><div class="clabel">Design Variations</div><div class="cval">3 directions to review<br>You pick one to implement</div><div class="cnote">See directions 1a · 1b · 1c below</div></div>
+    <div class="ccard"><div class="clabel">Hard Rules</div><div class="cval">No fake PCN numbers · No invented license details · No fake testimonials · No fake guarantees</div></div>
+  </div>
+</div>
+<div class="divider"></div>
+
+<!-- ═══ DESIGN SYSTEM ═══ -->
+<div class="doc-section">
+  <div class="stag">Design System</div>
+  <div class="stitle">Colors, type, and surface language</div>
+  <div class="ssub">The five brand tokens below drive every color decision across all 10 sections.</div>
+  <div class="swatch-row">
+    <div class="sw-item"><div class="sw" style="background:#191A17"></div><div class="sw-hex">#191A17</div><div class="sw-name">Dark Charcoal<br>Background</div></div>
+    <div class="sw-item"><div class="sw" style="background:#0F673C"></div><div class="sw-hex">#0F673C</div><div class="sw-name">Pharmacy Green<br>Primary</div></div>
+    <div class="sw-item"><div class="sw" style="background:#A80B16"></div><div class="sw-hex">#A80B16</div><div class="sw-name">Pharmacy Red<br>Accent</div></div>
+    <div class="sw-item"><div class="sw" style="background:#DCDDDB;border-color:rgba(255,255,255,.12)"></div><div class="sw-hex">#DCDDDB</div><div class="sw-name">Off-White<br>Primary Text</div></div>
+    <div class="sw-item"><div class="sw" style="background:#B1BDB0"></div><div class="sw-hex">#B1BDB0</div><div class="sw-name">Metallic Silver<br>Secondary Text</div></div>
+    <div class="sw-item"><div class="sw" style="background:rgba(15,103,60,0.14);border-color:rgba(15,103,60,.3)"></div><div class="sw-hex">rgba green</div><div class="sw-name">Glass Surface<br>Cards / Hero</div></div>
+    <div class="sw-item"><div class="sw" style="background:#0C0D0B"></div><div class="sw-hex">#0C0D0B</div><div class="sw-name">Near-Black<br>Deep BG</div></div>
+  </div>
+  <div class="type-block">
+    <div class="type-row"><div class="type-label">Display / Hero</div><div class="type-sample" style="font-family:'Syne',sans-serif;font-weight:800;font-size:32px;line-height:1;letter-spacing:-.02em;background:linear-gradient(180deg,#DCDDDB 20%,#5D9E72 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent">YOUR LAGOS PHARMACY IS NOW ONLINE</div><div class="type-note">Syne 800 · gradient text</div></div>
+    <div class="type-row"><div class="type-label">Section Heading</div><div class="type-sample" style="font-family:'Syne',sans-serif;font-weight:800;font-size:22px;color:#DCDDDB;letter-spacing:-.015em">Order medicine. Ask a pharmacist. Get it delivered.</div><div class="type-note">Syne 800 · off-white</div></div>
+    <div class="type-row"><div class="type-label">Sub-heading</div><div class="type-sample" style="font-family:'Syne',sans-serif;font-weight:700;font-size:16px;color:#0F673C;letter-spacing:.04em;text-transform:uppercase">Pharmacist-Led Service · Genuine Medicines</div><div class="type-note">Syne 700 · green · uppercase</div></div>
+    <div class="type-row"><div class="type-label">Body Text</div><div class="type-sample" style="font-family:'DM Sans',sans-serif;font-weight:400;font-size:14px;color:#B1BDB0;line-height:1.7">Order genuine medicines from a licensed pharmacist. Confirm availability. Delivery across selected Lagos areas. No guessing, no fake drugs, no dangerous shortcuts.</div><div class="type-note">DM Sans 400 · metallic</div></div>
+    <div class="type-row" style="border-bottom:none;padding-bottom:0"><div class="type-label">Label / Tag</div><div class="type-sample" style="font-family:'DM Sans',sans-serif;font-weight:600;font-size:11px;color:#A80B16;letter-spacing:.14em;text-transform:uppercase">Section 03 · Services</div><div class="type-note">DM Sans 600 · red · uppercase</div></div>
+  </div>
+</div>
+<div class="divider"></div>
+
+<!-- ═══ 3 DESIGN DIRECTIONS ═══ -->
+<div class="doc-section">
+  <div class="stag">Design Directions</div>
+  <div class="stitle">Choose one direction to implement</div>
+  <div class="ssub">Three genuinely different visual approaches — same content, different personality. Pick one (or tell me what to mix) before Phase 2 begins.</div>
+</div>
+
+<section class="dv-turn" id="t1">
+  <div class="dv-thd"><a class="dv-tid" href="#t1">1</a><span class="dv-tname">Three hero directions for Peaceway Online</span></div>
+  <div class="dv-opts">
+
+    <!-- 1A: CINEMATIC REVEAL -->
+    <div class="dv-opt" id="1a">
+      <div class="dv-olabel"><a class="dv-oid" href="#1a">1a</a>Cinematic Reveal — Closest to brief vision</div>
+      <div class="dv-card">
+        <!-- Hero mini mockup -->
+        <div style="height:300px;background:radial-gradient(ellipse at 50% 130%,rgba(15,103,60,.22) 0%,#080908 60%);position:relative;overflow:hidden">
+          <div style="position:absolute;inset:0;opacity:.035;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(255,255,255,1) 3px,rgba(255,255,255,1) 4px)"></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 20px;position:relative">
+            <img src="uploads/pasted-1782918307538-0.png" style="width:26px;height:26px;border-radius:5px;object-fit:cover;background:#191A17">
+            <div style="display:flex;gap:14px"><span style="font-size:6.5px;color:rgba(220,221,219,.55);font-family:'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:.12em">About</span><span style="font-size:6.5px;color:rgba(220,221,219,.55);font-family:'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:.12em">Services</span><span style="font-size:6.5px;color:rgba(220,221,219,.55);font-family:'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:.12em">Order</span><span style="font-size:6.5px;color:rgba(220,221,219,.55);font-family:'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:.12em">Contact</span></div>
+          </div>
+          <div style="text-align:center;padding:6px 32px;position:relative">
+            <div style="font-size:7.5px;font-family:'DM Sans',sans-serif;letter-spacing:.18em;text-transform:uppercase;color:rgba(15,103,60,.9);margin-bottom:8px;font-weight:500">Peaceway Online</div>
+            <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:30px;line-height:.95;letter-spacing:-.025em;background:linear-gradient(180deg,#DCDDDB 30%,#5D9E72 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:10px">YOUR LAGOS<br>PHARMACY<br>IS NOW ONLINE</div>
+            <div style="font-size:7px;font-family:'DM Sans',sans-serif;color:#B1BDB0;line-height:1.65;max-width:250px;margin:0 auto">Genuine medicines, pharmacist guidance,<br>and delivery across Lagos.</div>
+            <div style="display:flex;justify-content:center;gap:10px;margin-top:14px">
+              <div style="padding:6px 16px;border-radius:24px;background:#0F673C;font-size:7px;font-family:'DM Sans',sans-serif;color:#fff;letter-spacing:.08em;text-transform:uppercase;font-weight:600">Order on Telegram</div>
+              <div style="padding:6px 16px;border-radius:24px;border:1px solid rgba(220,221,219,.35);font-size:7px;font-family:'DM Sans',sans-serif;color:#DCDDDB;letter-spacing:.08em;text-transform:uppercase">Join Community</div>
+            </div>
+          </div>
+          <div style="position:absolute;bottom:12px;left:0;right:0;text-align:center"><div style="font-size:6px;font-family:'DM Sans',sans-serif;color:rgba(177,189,176,.4);letter-spacing:.18em;text-transform:uppercase">Scroll to discover ↓</div></div>
+        </div>
+        <div class="dv-meta">
+          <div class="dv-dname">1a — Cinematic Reveal</div>
+          <div class="dv-ddesc">Full-bleed Seedance video background with dark cinematic overlay. Gradient headline (off-white → pharmacy green). Glassmorphism cards in hero area, solid dark cards in body sections. Scroll-driven storytelling throughout. This is the direction closest to your original vision brief.</div>
+          <div class="dv-pal"><div class="dv-ps" style="background:#0C0D0B"></div><div class="dv-ps" style="background:#0F673C"></div><div class="dv-ps" style="background:rgba(15,103,60,.14);border:1px solid rgba(15,103,60,.3)"></div><div class="dv-ps" style="background:#DCDDDB"></div><div class="dv-ps" style="background:#B1BDB0"></div></div>
+          <div class="dv-tyrow"><div class="dv-tylabel">Typography</div><div style="font-family:'Syne',sans-serif;font-weight:800;font-size:18px;background:linear-gradient(180deg,#DCDDDB 0%,#5D9E72 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1;letter-spacing:-.02em">PEACEWAY ONLINE</div><div style="font-family:'DM Sans',sans-serif;font-size:11px;color:#B1BDB0;margin-top:5px">Order medicine. Get it delivered fast.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 1B: THE TRUSTED PHARMACIST -->
+    <div class="dv-opt" id="1b">
+      <div class="dv-olabel"><a class="dv-oid" href="#1b">1b</a>The Trusted Pharmacist — Editorial &amp; structured</div>
+      <div class="dv-card">
+        <div style="height:300px;background:linear-gradient(160deg,#121A13 0%,#1C2A1E 100%);position:relative;overflow:hidden">
+          <div style="position:absolute;inset:0;opacity:.04;background:linear-gradient(rgba(255,255,255,.5) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.5) 1px,transparent 1px);background-size:44px 44px"></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 20px;position:relative">
+            <img src="uploads/pasted-1782918307538-0.png" style="width:26px;height:26px;border-radius:5px;object-fit:cover;background:#191A17">
+            <div style="display:flex;gap:14px"><span style="font-size:6.5px;color:rgba(177,189,176,.7);font-family:'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:.12em">About</span><span style="font-size:6.5px;color:rgba(177,189,176,.7);font-family:'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:.12em">Services</span><span style="font-size:6.5px;color:rgba(177,189,176,.7);font-family:'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:.12em">Order</span><span style="font-size:6.5px;color:rgba(177,189,176,.7);font-family:'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:.12em">Contact</span></div>
+          </div>
+          <div style="text-align:center;padding:10px 32px;position:relative">
+            <svg width="30" height="30" viewBox="0 0 32 32" style="margin-bottom:8px"><rect x="11" y="2" width="10" height="28" rx="3" fill="#0F673C"/><rect x="2" y="11" width="28" height="10" rx="3" fill="#0F673C"/></svg>
+            <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:24px;line-height:1.05;letter-spacing:-.02em;color:#DCDDDB;margin-bottom:6px">A REAL PHARMACY.<br>NOW ONLINE.</div>
+            <div style="font-size:7.5px;font-family:'DM Sans',sans-serif;color:#B1BDB0;letter-spacing:.06em;line-height:1.6">Genuine medicines · Pharmacist guidance · Lagos delivery</div>
+            <div style="display:flex;justify-content:center;gap:10px;margin-top:14px">
+              <div style="padding:7px 18px;border-radius:8px;background:#0F673C;font-size:7px;font-family:'DM Sans',sans-serif;color:#fff;letter-spacing:.08em;text-transform:uppercase;font-weight:600">Order Now</div>
+              <div style="padding:7px 18px;border-radius:8px;border:1px solid rgba(15,103,60,.5);font-size:7px;font-family:'DM Sans',sans-serif;color:#0F673C;letter-spacing:.08em;text-transform:uppercase">Ask Pharmacist</div>
+            </div>
+            <div style="display:flex;justify-content:center;gap:16px;margin-top:18px">
+              <div style="font-size:6px;color:rgba(177,189,176,.5);font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:4px"><span style="width:4px;height:4px;border-radius:50%;background:#0F673C;display:inline-block"></span>Physical pharmacy</div>
+              <div style="font-size:6px;color:rgba(177,189,176,.5);font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:4px"><span style="width:4px;height:4px;border-radius:50%;background:#0F673C;display:inline-block"></span>PCN registered</div>
+              <div style="font-size:6px;color:rgba(177,189,176,.5);font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:4px"><span style="width:4px;height:4px;border-radius:50%;background:#0F673C;display:inline-block"></span>Igando, Lagos</div>
+            </div>
+          </div>
+        </div>
+        <div class="dv-meta">
+          <div class="dv-dname">1b — The Trusted Pharmacist</div>
+          <div class="dv-ddesc">Green-tinted dark background with a subtle grid texture. Pharmacy cross icon anchors trust. White headline (no gradient). Trust badges below CTA. More editorial, structured, and clinical — feels like a serious healthcare brand rather than a tech startup.</div>
+          <div class="dv-pal"><div class="dv-ps" style="background:#121A13"></div><div class="dv-ps" style="background:#0F673C"></div><div class="dv-ps" style="background:#1C2A1E"></div><div class="dv-ps" style="background:#DCDDDB"></div><div class="dv-ps" style="background:#B1BDB0"></div></div>
+          <div class="dv-tyrow"><div class="dv-tylabel">Typography</div><div style="font-family:'Syne',sans-serif;font-weight:800;font-size:18px;color:#DCDDDB;line-height:1;letter-spacing:-.018em">A REAL PHARMACY. NOW ONLINE.</div><div style="font-family:'DM Sans',sans-serif;font-size:11px;color:#0F673C;margin-top:5px;letter-spacing:.06em;text-transform:uppercase">Pharmacist-Led · Genuine Medicines</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 1C: LAGOS BOLD -->
+    <div class="dv-opt" id="1c">
+      <div class="dv-olabel"><a class="dv-oid" href="#1c">1c</a>Lagos Bold — Both brand colors, asymmetric energy</div>
+      <div class="dv-card">
+        <div style="height:300px;background:#0C0D0B;position:relative;overflow:hidden">
+          <div style="position:absolute;left:0;top:0;bottom:0;width:5px;background:linear-gradient(180deg,#A80B16 0%,#6B070E 100%)"></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 20px 14px 26px;position:relative">
+            <img src="uploads/pasted-1782918307538-0.png" style="width:26px;height:26px;border-radius:5px;object-fit:cover;background:#191A17">
+            <div style="display:flex;gap:14px"><span style="font-size:6.5px;color:rgba(220,221,219,.55);font-family:'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:.12em">About</span><span style="font-size:6.5px;color:rgba(220,221,219,.55);font-family:'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:.12em">Services</span><span style="font-size:6.5px;color:rgba(220,221,219,.55);font-family:'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:.12em">Order</span><span style="font-size:6.5px;color:rgba(220,221,219,.55);font-family:'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:.12em">Contact</span></div>
+          </div>
+          <div style="display:flex;align-items:center;padding:10px 26px 10px 26px;gap:18px;position:relative">
+            <div style="flex:1">
+              <div style="font-size:7.5px;font-family:'DM Sans',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:rgba(168,11,22,.9);margin-bottom:6px;font-weight:600">Lagos Pharmacy Delivery</div>
+              <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:36px;line-height:.92;letter-spacing:-.03em;color:#fff;margin-bottom:3px">PEACE<br>WAY</div>
+              <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:22px;line-height:1;letter-spacing:-.02em;color:#0F673C;margin-bottom:8px">ONLINE</div>
+              <div style="font-size:7px;font-family:'DM Sans',sans-serif;color:#B1BDB0;line-height:1.65;max-width:190px">Order from a real pharmacist. Genuine medicines. Delivered across Lagos.</div>
+              <div style="display:flex;gap:8px;margin-top:14px">
+                <div style="padding:7px 16px;border-radius:6px;background:#A80B16;font-size:7px;font-family:'DM Sans',sans-serif;color:#fff;letter-spacing:.1em;text-transform:uppercase;font-weight:600">Order Now</div>
+                <div style="padding:7px 16px;border-radius:6px;background:rgba(15,103,60,.15);border:1px solid rgba(15,103,60,.45);font-size:7px;font-family:'DM Sans',sans-serif;color:#0F673C;letter-spacing:.1em;text-transform:uppercase">Ask Pharmacist</div>
+              </div>
+            </div>
+            <div style="width:86px;height:86px;border-radius:50%;background:rgba(15,103,60,.12);border:2px solid rgba(15,103,60,.35);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+              <svg width="34" height="34" viewBox="0 0 36 36"><rect x="13" y="3" width="10" height="30" rx="3" fill="#0F673C"/><rect x="3" y="13" width="30" height="10" rx="3" fill="#0F673C"/></svg>
+            </div>
+          </div>
+          <div style="position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#A80B16,rgba(168,11,22,0))"></div>
+        </div>
+        <div class="dv-meta">
+          <div class="dv-dname">1c — Lagos Bold</div>
+          <div class="dv-ddesc">Both brand colors used together: red left accent bar + green brand name. Asymmetric layout with left-aligned text and floating pharmacy cross. Red primary CTA. Most distinctive of the three directions — confident, direct, and very Lagos in energy.</div>
+          <div class="dv-pal"><div class="dv-ps" style="background:#0C0D0B"></div><div class="dv-ps" style="background:#A80B16"></div><div class="dv-ps" style="background:#0F673C"></div><div class="dv-ps" style="background:#fff"></div><div class="dv-ps" style="background:#B1BDB0"></div></div>
+          <div class="dv-tyrow"><div class="dv-tylabel">Typography</div><div style="font-family:'Syne',sans-serif;font-weight:800;font-size:22px;color:#fff;line-height:.95;letter-spacing:-.025em">PEACEWAY <span style="color:#0F673C">ONLINE</span></div><div style="font-family:'DM Sans',sans-serif;font-size:11px;color:#B1BDB0;margin-top:5px">Lagos pharmacy. Real pharmacist. Real delivery.</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <div class="dv-next">Try next: "Go with <a class="dv-oid" href="#1a">1a</a> and start the build" · "I prefer <a class="dv-oid" href="#1b">1b</a>'s structure but <a class="dv-oid" href="#1a">1a</a>'s gradient headline" · "Mix <a class="dv-oid" href="#1c">1c</a>'s red accent into <a class="dv-oid" href="#1a">1a</a>" · "Show me how the services section looks in each direction"</div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ═══ SECTION STORYBOARD ═══ -->
+<div class="doc-section">
+  <div class="stag">Section Storyboard</div>
+  <div class="stitle">All 10 website sections mapped</div>
+  <div class="ssub">Each section has its Seedance video assigned, its scroll story, layout sketch, key components, and animation note.</div>
+  <div class="sb-grid">
+
+    <!-- S1 HERO -->
+    <div class="sb-card">
+      <div class="sb-body">
+        <div class="sb-stag">Section 01</div>
+        <div class="sb-name">Hero Reveal</div>
+        <div class="sb-hl">"Your Lagos pharmacy is now online."</div>
+      </div>
+      <div class="sb-mock">
+        <div style="width:100%;height:100%;background:radial-gradient(ellipse at 50% 120%,rgba(15,103,60,.2) 0%,#080908 65%);display:flex;flex-direction:column;justify-content:center;align-items:center;padding:14px">
+          <div style="position:absolute;inset:0;opacity:.03;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(255,255,255,1) 3px,rgba(255,255,255,1) 4px)"></div>
+          <div style="text-align:center;position:relative">
+            <div style="font-size:6px;color:rgba(15,103,60,.8);font-family:'DM Sans',sans-serif;letter-spacing:.16em;text-transform:uppercase;margin-bottom:5px">Peaceway Online</div>
+            <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:17px;line-height:1;background:linear-gradient(180deg,#DCDDDB 30%,#5D9E72 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-.02em;margin-bottom:6px">YOUR LAGOS<br>PHARMACY<br>IS NOW ONLINE</div>
+            <div style="font-size:6px;color:#B1BDB0;line-height:1.5;margin-bottom:10px;font-family:'DM Sans',sans-serif">Genuine medicines. Pharmacist guidance.<br>Delivery across Lagos.</div>
+            <div style="display:flex;justify-content:center;gap:6px">
+              <div style="padding:4px 10px;border-radius:20px;background:#0F673C;font-size:5.5px;color:#fff;font-family:'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:.08em">Order on Telegram</div>
+              <div style="padding:4px 10px;border-radius:20px;border:1px solid rgba(220,221,219,.3);font-size:5.5px;color:#DCDDDB;font-family:'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:.08em">Join Community</div>
+            </div>
+          </div>
+        </div>
+        <div class="vid-badge">Video S1 ✓</div>
+      </div>
+      <div class="sb-body">
+        <div class="sb-keys"><span class="sb-key">Full-viewport</span><span class="sb-key">Video BG</span><span class="sb-key">Logo</span><span class="sb-key">2 CTAs</span><span class="sb-key">Scroll hint</span></div>
+        <div class="sb-arow"><div class="sb-adot"></div><div class="sb-atext">Content fades in on load (staggered). Video autoplays muted. Scroll-triggered fade-out as user moves to S2.</div></div>
+      </div>
+    </div>
+
+    <!-- S2 PROBLEM -->
+    <div class="sb-card">
+      <div class="sb-body">
+        <div class="sb-stag">Section 02</div>
+        <div class="sb-name">The Problem</div>
+        <div class="sb-hl">"Buying medicine should not feel like guessing."</div>
+      </div>
+      <div class="sb-mock">
+        <div style="width:100%;height:100%;background:#0E0F0C;padding:12px;display:flex;flex-direction:column;justify-content:center">
+          <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:9px;color:#DCDDDB;text-align:center;margin-bottom:10px;line-height:1.2">Buying medicine should<br>not feel like guessing.</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px">
+            <div style="background:rgba(168,11,22,.1);border:1px solid rgba(168,11,22,.25);border-radius:6px;padding:7px;text-align:center">
+              <div style="width:16px;height:16px;border-radius:50%;background:rgba(168,11,22,.2);border:1px solid rgba(168,11,22,.35);display:flex;align-items:center;justify-content:center;margin:0 auto 4px;font-size:8px">?</div>
+              <div style="font-size:5.5px;font-weight:600;color:#DCDDDB;font-family:'DM Sans',sans-serif">Wrong advice</div>
+              <div style="font-size:5px;color:#B1BDB0;font-family:'DM Sans',sans-serif;margin-top:2px;line-height:1.3">Street sellers, no qualification</div>
+            </div>
+            <div style="background:rgba(168,11,22,.1);border:1px solid rgba(168,11,22,.25);border-radius:6px;padding:7px;text-align:center">
+              <div style="width:16px;height:16px;border-radius:50%;background:rgba(168,11,22,.2);border:1px solid rgba(168,11,22,.35);display:flex;align-items:center;justify-content:center;margin:0 auto 4px;font-size:8px">⚠</div>
+              <div style="font-size:5.5px;font-weight:600;color:#DCDDDB;font-family:'DM Sans',sans-serif">Fake drugs</div>
+              <div style="font-size:5px;color:#B1BDB0;font-family:'DM Sans',sans-serif;margin-top:2px;line-height:1.3">Unverifiable source and quality</div>
+            </div>
+            <div style="background:rgba(168,11,22,.1);border:1px solid rgba(168,11,22,.25);border-radius:6px;padding:7px;text-align:center">
+              <div style="width:16px;height:16px;border-radius:50%;background:rgba(168,11,22,.2);border:1px solid rgba(168,11,22,.35);display:flex;align-items:center;justify-content:center;margin:0 auto 4px;font-size:8px">↗</div>
+              <div style="font-size:5.5px;font-weight:600;color:#DCDDDB;font-family:'DM Sans',sans-serif">Long movement</div>
+              <div style="font-size:5px;color:#B1BDB0;font-family:'DM Sans',sans-serif;margin-top:2px;line-height:1.3">Lagos traffic for one medicine</div>
+            </div>
+          </div>
+        </div>
+        <div class="vid-badge">Video S2 ✓</div>
+      </div>
+      <div class="sb-body">
+        <div class="sb-keys"><span class="sb-key">Dark BG</span><span class="sb-key">3 Problem Cards</span><span class="sb-key">Red accents</span><span class="sb-key">Video BG</span></div>
+        <div class="sb-arow"><div class="sb-adot"></div><div class="sb-atext">Heading character-reveal on scroll. Problem cards stagger-slide up with 120ms delay each.</div></div>
+      </div>
+    </div>
+
+    <!-- S3 SERVICES -->
+    <div class="sb-card">
+      <div class="sb-body">
+        <div class="sb-stag">Section 03</div>
+        <div class="sb-name">What Peaceway Does</div>
+        <div class="sb-hl">"Order medicine. Ask a pharmacist. Get it delivered."</div>
+      </div>
+      <div class="sb-mock">
+        <div style="width:100%;height:100%;background:#0E0F0C;padding:12px">
+          <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:8px;color:#DCDDDB;text-align:center;margin-bottom:8px">What Peaceway Does</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px">
+            <div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:7px;backdrop-filter:blur(4px)">
+              <div style="width:10px;height:10px;border-radius:3px;background:rgba(15,103,60,.3);margin-bottom:4px"></div>
+              <div style="font-size:5.5px;font-weight:600;color:#DCDDDB;font-family:'DM Sans',sans-serif">OTC Delivery</div>
+              <div style="font-size:5px;color:#B1BDB0;font-family:'DM Sans',sans-serif;margin-top:2px;line-height:1.3">Order medicine to your door</div>
+            </div>
+            <div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:7px">
+              <div style="width:10px;height:10px;border-radius:3px;background:rgba(15,103,60,.3);margin-bottom:4px"></div>
+              <div style="font-size:5.5px;font-weight:600;color:#DCDDDB;font-family:'DM Sans',sans-serif">Pharmacist Q&amp;A</div>
+              <div style="font-size:5px;color:#B1BDB0;font-family:'DM Sans',sans-serif;margin-top:2px;line-height:1.3">Ask via Telegram bot</div>
+            </div>
+            <div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:7px">
+              <div style="width:10px;height:10px;border-radius:3px;background:rgba(15,103,60,.3);margin-bottom:4px"></div>
+              <div style="font-size:5.5px;font-weight:600;color:#DCDDDB;font-family:'DM Sans',sans-serif">Stock Check</div>
+              <div style="font-size:5px;color:#B1BDB0;font-family:'DM Sans',sans-serif;margin-top:2px;line-height:1.3">Availability confirmed first</div>
+            </div>
+            <div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:7px">
+              <div style="width:10px;height:10px;border-radius:3px;background:rgba(15,103,60,.3);margin-bottom:4px"></div>
+              <div style="font-size:5.5px;font-weight:600;color:#DCDDDB;font-family:'DM Sans',sans-serif">Rx Review</div>
+              <div style="font-size:5px;color:#B1BDB0;font-family:'DM Sans',sans-serif;margin-top:2px;line-height:1.3">Prescription review where needed</div>
+            </div>
+            <div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:7px">
+              <div style="width:10px;height:10px;border-radius:3px;background:rgba(15,103,60,.3);margin-bottom:4px"></div>
+              <div style="font-size:5.5px;font-weight:600;color:#DCDDDB;font-family:'DM Sans',sans-serif">Lagos Delivery</div>
+              <div style="font-size:5px;color:#B1BDB0;font-family:'DM Sans',sans-serif;margin-top:2px;line-height:1.3">Selected Lagos areas</div>
+            </div>
+            <div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:7px">
+              <div style="width:10px;height:10px;border-radius:3px;background:rgba(15,103,60,.3);margin-bottom:4px"></div>
+              <div style="font-size:5.5px;font-weight:600;color:#DCDDDB;font-family:'DM Sans',sans-serif">Follow-up</div>
+              <div style="font-size:5px;color:#B1BDB0;font-family:'DM Sans',sans-serif;margin-top:2px;line-height:1.3">Customer support &amp; follow-up</div>
+            </div>
+          </div>
+        </div>
+        <div class="vid-badge">Video S3 ✓</div>
+      </div>
+      <div class="sb-body">
+        <div class="sb-keys"><span class="sb-key">6 Glass Cards</span><span class="sb-key">2-col Grid</span><span class="sb-key">Video BG</span><span class="sb-key">Green icons</span></div>
+        <div class="sb-arow"><div class="sb-adot"></div><div class="sb-atext">Cards fade up in 2 rows × 3 columns. Each row staggers 80ms. Glassmorphism in hero variant, solid in others.</div></div>
+      </div>
+    </div>
+
+    <!-- S4 TRUST -->
+    <div class="sb-card">
+      <div class="sb-body">
+        <div class="sb-stag">Section 04</div>
+        <div class="sb-name">Why Trust Peaceway</div>
+        <div class="sb-hl">"A real pharmacy behind the online service."</div>
+      </div>
+      <div class="sb-mock">
+        <div style="width:100%;height:100%;background:#0E0F0C;display:grid;grid-template-columns:1fr 1fr;gap:0;overflow:hidden">
+          <div style="position:relative;overflow:hidden">
+            <img src="uploads/pharmacy_photos-1782916474882.jpg" style="width:100%;height:100%;object-fit:cover;filter:brightness(0.7) saturate(0.8)">
+            <div style="position:absolute;inset:0;background:linear-gradient(90deg,transparent 60%,#0E0F0C 100%)"></div>
+          </div>
+          <div style="padding:10px 12px;display:flex;flex-direction:column;justify-content:center;gap:8px">
+            <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:7.5px;color:#DCDDDB;line-height:1.2;margin-bottom:4px">A real pharmacy<br>behind the service.</div>
+            <div style="display:flex;flex-direction:column;gap:5px">
+              <div style="display:flex;align-items:flex-start;gap:5px"><div style="width:8px;height:8px;border-radius:50%;background:rgba(15,103,60,.25);border:1px solid rgba(15,103,60,.5);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px"><div style="width:3px;height:3px;border-radius:50%;background:#0F673C"></div></div><span style="font-size:5.5px;color:#DCDDDB;font-family:'DM Sans',sans-serif;line-height:1.3">Physical pharmacy, Igando/Agodo Ikotun</span></div>
+              <div style="display:flex;align-items:flex-start;gap:5px"><div style="width:8px;height:8px;border-radius:50%;background:rgba(15,103,60,.25);border:1px solid rgba(15,103,60,.5);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px"><div style="width:3px;height:3px;border-radius:50%;background:#0F673C"></div></div><span style="font-size:5.5px;color:#DCDDDB;font-family:'DM Sans',sans-serif;line-height:1.3">Pharmacist-led service</span></div>
+              <div style="display:flex;align-items:flex-start;gap:5px"><div style="width:8px;height:8px;border-radius:50%;background:rgba(15,103,60,.25);border:1px solid rgba(15,103,60,.5);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px"><div style="width:3px;height:3px;border-radius:50%;background:#0F673C"></div></div><span style="font-size:5.5px;color:#DCDDDB;font-family:'DM Sans',sans-serif;line-height:1.3">Real address &amp; contact details</span></div>
+              <div style="display:flex;align-items:flex-start;gap:5px"><div style="width:8px;height:8px;border-radius:50%;background:rgba(15,103,60,.25);border:1px solid rgba(15,103,60,.5);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px"><div style="width:3px;height:3px;border-radius:50%;background:#0F673C"></div></div><span style="font-size:5.5px;color:#DCDDDB;font-family:'DM Sans',sans-serif;line-height:1.3">Genuine, properly sourced medicines</span></div>
+              <div style="display:flex;align-items:flex-start;gap:5px"><div style="width:8px;height:8px;border-radius:50%;background:rgba(15,103,60,.25);border:1px solid rgba(15,103,60,.5);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px"><div style="width:3px;height:3px;border-radius:50%;background:#0F673C"></div></div><span style="font-size:5.5px;color:#DCDDDB;font-family:'DM Sans',sans-serif;line-height:1.3">PCN registration placeholder</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="vid-badge">Video S4 ✓</div>
+      </div>
+      <div class="sb-body">
+        <div class="sb-keys"><span class="sb-key">Building photo</span><span class="sb-key">Split layout</span><span class="sb-key">Trust bullets</span><span class="sb-key">Video BG</span></div>
+        <div class="sb-arow"><div class="sb-adot"></div><div class="sb-atext">Photo Ken Burns slow pan on scroll. Trust points reveal one-by-one with 100ms stagger.</div></div>
+      </div>
+    </div>
+
+    <!-- S5 HOW ORDERING WORKS -->
+    <div class="sb-card">
+      <div class="sb-body">
+        <div class="sb-stag">Section 05</div>
+        <div class="sb-name">How Ordering Works</div>
+        <div class="sb-hl">"From message to delivery."</div>
+      </div>
+      <div class="sb-mock">
+        <div style="width:100%;height:100%;background:#0E0F0C;padding:12px;overflow:hidden">
+          <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:8.5px;color:#DCDDDB;text-align:center;margin-bottom:8px">From message to delivery.</div>
+          <div style="display:flex;gap:8px;justify-content:center">
+            <div style="display:flex;flex-direction:column;gap:0;align-items:center">
+              <div style="width:1px;background:rgba(15,103,60,.3);flex:1;min-height:4px"></div>
+              <div style="width:14px;height:14px;border-radius:50%;background:rgba(15,103,60,.2);border:1px solid rgba(15,103,60,.5);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:6px;color:#0F673C;flex-shrink:0">1</div>
+              <div style="width:1px;background:rgba(15,103,60,.3);flex:1;min-height:4px"></div>
+              <div style="width:14px;height:14px;border-radius:50%;background:rgba(15,103,60,.2);border:1px solid rgba(15,103,60,.5);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:6px;color:#0F673C;flex-shrink:0">2</div>
+              <div style="width:1px;background:rgba(15,103,60,.3);flex:1;min-height:4px"></div>
+              <div style="width:14px;height:14px;border-radius:50%;background:rgba(15,103,60,.2);border:1px solid rgba(15,103,60,.5);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:6px;color:#0F673C;flex-shrink:0">3</div>
+              <div style="width:1px;background:rgba(15,103,60,.3);flex:1;min-height:4px"></div>
+              <div style="width:14px;height:14px;border-radius:50%;background:rgba(15,103,60,.2);border:1px solid rgba(15,103,60,.5);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:6px;color:#0F673C;flex-shrink:0">4</div>
+              <div style="width:1px;background:rgba(15,103,60,.3);flex:1;min-height:4px"></div>
+              <div style="width:14px;height:14px;border-radius:50%;background:rgba(15,103,60,.14);border:1px solid rgba(15,103,60,.3);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:6px;color:#0F673C;flex-shrink:0">…</div>
+            </div>
+            <div style="display:flex;flex-direction:column;justify-content:space-between;gap:4px;flex:1">
+              <div style="font-size:5.5px;font-family:'DM Sans',sans-serif;color:#DCDDDB;padding:2px 0;font-weight:500">Click Order on Telegram</div>
+              <div style="font-size:5.5px;font-family:'DM Sans',sans-serif;color:#DCDDDB;padding:2px 0;font-weight:500">Tell the bot what you need</div>
+              <div style="font-size:5.5px;font-family:'DM Sans',sans-serif;color:#DCDDDB;padding:2px 0;font-weight:500">Confirm product &amp; quantity</div>
+              <div style="font-size:5.5px;font-family:'DM Sans',sans-serif;color:#DCDDDB;padding:2px 0;font-weight:500">Enter delivery area</div>
+              <div style="font-size:5.5px;font-family:'DM Sans',sans-serif;color:#B1BDB0;padding:2px 0">+ 6 more steps → delivery &amp; follow-up</div>
+            </div>
+          </div>
+        </div>
+        <div class="vid-badge">Video S5 ✓</div>
+      </div>
+      <div class="sb-body">
+        <div class="sb-keys"><span class="sb-key">10-step Timeline</span><span class="sb-key">Vertical scroll</span><span class="sb-key">Line draw</span><span class="sb-key">Video BG</span></div>
+        <div class="sb-arow"><div class="sb-adot"></div><div class="sb-atext">Timeline line draws downward with GSAP ScrollTrigger. Each step node pings in as scroll reaches it.</div></div>
+      </div>
+    </div>
+
+    <!-- S6 PHARMACIST -->
+    <div class="sb-card">
+      <div class="sb-body">
+        <div class="sb-stag">Section 06</div>
+        <div class="sb-name">Ask the Pharmacist</div>
+        <div class="sb-hl">"Need help before you buy?"</div>
+      </div>
+      <div class="sb-mock">
+        <div style="width:100%;height:100%;background:#0E0F0C;padding:12px;display:flex;flex-direction:column;justify-content:center">
+          <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:8px;color:#DCDDDB;text-align:center;margin-bottom:10px">Need help before you buy?</div>
+          <div style="display:flex;flex-direction:column;gap:6px;max-width:220px;margin:0 auto">
+            <div style="align-self:flex-end;background:rgba(15,103,60,.2);border:1px solid rgba(15,103,60,.35);border-radius:10px 10px 2px 10px;padding:5px 10px;font-size:6px;color:#DCDDDB;font-family:'DM Sans',sans-serif;max-width:160px">Is it safe to take paracetamol with ibuprofen?</div>
+            <div style="align-self:flex-start;background:rgba(255,255,255,.06);border:1px solid var(--bdr);border-radius:2px 10px 10px 10px;padding:5px 10px;font-size:6px;color:#B1BDB0;font-family:'DM Sans',sans-serif;max-width:180px"><span style="color:#0F673C;font-weight:600">Pharmacist:</span> Yes, they can be taken together — but space them 4–6 hours apart…</div>
+            <div style="align-self:flex-end;background:rgba(15,103,60,.2);border:1px solid rgba(15,103,60,.35);border-radius:10px 10px 2px 10px;padding:5px 10px;font-size:6px;color:#DCDDDB;font-family:'DM Sans',sans-serif;max-width:160px">I need something for my blood pressure medication.</div>
+          </div>
+        </div>
+        <div class="vid-badge">Video S6 ✓</div>
+      </div>
+      <div class="sb-body">
+        <div class="sb-keys"><span class="sb-key">Chat UI</span><span class="sb-key">Pharmacist persona</span><span class="sb-key">Telegram CTA</span><span class="sb-key">Video BG</span></div>
+        <div class="sb-arow"><div class="sb-adot"></div><div class="sb-atext">Chat bubbles pop in sequentially. Typing indicator appears before pharmacist reply. CTA button scales in last.</div></div>
+      </div>
+    </div>
+
+    <!-- S7 DELIVERY -->
+    <div class="sb-card">
+      <div class="sb-body">
+        <div class="sb-stag">Section 07</div>
+        <div class="sb-name">Delivery Areas</div>
+        <div class="sb-hl">"Delivery across Lagos, starting from Igando."</div>
+      </div>
+      <div class="sb-mock">
+        <div style="width:100%;height:100%;background:#0E0F0C;padding:10px;display:flex;flex-direction:column;justify-content:center;align-items:center">
+          <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:7.5px;color:#DCDDDB;margin-bottom:8px">Delivery across Lagos</div>
+          <div style="width:70px;height:55px;background:rgba(15,103,60,.08);border:1px solid rgba(15,103,60,.2);border-radius:8px;margin-bottom:8px;position:relative;display:flex;align-items:center;justify-content:center">
+            <svg width="50" height="40" viewBox="0 0 50 40" opacity="0.4"><path d="M10 30 Q12 20 18 15 Q22 12 26 14 Q32 12 36 18 Q40 22 38 28 Q36 34 30 36 Q24 38 18 35 Z" fill="none" stroke="#0F673C" stroke-width="1.5"/></svg>
+            <div style="position:absolute;width:5px;height:5px;border-radius:50%;background:#0F673C;top:12px;left:22px;box-shadow:0 0 4px rgba(15,103,60,.8)"></div>
+            <div style="position:absolute;font-size:4px;color:#0F673C;font-family:'DM Sans',sans-serif;font-weight:600;top:18px;left:16px">Igando</div>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:4px;justify-content:center">
+            <span style="padding:2px 7px;border-radius:20px;font-size:5px;background:rgba(15,103,60,.15);color:#4ADE80;border:1px solid rgba(15,103,60,.3);font-family:'DM Sans',sans-serif">Igando ★</span>
+            <span style="padding:2px 7px;border-radius:20px;font-size:5px;background:rgba(15,103,60,.1);color:#0F673C;border:1px solid rgba(15,103,60,.25);font-family:'DM Sans',sans-serif">Agodo</span>
+            <span style="padding:2px 7px;border-radius:20px;font-size:5px;background:rgba(15,103,60,.1);color:#0F673C;border:1px solid rgba(15,103,60,.25);font-family:'DM Sans',sans-serif">Ikotun</span>
+            <span style="padding:2px 7px;border-radius:20px;font-size:5px;background:rgba(15,103,60,.1);color:#0F673C;border:1px solid rgba(15,103,60,.25);font-family:'DM Sans',sans-serif">Egbeda</span>
+            <span style="padding:2px 7px;border-radius:20px;font-size:5px;background:rgba(15,103,60,.1);color:#0F673C;border:1px solid rgba(15,103,60,.25);font-family:'DM Sans',sans-serif">Idimu</span>
+            <span style="padding:2px 7px;border-radius:20px;font-size:5px;background:rgba(15,103,60,.1);color:#0F673C;border:1px solid rgba(15,103,60,.25);font-family:'DM Sans',sans-serif">+ 6 more</span>
+          </div>
+        </div>
+        <div class="vid-badge">Video S7 ✓</div>
+      </div>
+      <div class="sb-body">
+        <div class="sb-keys"><span class="sb-key">Lagos Map SVG</span><span class="sb-key">11 Area Badges</span><span class="sb-key">Ping glow</span><span class="sb-key">Video BG</span></div>
+        <div class="sb-arow"><div class="sb-adot"></div><div class="sb-atext">Map fades in, then area badge chips ping into place one by one with CSS keyframe pulse.</div></div>
+      </div>
+    </div>
+
+    <!-- S8 COMMUNITY -->
+    <div class="sb-card">
+      <div class="sb-body">
+        <div class="sb-stag">Section 08</div>
+        <div class="sb-name">Community</div>
+        <div class="sb-hl">"Join the Peaceway health community."</div>
+      </div>
+      <div class="sb-mock">
+        <div style="width:100%;height:100%;background:#0E0F0C;padding:12px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:10px">
+          <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:8.5px;color:#DCDDDB;text-align:center;line-height:1.3">Join the Peaceway<br>health community.</div>
+          <div style="display:flex;flex-direction:column;gap:8px;width:100%;max-width:200px">
+            <div style="background:rgba(15,103,60,.2);border:1px solid rgba(15,103,60,.45);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:8px">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 2C6.5 2 2 6.5 2 12C2 17.5 6.5 22 12 22C17.5 22 22 17.5 22 12C22 6.5 17.5 2 12 2ZM16.9 8.3L15.1 16.5C15 17 14.7 17.1 14.4 16.9L11.9 15L10.6 16.2C10.5 16.4 10.3 16.5 10 16.5L10.2 13.9L14.7 9.8C14.9 9.6 14.7 9.5 14.5 9.7L8.9 13.2L6.4 12.4C5.9 12.2 5.8 11.8 6.4 11.6L16.2 7.8C16.7 7.6 17.1 7.9 16.9 8.3Z" fill="#0F673C"/></svg>
+              <div>
+                <div style="font-size:6.5px;font-weight:600;color:#DCDDDB;font-family:'DM Sans',sans-serif">Join Telegram Channel</div>
+                <div style="font-size:5.5px;color:#B1BDB0;font-family:'DM Sans',sans-serif;margin-top:1px">Health updates &amp; news</div>
+              </div>
+            </div>
+            <div style="background:rgba(15,103,60,.12);border:1px solid rgba(15,103,60,.3);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:8px">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 2C6.5 2 2 6.5 2 12C2 17.5 6.5 22 12 22C17.5 22 22 17.5 22 12C22 6.5 17.5 2 12 2ZM16.9 8.3L15.1 16.5C15 17 14.7 17.1 14.4 16.9L11.9 15L10.6 16.2C10.5 16.4 10.3 16.5 10 16.5L10.2 13.9L14.7 9.8C14.9 9.6 14.7 9.5 14.5 9.7L8.9 13.2L6.4 12.4C5.9 12.2 5.8 11.8 6.4 11.6L16.2 7.8C16.7 7.6 17.1 7.9 16.9 8.3Z" fill="#0F673C"/></svg>
+              <div>
+                <div style="font-size:6.5px;font-weight:600;color:#DCDDDB;font-family:'DM Sans',sans-serif">Join Telegram Group</div>
+                <div style="font-size:5.5px;color:#B1BDB0;font-family:'DM Sans',sans-serif;margin-top:1px">Discuss health questions</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="vid-badge">Video S8 ✓</div>
+      </div>
+      <div class="sb-body">
+        <div class="sb-keys"><span class="sb-key">2 Telegram CTAs</span><span class="sb-key">Group + Channel</span><span class="sb-key">Dark BG</span><span class="sb-key">Video BG</span></div>
+        <div class="sb-arow"><div class="sb-adot"></div><div class="sb-atext">Buttons scale up from 0.9 with spring easing on scroll. Hover lifts with green glow box-shadow.</div></div>
+      </div>
+    </div>
+
+    <!-- S9 CONTACT -->
+    <div class="sb-card">
+      <div class="sb-body">
+        <div class="sb-stag">Section 09</div>
+        <div class="sb-name">Contact</div>
+        <div class="sb-hl">"Talk to Peaceway."</div>
+      </div>
+      <div class="sb-mock">
+        <div style="width:100%;height:100%;background:#0E0F0C;padding:12px;display:flex;flex-direction:column;justify-content:center">
+          <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:8.5px;color:#DCDDDB;text-align:center;margin-bottom:10px">Talk to Peaceway.</div>
+          <div style="background:rgba(255,255,255,.04);border:1px solid var(--bdr);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;max-width:220px;margin:0 auto">
+            <div style="display:flex;align-items:center;gap:7px"><div style="width:14px;height:14px;border-radius:4px;background:rgba(15,103,60,.2);border:1px solid rgba(15,103,60,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="8" height="8" viewBox="0 0 24 24" fill="#0F673C"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg></div><span style="font-size:5.5px;color:#DCDDDB;font-family:'DM Sans',sans-serif">orders@peacewayonline.com.ng</span></div>
+            <div style="display:flex;align-items:center;gap:7px"><div style="width:14px;height:14px;border-radius:4px;background:rgba(15,103,60,.2);border:1px solid rgba(15,103,60,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="8" height="8" viewBox="0 0 24 24" fill="#0F673C"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm4.9 6.3l-1.8 8.2c-.1.5-.4.6-.7.4l-2.5-1.8-1.3 1.2c-.1.2-.3.3-.6.3l.2-2.6 4.5-4.1c.2-.2 0-.3-.2-.1l-5.6 3.5-2.5-.8c-.5-.2-.6-.6 0-.8l9.8-3.8c.5-.2.9.1.7.5z"/></svg></div><span style="font-size:5.5px;color:#DCDDDB;font-family:'DM Sans',sans-serif">t.me/peacewayonline_bot</span></div>
+            <div style="display:flex;align-items:center;gap:7px"><div style="width:14px;height:14px;border-radius:4px;background:rgba(15,103,60,.2);border:1px solid rgba(15,103,60,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="8" height="8" viewBox="0 0 24 24" fill="#0F673C"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg></div><span style="font-size:5.5px;color:#DCDDDB;font-family:'DM Sans',sans-serif">Igando/Agodo Ikotun, Lagos</span></div>
+            <div style="display:flex;align-items:center;gap:7px"><div style="width:14px;height:14px;border-radius:4px;background:rgba(15,103,60,.2);border:1px solid rgba(15,103,60,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="8" height="8" viewBox="0 0 24 24" fill="#0F673C"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/></svg></div><span style="font-size:5.5px;color:#DCDDDB;font-family:'DM Sans',sans-serif">WhatsApp: [placeholder]</span></div>
+          </div>
+        </div>
+        <div class="vid-badge">Video S9 ✓</div>
+      </div>
+      <div class="sb-body">
+        <div class="sb-keys"><span class="sb-key">Contact Card</span><span class="sb-key">Icon rows</span><span class="sb-key">Email + Telegram</span><span class="sb-key">Video BG</span></div>
+        <div class="sb-arow"><div class="sb-adot"></div><div class="sb-atext">Card fades up. Contact rows appear with 60ms stagger. WhatsApp link opens in new tab.</div></div>
+      </div>
+    </div>
+
+    <!-- S10 FOOTER -->
+    <div class="sb-card">
+      <div class="sb-body">
+        <div class="sb-stag">Section 10</div>
+        <div class="sb-name">Footer</div>
+        <div class="sb-hl">Logo · Links · Legal · PCN placeholder · Disclaimer</div>
+      </div>
+      <div class="sb-mock">
+        <div style="width:100%;height:100%;background:#0E0F0C;padding:12px">
+          <div style="display:flex;align-items:center;gap:7px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,.06)">
+            <img src="uploads/pasted-1782918307538-0.png" style="width:20px;height:20px;border-radius:4px;object-fit:cover">
+            <div>
+              <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:7.5px;color:#DCDDDB">Peaceway Online</div>
+              <div style="font-size:5px;color:#B1BDB0;font-family:'DM Sans',sans-serif">Powered by Peaceway Pharmacy</div>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:8px">
+            <div><div style="font-size:5.5px;font-weight:700;color:#0F673C;font-family:'Syne',sans-serif;margin-bottom:4px;text-transform:uppercase">Services</div><div style="font-size:5px;color:#B1BDB0;font-family:'DM Sans',sans-serif;line-height:2">Order<br>Ask Pharmacist<br>Delivery</div></div>
+            <div><div style="font-size:5.5px;font-weight:700;color:#0F673C;font-family:'Syne',sans-serif;margin-bottom:4px;text-transform:uppercase">Social</div><div style="font-size:5px;color:#B1BDB0;font-family:'DM Sans',sans-serif;line-height:2">Telegram<br>WhatsApp<br>Facebook</div></div>
+            <div><div style="font-size:5.5px;font-weight:700;color:#0F673C;font-family:'Syne',sans-serif;margin-bottom:4px;text-transform:uppercase">Legal</div><div style="font-size:5px;color:#B1BDB0;font-family:'DM Sans',sans-serif;line-height:2">Privacy Policy<br>Terms<br>Refund Policy</div></div>
+            <div><div style="font-size:5.5px;font-weight:700;color:#0F673C;font-family:'Syne',sans-serif;margin-bottom:4px;text-transform:uppercase">Contact</div><div style="font-size:5px;color:#B1BDB0;font-family:'DM Sans',sans-serif;line-height:2">Email<br>WhatsApp<br>Address</div></div>
+          </div>
+          <div style="font-size:4.5px;color:rgba(177,189,176,.4);font-family:'DM Sans',sans-serif;line-height:1.5;border-top:1px solid rgba(255,255,255,.04);padding-top:6px">PCN Reg. No: [Placeholder — to be added] · Peaceway Pharmacy, Igando/Agodo Ikotun, Lagos · © 2026 Peaceway Online</div>
+        </div>
+      </div>
+      <div class="sb-body">
+        <div class="sb-keys"><span class="sb-key">4-col grid</span><span class="sb-key">Logo</span><span class="sb-key">Legal links</span><span class="sb-key">PCN placeholder</span></div>
+        <div class="sb-arow"><div class="sb-adot"></div><div class="sb-atext">No scroll animation needed. Static footer. All links and policy pages are editable text layers.</div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+<div class="divider"></div>
+
+<!-- ═══ ANIMATION BLUEPRINT ═══ -->
+<div class="doc-section">
+  <div class="stag">Animation Blueprint</div>
+  <div class="stitle">What moves, when, and how</div>
+  <div class="ssub">Animation intensity: 7/10 — cinematic but controlled. All animations respect prefers-reduced-motion.</div>
+  <table class="animt">
+    <thead><tr><th>Section</th><th>Element</th><th>Animation</th><th>Library</th><th>Reduced-Motion Fallback</th></tr></thead>
+    <tbody>
+      <tr><td>S1 Hero</td><td>Video background</td><td>Autoplay muted loop behind dark overlay</td><td><span class="lib">HTML video</span></td><td>Static dark gradient</td></tr>
+      <tr><td>S1 Hero</td><td>Logo + heading + CTAs</td><td>Staggered fade-up on load (y: 30→0, opacity: 0→1)</td><td><span class="lib">Framer Motion</span></td><td>Instant visible</td></tr>
+      <tr><td>S1 Hero</td><td>Scroll indicator</td><td>Gentle bounce loop on arrow icon</td><td><span class="lib">CSS keyframes</span></td><td>Static visible</td></tr>
+      <tr><td>S2 Problem</td><td>Section heading</td><td>Character-by-character opacity reveal on scroll</td><td><span class="lib">Framer Motion</span></td><td>Fade in whole</td></tr>
+      <tr><td>S2 Problem</td><td>3 Problem cards</td><td>Stagger slide-up, 120ms delay each</td><td><span class="lib">Framer Motion</span></td><td>Static visible</td></tr>
+      <tr><td>S3 Services</td><td>6 Service cards</td><td>Row-by-row stagger fade-up (row 1 then row 2)</td><td><span class="lib">Framer Motion</span></td><td>Static visible</td></tr>
+      <tr><td>S4 Trust</td><td>Pharmacy building photo</td><td>Slow Ken Burns pan (scale 1.05→1.0) as section scrolls in</td><td><span class="lib">GSAP</span></td><td>Static image</td></tr>
+      <tr><td>S4 Trust</td><td>Trust bullet points</td><td>Sequential reveal, 100ms stagger</td><td><span class="lib">Framer Motion</span></td><td>Static visible</td></tr>
+      <tr><td>S5 Steps</td><td>Timeline vertical line</td><td>Line draws downward with scroll progress (height 0→100%)</td><td><span class="lib">GSAP ScrollTrigger</span></td><td>Full line visible</td></tr>
+      <tr><td>S5 Steps</td><td>Each of 10 step nodes</td><td>Circle pings in as scroll reaches it (scale + glow)</td><td><span class="lib">GSAP</span></td><td>All nodes visible</td></tr>
+      <tr><td>S6 Pharmacist</td><td>Chat bubbles</td><td>Pop in one-by-one with scale spring easing</td><td><span class="lib">Framer Motion</span></td><td>All bubbles visible</td></tr>
+      <tr><td>S7 Delivery</td><td>Map &amp; area badges</td><td>Map fades in, badges ping into place with CSS pulse</td><td><span class="lib">CSS + Framer Motion</span></td><td>Static grid of badges</td></tr>
+      <tr><td>S8 Community</td><td>Telegram buttons</td><td>Scale 0.9→1.0 spring on scroll. Hover: glow lift</td><td><span class="lib">Framer Motion</span></td><td>Static buttons</td></tr>
+      <tr><td>S9 Contact</td><td>Contact card rows</td><td>Card fades up. Rows appear with 60ms stagger</td><td><span class="lib">Framer Motion</span></td><td>Static visible</td></tr>
+      <tr><td>All sections</td><td>Video backgrounds</td><td>Autoplay muted loop per section. Paused when section not in view</td><td><span class="lib">Intersection Observer</span></td><td>Section bg gradient</td></tr>
+      <tr><td>All sections</td><td>Subtle mouse parallax</td><td>Hero and trust section elements shift ±8px on mousemove</td><td><span class="lib">Vanilla JS</span></td><td>No movement</td></tr>
+      <tr><td>Navbar</td><td>Logo + nav links</td><td>Fade in from top on page load</td><td><span class="lib">Framer Motion</span></td><td>Instant visible</td></tr>
+      <tr><td>Navbar</td><td>Sticky scroll behavior</td><td>Background adds on scroll (backdrop-blur + dark bg)</td><td><span class="lib">Vanilla JS</span></td><td>Always has bg</td></tr>
+    </tbody>
+  </table>
+</div>
+<div class="divider"></div>
+
+<!-- ═══ ASSET MANIFEST ═══ -->
+<div class="doc-section">
+  <div class="stag">Asset Manifest</div>
+  <div class="stitle">Every asset accounted for</div>
+  <div class="ssub">All 10 Seedance videos have been assigned. The extra video is held in reserve for the most impactful section once reviewed.</div>
+  <table class="at">
+    <thead><tr><th>Asset</th><th>Type</th><th>Section</th><th>Status</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>Peaceway brand logo</td><td>JPG</td><td>All / Navbar / Footer</td><td><span class="ok">✓ Provided</span></td><td>High-res 3D render. SVG version recommended for Phase 2.</td></tr>
+      <tr><td>Pharmacy building photo</td><td>JPG</td><td>S4 – Trust</td><td><span class="ok">✓ Provided</span></td><td>Good quality. Will be used as split-layout left panel.</td></tr>
+      <tr><td>Seedance video — Hero</td><td>MP4</td><td>S1 – Hero Reveal</td><td><span class="ok">✓ Provided</span></td><td>Primary reveal video. Helicopter + cover pull concept.</td></tr>
+      <tr><td>Seedance video S2</td><td>MP4</td><td>S2 – The Problem</td><td><span class="ok">✓ Provided</span></td><td>Background mood: confusion, problem scene.</td></tr>
+      <tr><td>Seedance video S3</td><td>MP4</td><td>S3 – What Peaceway Does</td><td><span class="ok">✓ Provided</span></td><td>Background mood: solution, delivery, pharmacy activity.</td></tr>
+      <tr><td>Seedance video S4</td><td>MP4</td><td>S4 – Why Trust</td><td><span class="ok">✓ Provided</span></td><td>Background mood: trust, pharmacy interior, real.</td></tr>
+      <tr><td>Seedance video S5</td><td>MP4</td><td>S5 – How Ordering Works</td><td><span class="ok">✓ Provided</span></td><td>Background mood: order journey, packaging, rider.</td></tr>
+      <tr><td>Seedance video S6</td><td>MP4</td><td>S6 – Ask Pharmacist</td><td><span class="ok">✓ Provided</span></td><td>Background mood: consultation, pharmacist guidance.</td></tr>
+      <tr><td>Seedance video S7</td><td>MP4</td><td>S7 – Delivery Areas</td><td><span class="ok">✓ Provided</span></td><td>Background mood: Lagos streets, Igando, delivery.</td></tr>
+      <tr><td>Seedance video S8</td><td>MP4</td><td>S8 – Community</td><td><span class="ok">✓ Provided</span></td><td>Background mood: community, people, health.</td></tr>
+      <tr><td>Seedance video S9</td><td>MP4</td><td>S9 – Contact</td><td><span class="ok">✓ Provided</span></td><td>Background mood: contact, conversation, reach out.</td></tr>
+      <tr><td>Seedance video — Extra</td><td>MP4</td><td>S1 or S4 (strongest section)</td><td><span class="ok">✓ Provided</span></td><td>Reserve — assign to whichever hero section needs most depth.</td></tr>
+      <tr><td>PCN registration number</td><td>Text</td><td>S4 · Footer</td><td><span class="need">⚠ Needed</span></td><td>Will use [Placeholder] until provided. Never invented.</td></tr>
+      <tr><td>WhatsApp number</td><td>Text</td><td>S9 · Footer</td><td><span class="need">⚠ Needed</span></td><td>Will use [placeholder] until provided.</td></tr>
+      <tr><td>Telegram Channel link</td><td>URL</td><td>S8 · Footer</td><td><span class="need">⚠ Needed</span></td><td>Bot link confirmed. Channel link still needed.</td></tr>
+      <tr><td>SVG logo version</td><td>SVG</td><td>All</td><td><span class="ph">Recommended</span></td><td>For crisp rendering at all sizes. Phase 2 item.</td></tr>
+      <tr><td>Pharmacy interior photos</td><td>JPG/PNG</td><td>S4 optional</td><td><span class="later">Phase 2</span></td><td>Nice to have. Can reinforce trust section.</td></tr>
+      <tr><td>Facebook page link</td><td>URL</td><td>Footer</td><td><span class="later">Phase 2</span></td><td>Footer social link. Placeholder until confirmed.</td></tr>
+      <tr><td>Privacy Policy content</td><td>Text</td><td>Footer link</td><td><span class="later">Phase 3</span></td><td>Legal page. Required before launch.</td></tr>
+      <tr><td>Terms &amp; Conditions</td><td>Text</td><td>Footer link</td><td><span class="later">Phase 3</span></td><td>Legal page. Required before launch.</td></tr>
+      <tr><td>Refund &amp; Delivery Policy</td><td>Text</td><td>Footer link</td><td><span class="later">Phase 3</span></td><td>Operational policy page. Required before launch.</td></tr>
+    </tbody>
+  </table>
+</div>
+<div class="divider"></div>
+
+<!-- ═══ COMPONENT ARCHITECTURE ═══ -->
+<div class="doc-section">
+  <div class="stag">Component Architecture</div>
+  <div class="stitle">Frontend structure (Next.js · TypeScript)</div>
+  <div class="ssub">One component per section. Shared primitives for repeated patterns. No Telegram API code in Phase 1.</div>
+  <div class="ctree">
+    <span class="cp">pages/index.tsx</span>
+    <span class="cs">├── &lt;Navbar&gt; <span class="cn">— sticky, scroll-aware, logo + 4 links + CTA button</span></span>
+    <span class="cs">├── &lt;HeroSection&gt; <span class="cn">— S1: video BG, logo, headline, 2 CTA placeholders</span></span>
+    <span class="cc">│   ├── &lt;VideoBackground src="seedance_s1.mp4"&gt;</span>
+    <span class="cc">│   ├── &lt;HeroHeading&gt; <span class="cn">— gradient Syne 800</span></span>
+    <span class="cc">│   └── &lt;CTAGroup&gt; <span class="cn">— Order on Telegram · Join Community (placeholder hrefs)</span></span>
+    <span class="cs">├── &lt;ProblemSection&gt; <span class="cn">— S2: video BG, heading, 3 ProblemCard</span></span>
+    <span class="cc">│   └── &lt;ProblemCard × 3&gt; <span class="cn">— icon, title, description</span></span>
+    <span class="cs">├── &lt;ServicesSection&gt; <span class="cn">— S3: video BG, heading, 6 ServiceCard (glass variant)</span></span>
+    <span class="cc">│   └── &lt;ServiceCard × 6&gt; <span class="cn">— icon, title, body</span></span>
+    <span class="cs">├── &lt;TrustSection&gt; <span class="cn">— S4: video BG, building photo, 5 TrustPoint</span></span>
+    <span class="cc">│   ├── &lt;PharmacyPhoto&gt; <span class="cn">— Ken Burns on scroll</span></span>
+    <span class="cc">│   └── &lt;TrustPoint × 5&gt; <span class="cn">— dot, text (no invented details)</span></span>
+    <span class="cs">├── &lt;OrderingSection&gt; <span class="cn">— S5: video BG, 10-step timeline</span></span>
+    <span class="cc">│   └── &lt;TimelineStep × 10&gt; <span class="cn">— number, text, connector line</span></span>
+    <span class="cs">├── &lt;PharmacistSection&gt; <span class="cn">— S6: video BG, chat demo, CTA</span></span>
+    <span class="cc">│   └── &lt;ChatBubble × 3&gt; <span class="cn">— user + pharmacist alternating</span></span>
+    <span class="cs">├── &lt;DeliverySection&gt; <span class="cn">— S7: video BG, Lagos map SVG, 11 AreaBadge</span></span>
+    <span class="cc">│   └── &lt;AreaBadge × 11&gt; <span class="cn">— name, ping animation</span></span>
+    <span class="cs">├── &lt;CommunitySection&gt; <span class="cn">— S8: video BG, 2 TelegramCTA</span></span>
+    <span class="cc">│   └── &lt;TelegramCTA × 2&gt; <span class="cn">— Channel + Group (placeholder href)</span></span>
+    <span class="cs">├── &lt;ContactSection&gt; <span class="cn">— S9: video BG, ContactCard</span></span>
+    <span class="cc">│   └── &lt;ContactRow × 4&gt; <span class="cn">— Email, Telegram, Address, WhatsApp</span></span>
+    <span class="cs">└── &lt;Footer&gt; <span class="cn">— Logo, 4-col links, PCN placeholder, legal text, disclaimer</span></span>
+    <span></span>
+    <span class="cp">components/primitives/</span>
+    <span class="cs">├── &lt;VideoBackground&gt; <span class="cn">— muted autoplay, IntersectionObserver pause, fallback gradient</span></span>
+    <span class="cs">├── &lt;SectionHeading&gt; <span class="cn">— Syne 800, optional gradient, optional tag label</span></span>
+    <span class="cs">├── &lt;GlassCard&gt; <span class="cn">— backdrop-blur, rgba border, hover glow</span></span>
+    <span class="cs">├── &lt;SolidCard&gt; <span class="cn">— #191A17 bg, border, no blur</span></span>
+    <span class="cs">├── &lt;FadeUp&gt; <span class="cn">— Framer Motion wrapper: scroll-triggered fade + y</span></span>
+    <span class="cs">└── &lt;StaggerGroup&gt; <span class="cn">— Framer Motion stagger container</span></span>
+  </div>
+</div>
+<div class="divider"></div>
+
+<!-- ═══ PHASE ROADMAP ═══ -->
+<div class="doc-section">
+  <div class="stag">Implementation Phases</div>
+  <div class="stitle">Five phases, one at a time</div>
+  <div class="ssub">No phase starts without approval of the previous one. Phase 1 requires your sign-off on this storyboard.</div>
+  <div style="background:var(--bg);border:1px solid var(--bdr);border-radius:16px;padding:8px 24px">
+    <div class="phase-row">
+      <div class="pnum">1</div>
+      <div class="pbody">
+        <div class="pname">Design &amp; Storyboard</div>
+        <div class="pdesc">Visual direction, design system, section storyboard, animation plan, asset list, component map. Three design directions proposed. No code written yet.</div>
+        <div class="ptags"><span class="ptag cur">Current phase</span><span class="ptag cur">In progress</span><span class="ptag cur">Awaiting approval</span></div>
+      </div>
+      <div class="pbadge"><span class="pst-now">NOW</span></div>
+    </div>
+    <div class="phase-row">
+      <div class="pnum">2</div>
+      <div class="pbody">
+        <div class="pname">Frontend Implementation</div>
+        <div class="pdesc">Build all 10 sections in Next.js + TypeScript + Tailwind CSS + Framer Motion using the approved design direction. All Seedance videos integrated. All animations implemented. No backend logic. Telegram buttons are placeholder links only.</div>
+        <div class="ptags"><span class="ptag">Next.js</span><span class="ptag">TypeScript</span><span class="ptag">Tailwind CSS</span><span class="ptag">Framer Motion</span><span class="ptag">GSAP ScrollTrigger</span></div>
+      </div>
+      <div class="pbadge"><span class="pst-next">NEXT</span></div>
+    </div>
+    <div class="phase-row">
+      <div class="pnum">3</div>
+      <div class="pbody">
+        <div class="pname">Telegram CTA Linking</div>
+        <div class="pdesc">Connect all Order on Telegram and Join Community buttons to real Telegram links. Add WhatsApp click-to-chat. Confirm all contact details and replace all placeholders. No bot logic yet.</div>
+        <div class="ptags"><span class="ptag">Telegram links</span><span class="ptag">WhatsApp links</span><span class="ptag">Contact confirmation</span><span class="ptag">PCN number</span></div>
+      </div>
+      <div class="pbadge"><span class="pst-next">PHASE 3</span></div>
+    </div>
+    <div class="phase-row">
+      <div class="pnum">4</div>
+      <div class="pbody">
+        <div class="pname">Bot &amp; Backend Integration</div>
+        <div class="pdesc">Connect @peacewayonline_bot to the website. Implement order flow, pharmacist Q&amp;A routing, product search, delivery area logic, and payment gateway integration. Build order management backend.</div>
+        <div class="ptags"><span class="ptag">Telegram Bot API</span><span class="ptag">Node.js backend</span><span class="ptag">Order management</span><span class="ptag">Payment gateway</span></div>
+      </div>
+      <div class="pbadge"><span class="pst-next">PHASE 4</span></div>
+    </div>
+    <div class="phase-row" style="border-bottom:none;padding-bottom:0">
+      <div class="pnum">5</div>
+      <div class="pbody">
+        <div class="pname">PWA &amp; Admin Dashboard</div>
+        <div class="pdesc">Convert to Progressive Web App with offline support and install prompt. Build internal admin dashboard for order tracking, inventory visibility, and customer follow-up. Analytics and performance monitoring.</div>
+        <div class="ptags"><span class="ptag">PWA</span><span class="ptag">Service Worker</span><span class="ptag">Admin Dashboard</span><span class="ptag">Analytics</span></div>
+      </div>
+      <div class="pbadge"><span class="pst-next">PHASE 5</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ APPROVAL BLOCK ═══ -->
+<div class="appr">
+  <div class="appr-glow"></div>
+  <img src="uploads/pasted-1782918307538-0.png" style="width:56px;height:56px;border-radius:10px;object-fit:contain;background:#191A17;padding:3px;border:1px solid rgba(15,103,60,.3);margin-bottom:20px;position:relative">
+  <div class="appr-title">Ready for your approval</div>
+  <div class="appr-sub">Review the three design directions above (<a class="dv-oid" href="#1a" style="color:var(--g)">1a</a> · <a class="dv-oid" href="#1b" style="color:var(--g)">1b</a> · <a class="dv-oid" href="#1c" style="color:var(--g)">1c</a>), confirm the section storyboard, and reply with your chosen direction.<br>Phase 2 (frontend build) begins immediately after approval.</div>
+  <div style="position:relative">
+    <button class="btn-g">Approve &amp; Begin Phase 2</button>
+    <button class="btn-o">Request Changes</button>
+  </div>
+  <div style="margin-top:24px;font-size:12px;color:rgba(177,189,176,.45);position:relative;line-height:1.6">No PCN numbers invented · No fake testimonials · No fake guarantees · All placeholders clearly marked<br>Phase 1 — Design Only — July 2026</div>
+</div>
+
+</div>
+</x-dc>
+</body>
+</html>

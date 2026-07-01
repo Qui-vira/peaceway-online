@@ -1,0 +1,14 @@
+<svg width="1600" height="900" viewBox="0 0 1600 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1600" height="900" fill="#0B0C09"/>
+  <rect width="1600" height="900" fill="url(#g)"/>
+  <rect x="180" y="160" width="700" height="520" rx="36" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.1)"/>
+  <circle cx="520" cy="420" r="150" fill="rgba(15,103,60,0.14)"/>
+  <text x="980" y="360" fill="#DCDDDB" font-family="Syne, Arial, sans-serif" font-size="64" font-weight="800" letter-spacing="-1.5">Real pharmacy.</text>
+  <text x="980" y="440" fill="#B1BDB0" font-family="DM Sans, Arial, sans-serif" font-size="28" font-weight="400">Real service. Real people.</text>
+  <defs>
+    <radialGradient id="g" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(800 450) rotate(90) scale(520 980)">
+      <stop stop-color="#141713"/>
+      <stop offset="1" stop-color="#0B0C09"/>
+    </radialGradient>
+  </defs>
+</svg>

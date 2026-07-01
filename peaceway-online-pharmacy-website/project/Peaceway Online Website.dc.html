@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}body{background:#0C0D0B;color:#DCDDDB;font-family:'DM Sans',sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}a{text-decoration:none;color:inherit}
+:root{--g:#0F673C;--g2:#1A8A50;--gl:rgba(15,103,60,.14);--gg:rgba(15,103,60,.26);--r:#A80B16;--t:#DCDDDB;--m:#B1BDB0;--bg:#191A17;--bgd:#0C0D0B;--bdr:rgba(255,255,255,.08);--bdr2:rgba(255,255,255,.04)}
+.sv{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0}
+.ov{position:absolute;inset:0;background:rgba(8,9,8,.74);z-index:1;pointer-events:none}
+.ovg{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(10,11,9,.5) 0%,transparent 35%,transparent 65%,rgba(10,11,9,.9) 100%);z-index:2;pointer-events:none}
+.ovr{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(10,11,9,.5),rgba(60,4,8,.25) 60%,rgba(10,11,9,.9) 100%);z-index:1;pointer-events:none}
+.sl{position:absolute;inset:0;opacity:.03;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(255,255,255,1) 3px,rgba(255,255,255,1) 4px);z-index:3;pointer-events:none}
+.grg{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 110%,rgba(15,103,60,.14) 0%,transparent 55%);z-index:2;pointer-events:none}
+.sec{position:relative;overflow:hidden;padding:110px 0}
+.con{max-width:1200px;margin:0 auto;padding:0 48px;position:relative;z-index:10}
+.stag{display:inline-block;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--r);font-family:'Syne',sans-serif;font-weight:700;margin-bottom:14px}
+.shead{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(28px,3.8vw,52px);color:var(--t);line-height:1.05;letter-spacing:-.02em;margin-bottom:14px}
+.ssub{font-size:clamp(14px,1.3vw,17px);color:var(--m);max-width:560px;line-height:1.7;margin-bottom:48px}
+[data-a]{opacity:0;transform:translateY(26px);transition:opacity .7s cubic-bezier(.25,.1,.25,1),transform .7s cubic-bezier(.25,.1,.25,1)}
+[data-a].vis{opacity:1;transform:translateY(0)}
+[data-a][data-d="1"]{transition-delay:.1s}[data-a][data-d="2"]{transition-delay:.2s}[data-a][data-d="3"]{transition-delay:.3s}[data-a][data-d="4"]{transition-delay:.4s}[data-a][data-d="5"]{transition-delay:.5s}[data-a][data-d="6"]{transition-delay:.6s}
+@media(prefers-reduced-motion:reduce){[data-a],[data-a].vis{opacity:1;transform:none;transition:none}.cb,.ab{opacity:1;transform:none}}
+#nav{position:fixed;top:0;left:0;right:0;z-index:200;transition:background .3s,backdrop-filter .3s,border-bottom-color .3s;border-bottom:1px solid transparent}
+#nav.sc{background:rgba(10,11,9,.93);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom-color:var(--bdr)}
+.ni{display:flex;justify-content:space-between;align-items:center;padding:16px 48px}
+.nlogo{height:36px;width:auto;background:rgba(255,255,255,.94);border-radius:7px;padding:3px 8px}
+.nlinks{display:flex;gap:34px}
+.nl{color:rgba(220,221,219,.6);font-size:12.5px;text-transform:uppercase;letter-spacing:.1em;font-weight:500;transition:color .2s}
+.nl:hover{color:var(--t)}
+.ncta{padding:9px 22px;border-radius:22px;background:var(--g);color:#fff;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;transition:background .2s}
+.ncta:hover{background:var(--g2)}
+.hero{min-height:100vh;display:flex;flex-direction:column;position:relative}
+.hc{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:120px 48px 80px;position:relative;z-index:10}
+.htag{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:rgba(15,103,60,.9);font-weight:500;margin-bottom:18px}
+.hh{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(44px,8vw,108px);line-height:.95;letter-spacing:-.03em;background:linear-gradient(180deg,#DCDDDB 15%,#5D9E72 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:24px}
+.hs{font-size:clamp(14px,1.4vw,18px);color:#B1BDB0;max-width:480px;line-height:1.7;margin-bottom:36px}
+.ctg{display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
+.bp{display:inline-block;padding:14px 32px;border-radius:32px;background:var(--g);color:#fff;font-size:14px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;transition:all .25s}
+.bp:hover{background:var(--g2);transform:translateY(-1px)}
+.bg2{display:inline-block;padding:14px 32px;border-radius:32px;border:1px solid rgba(220,221,219,.3);color:var(--t);font-size:14px;letter-spacing:.06em;text-transform:uppercase;transition:all .25s}
+.bg2:hover{border-color:rgba(220,221,219,.6);background:rgba(220,221,219,.05)}
+.sci{position:absolute;bottom:28px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:8px;z-index:10}
+.scit{font-size:9.5px;color:rgba(177,189,176,.4);letter-spacing:.18em;text-transform:uppercase}
+.scil{width:1px;height:44px;background:linear-gradient(to bottom,rgba(15,103,60,.75),transparent)}
+@keyframes scrl{0%,100%{opacity:.4;transform:scaleY(.8)}50%{opacity:.85;transform:scaleY(1)}}
+.scil{animation:scrl 2s ease-in-out infinite}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center}
+.g22{display:grid;grid-template-columns:1fr 1fr;gap:32px}
+.gc{background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.09);border-radius:16px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);padding:26px 28px;transition:all .3s}
+.gc:hover{background:rgba(255,255,255,.08);border-color:rgba(15,103,60,.32);transform:translateY(-2px)}
+.pc{background:rgba(168,11,22,.08);border:1px solid rgba(168,11,22,.2);border-radius:16px;padding:28px 28px;transition:all .3s}
+.pc:hover{background:rgba(168,11,22,.12);border-color:rgba(168,11,22,.35)}
+.ic-g{width:44px;height:44px;border-radius:12px;background:rgba(15,103,60,.15);border:1px solid rgba(15,103,60,.28);display:flex;align-items:center;justify-content:center;margin-bottom:16px}
+.ic-r{width:44px;height:44px;border-radius:50%;background:rgba(168,11,22,.15);border:1px solid rgba(168,11,22,.3);display:flex;align-items:center;justify-content:center;margin-bottom:16px}
+.cn2{font-family:'Syne',sans-serif;font-weight:700;font-size:15px;color:var(--t);margin-bottom:7px}
+.cd{font-size:13.5px;color:var(--m);line-height:1.65}
+.titem{display:flex;align-items:flex-start;gap:14px;padding:16px 0;border-bottom:1px solid var(--bdr2)}
+.tdot{width:22px;height:22px;border-radius:50%;background:rgba(15,103,60,.2);border:1px solid rgba(15,103,60,.45);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+.tdi{width:7px;height:7px;border-radius:50%;background:var(--g)}
+.tt{font-family:'Syne',sans-serif;font-weight:700;font-size:15px;color:var(--t);margin-bottom:3px}
+.tb{font-size:13px;color:var(--m);line-height:1.6}
+.phimg{width:100%;height:440px;object-fit:cover;border-radius:20px;border:1px solid var(--bdr)}
+.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px 56px}
+.sstep{display:flex;gap:16px;padding:0 0 24px;align-items:flex-start}
+.snum{width:40px;height:40px;border-radius:50%;background:rgba(15,103,60,.14);border:1px solid rgba(15,103,60,.38);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:14px;color:var(--g);flex-shrink:0}
+.stit{font-family:'Syne',sans-serif;font-weight:700;font-size:15px;color:var(--t);margin-bottom:4px}
+.sdesc{font-size:13px;color:var(--m);line-height:1.6}
+.cw{max-width:540px;display:flex;flex-direction:column;gap:14px}
+.cb{max-width:82%;padding:14px 18px;font-size:14px;line-height:1.65;opacity:0;transform:translateY(8px) scale(.97);transition:opacity .45s cubic-bezier(.34,1.56,.64,1),transform .45s cubic-bezier(.34,1.56,.64,1)}
+.cb.vis{opacity:1;transform:none}
+.cu{align-self:flex-end;background:rgba(15,103,60,.2);border:1px solid rgba(15,103,60,.35);border-radius:16px 16px 4px 16px;color:var(--t)}
+.cp2{align-self:flex-start;background:rgba(255,255,255,.06);border:1px solid var(--bdr);border-radius:4px 16px 16px 16px;color:var(--m)}
+.cpn{color:var(--g);font-weight:600;font-size:12px;margin-bottom:5px;font-family:'Syne',sans-serif}
+.ag{display:flex;flex-wrap:wrap;gap:10px;max-width:520px}
+.ab{padding:8px 18px;border-radius:24px;font-size:13px;font-weight:500;border:1px solid rgba(15,103,60,.3);opacity:0;transform:scale(.9);transition:opacity .3s,transform .3s}
+.ab.vis{opacity:1;transform:scale(1)}
+.ab.pri{background:rgba(15,103,60,.18);border-color:rgba(15,103,60,.5);color:var(--t);font-weight:600}
+.ab.sec{background:rgba(255,255,255,.04);border-color:var(--bdr);color:var(--m)}
+.tgcard{display:flex;align-items:center;gap:24px;padding:30px 36px;border-radius:20px;transition:all .35s;text-decoration:none}
+.tgc1{background:rgba(15,103,60,.15);border:1px solid rgba(15,103,60,.4)}
+.tgc1:hover{background:rgba(15,103,60,.24);border-color:rgba(15,103,60,.65);transform:translateY(-3px)}
+.tgc2{background:rgba(255,255,255,.05);border:1px solid var(--bdr)}
+.tgc2:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.16);transform:translateY(-3px)}
+.tgct{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(16px,2vw,22px);color:var(--t);margin-bottom:5px}
+.tgcd{font-size:14px;color:var(--m);line-height:1.65;max-width:400px}
+.ctcard{background:var(--bg);border:1px solid var(--bdr);border-radius:20px;padding:36px 40px;max-width:560px}
+.ctitem{display:flex;align-items:center;gap:16px;padding:16px 0;border-bottom:1px solid var(--bdr2)}
+.ctitem:last-child{border-bottom:none;padding-bottom:0}
+.ctico{width:44px;height:44px;border-radius:12px;background:var(--gl);border:1px solid rgba(15,103,60,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ctlb{font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;color:rgba(177,189,176,.5);margin-bottom:3px;font-family:'Syne',sans-serif;font-weight:700}
+.ctva{font-size:14px;color:var(--t);font-weight:500}
+.ft{background:var(--bgd);border-top:1px solid var(--bdr);padding:64px 0 40px}
+.fg{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:48px;margin-bottom:48px}
+.fct{font-family:'Syne',sans-serif;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--g);margin-bottom:16px}
+.fl{display:block;font-size:13px;color:var(--m);margin-bottom:10px;transition:color .2s}
+.fl:hover{color:var(--t)}
+.fleg{font-size:11.5px;color:rgba(177,189,176,.4);line-height:1.7}
+.fdiv{height:1px;background:var(--bdr);margin-bottom:24px}
+.flogo{height:40px;width:auto;background:rgba(255,255,255,.92);border-radius:7px;padding:3px 8px;margin-bottom:14px}
+.fbd{font-family:'Syne',sans-serif;font-weight:800;font-size:15px;color:var(--t);margin-bottom:4px}
+.fbs{font-size:12px;color:var(--m);margin-bottom:16px;line-height:1.6;max-width:220px}
+.fsa{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.fsi{width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.06);border:1px solid var(--bdr);display:flex;align-items:center;justify-content:center;transition:all .2s}
+.fsi:hover{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.16)}
+@media(max-width:800px){.nlinks{display:none}.ni{padding:14px 20px}.con{padding:0 20px}.g3{grid-template-columns:1fr}.g2,.g22{grid-template-columns:1fr}.sgrid{grid-template-columns:1fr}.fg{grid-template-columns:1fr 1fr}.hh{font-size:clamp(38px,11vw,64px)}.ctg{flex-direction:column;align-items:center}.sec{padding:80px 0}.phimg{height:260px}}
+</style>
+</helmet>
+
+<!-- ═══ NAVBAR ═══ -->
+<nav id="nav">
+  <div class="ni">
+    <a href="#hero"><img class="nlogo" src="uploads/pasted-1782918307538-0.png" alt="Peaceway Pharmacy"></a>
+    <div class="nlinks">
+      <a class="nl" href="#problem">About</a>
+      <a class="nl" href="#services">Services</a>
+      <a class="nl" href="#how-it-works">How It Works</a>
+      <a class="nl" href="#delivery">Delivery</a>
+      <a class="nl" href="#contact">Contact</a>
+    </div>
+    <a class="ncta" href="https://t.me/Peacewayonline_bot" target="_blank" rel="noopener">Order on Telegram</a>
+  </div>
+</nav>
+
+<!-- ═══ S1: HERO ═══ -->
+<section class="hero" id="hero" data-screen-label="Hero">
+  <video class="sv" autoplay muted loop playsInline><source src="uploads/seedance_video-1782916391537.mp4" type="video/mp4"></video>
+  <div class="ov"></div>
+  <div class="grg"></div>
+  <div class="ovg"></div>
+  <div class="sl"></div>
+  <div class="hc">
+    <div class="htag" data-a>Peaceway Online &nbsp;·&nbsp; Igando, Lagos, Nigeria</div>
+    <h1 class="hh" data-a data-d="1">YOUR LAGOS<br>PHARMACY<br>IS NOW ONLINE</h1>
+    <p class="hs" data-a data-d="2">Genuine medicines, pharmacist guidance, and delivery across Lagos.</p>
+    <div class="ctg" data-a data-d="3">
+      <a class="bp" href="https://t.me/Peacewayonline_bot" target="_blank" rel="noopener">Order on Telegram</a>
+      <a class="bg2" href="https://t.me/peacewayonline" target="_blank" rel="noopener">Join Our Community</a>
+    </div>
+  </div>
+  <div class="sci" data-a data-d="4">
+    <span class="scit">Scroll</span>
+    <div class="scil"></div>
+  </div>
+</section>
+
+<!-- ═══ S2: THE PROBLEM ═══ -->
+<section class="sec" id="problem" data-screen-label="The Problem">
+  <video class="sv" autoplay muted loop playsInline><source src="uploads/video_s2-1782917180864.mp4" type="video/mp4"></video>
+  <div class="ovr"></div>
+  <div class="ovg"></div>
+  <div class="con">
+    <div class="stag" data-a>Section 02</div>
+    <h2 class="shead" style="max-width:720px" data-a data-d="1">Buying medicine should not feel like guessing.</h2>
+    <p class="ssub" data-a data-d="2">In Lagos, getting the right medicine can feel risky. Wrong advice, fake drugs, and unnecessary movement should not be part of healthcare.</p>
+    <div class="g3" data-a data-d="3">
+      <div class="pc">
+        <div class="ic-r"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#A80B16" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></div>
+        <div class="cn2">Wrong advice from unqualified sources</div>
+        <div class="cd">Street sellers and unqualified vendors regularly provide dangerous medication guidance to customers who have no way to verify it.</div>
+      </div>
+      <div class="pc">
+        <div class="ic-r"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#A80B16" stroke-width="1.5" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+        <div class="cn2">Counterfeit and substandard medicines</div>
+        <div class="cd">Without a licensed pharmacy, you cannot verify the source, quality, or safety of what you are buying — and the consequences can be serious.</div>
+      </div>
+      <div class="pc">
+        <div class="ic-r"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#A80B16" stroke-width="1.5" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
+        <div class="cn2">Unnecessary movement across Lagos</div>
+        <div class="cd">Getting medicine should not mean hours in traffic. A working pharmacy model should bring medicines to you — safely and reliably.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ S3: SERVICES ═══ -->
+<section class="sec" id="services" data-screen-label="Services">
+  <video class="sv" autoplay muted loop playsInline><source src="uploads/video_s3-1782917190299.mp4" type="video/mp4"></video>
+  <div class="ov"></div>
+  <div class="ovg"></div>
+  <div class="con">
+    <div class="stag" data-a>Section 03 &nbsp;·&nbsp; What We Do</div>
+    <h2 class="shead" data-a data-d="1">Order medicine. Ask a pharmacist.<br>Get it delivered.</h2>
+    <p class="ssub" data-a data-d="2">One platform. Genuine medicines. Real pharmacist guidance. Lagos delivery.</p>
+    <div class="g3">
+      <div class="gc" data-a data-d="1">
+        <div class="ic-g"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0F673C" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></div>
+        <div class="cn2">OTC Medicine Delivery</div>
+        <div class="cd">Order over-the-counter medicines directly through Telegram. We confirm availability before you pay.</div>
+      </div>
+      <div class="gc" data-a data-d="2">
+        <div class="ic-g"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0F673C" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+        <div class="cn2">Pharmacist Questions via Telegram</div>
+        <div class="cd">Ask a pharmacist directly through our Telegram bot. Get proper guidance before you order.</div>
+      </div>
+      <div class="gc" data-a data-d="3">
+        <div class="ic-g"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0F673C" stroke-width="1.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
+        <div class="cn2">Product Availability Check</div>
+        <div class="cd">We verify stock before confirming your order. No surprises, no delays on unavailable items.</div>
+      </div>
+      <div class="gc" data-a data-d="4">
+        <div class="ic-g"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0F673C" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+        <div class="cn2">Prescription Review Where Required</div>
+        <div class="cd">Prescription-only medicines require pharmacist review before supply. We take this seriously.</div>
+      </div>
+      <div class="gc" data-a data-d="5">
+        <div class="ic-g"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0F673C" stroke-width="1.5" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
+        <div class="cn2">Delivery Across Selected Lagos Areas</div>
+        <div class="cd">Starting from Igando. Covering Agodo, Ikotun, Egbeda, Idimu, Iyana Ipaja, Egbe, Ejigbo, and more.</div>
+      </div>
+      <div class="gc" data-a data-d="6">
+        <div class="ic-g"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0F673C" stroke-width="1.5" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></div>
+        <div class="cn2">Customer Support and Follow-up</div>
+        <div class="cd">We check in after every delivery to confirm you received the right product and that everything is in order.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ S4: WHY TRUST ═══ -->
+<section class="sec" id="trust" data-screen-label="Why Trust Peaceway">
+  <video class="sv" autoplay muted loop playsInline><source src="uploads/video_s4-1782917256362.mp4" type="video/mp4"></video>
+  <div class="ov"></div>
+  <div class="ovg"></div>
+  <div class="con">
+    <div class="g2">
+      <div data-a>
+        <img class="phimg" src="uploads/pharmacy_photos-1782916474882.jpg" alt="Peaceway Pharmacy, Igando Lagos">
+      </div>
+      <div>
+        <div class="stag" data-a>Section 04 &nbsp;·&nbsp; Why Trust Us</div>
+        <h2 class="shead" data-a data-d="1">A real pharmacy behind the online service.</h2>
+        <p style="font-size:14px;color:var(--m);line-height:1.7;margin-bottom:24px" data-a data-d="2">Peaceway Online is not a technology startup guessing at healthcare. It is a real, physical pharmacy now extending its service online.</p>
+        <div>
+          <div class="titem" data-a data-d="2"><div class="tdot"><div class="tdi"></div></div><div><div class="tt">Physical pharmacy in Igando/Agodo Ikotun, Lagos</div><div class="tb">A real building, real address, real staff — not just a website.</div></div></div>
+          <div class="titem" data-a data-d="3"><div class="tdot"><div class="tdi"></div></div><div><div class="tt">Pharmacist-led service</div><div class="tb">Every order and every question is handled by qualified pharmacy staff.</div></div></div>
+          <div class="titem" data-a data-d="4"><div class="tdot"><div class="tdi"></div></div><div><div class="tt">Genuine, properly sourced medicines</div><div class="tb">We source through legitimate supply chains. No street market medicines.</div></div></div>
+          <div class="titem" data-a data-d="5"><div class="tdot"><div class="tdi"></div></div><div><div class="tt">Prescription products require pharmacist review</div><div class="tb">We do not supply controlled or prescription-only medicines without proper review.</div></div></div>
+          <div class="titem" data-a data-d="6"><div class="tdot"><div class="tdi"></div></div><div><div class="tt">PCN Registration &nbsp;<span style="font-size:11px;color:rgba(177,189,176,.5);font-weight:400">[Placeholder — to be confirmed]</span></div><div class="tb">Registered with the Pharmacists Council of Nigeria.</div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ S5: HOW ORDERING WORKS ═══ -->
+<section class="sec" id="how-it-works" data-screen-label="How Ordering Works">
+  <video class="sv" autoplay muted loop playsInline><source src="uploads/video_s5-1782917270624.mp4" type="video/mp4"></video>
+  <div class="ov"></div>
+  <div class="ovg"></div>
+  <div class="con">
+    <div class="stag" data-a>Section 05 &nbsp;·&nbsp; How It Works</div>
+    <h2 class="shead" data-a data-d="1">From message to delivery.</h2>
+    <p class="ssub" data-a data-d="2">Ten simple steps. No complicated apps. Just Telegram, a pharmacist, and your door.</p>
+    <div class="sgrid" data-a data-d="3">
+      <div class="sstep"><div class="snum">1</div><div><div class="stit">Click Order on Telegram</div><div class="sdesc">Open the Peaceway Online Telegram bot to begin your order.</div></div></div>
+      <div class="sstep"><div class="snum">6</div><div><div class="stit">Pay for your order</div><div class="sdesc">Make payment through the confirmed payment method.</div></div></div>
+      <div class="sstep"><div class="snum">2</div><div><div class="stit">Tell the bot what you need</div><div class="sdesc">Search or describe the medicine or product you are looking for.</div></div></div>
+      <div class="sstep"><div class="snum">7</div><div><div class="stit">Peaceway packages your order</div><div class="sdesc">Your medicines are properly packed and prepared for dispatch.</div></div></div>
+      <div class="sstep"><div class="snum">3</div><div><div class="stit">Confirm product and quantity</div><div class="sdesc">Review the product details and confirm what you want before proceeding.</div></div></div>
+      <div class="sstep"><div class="snum">8</div><div><div class="stit">Logistics partner picks up and delivers</div><div class="sdesc">A trusted delivery partner collects and brings the order to you.</div></div></div>
+      <div class="sstep"><div class="snum">4</div><div><div class="stit">Enter your delivery area</div><div class="sdesc">Provide your delivery location so we can confirm we cover your area.</div></div></div>
+      <div class="sstep"><div class="snum">9</div><div><div class="stit">You track the order</div><div class="sdesc">Stay updated on your delivery status through the Telegram bot.</div></div></div>
+      <div class="sstep"><div class="snum">5</div><div><div class="stit">Confirm total and delivery fee</div><div class="sdesc">Review the final total including delivery charge before you pay.</div></div></div>
+      <div class="sstep"><div class="snum">10</div><div><div class="stit">Peaceway follows up</div><div class="sdesc">We check in after delivery to confirm all is well with your order.</div></div></div>
+    </div>
+    <div style="margin-top:40px" data-a data-d="4">
+      <a class="bp" href="https://t.me/Peacewayonline_bot" target="_blank" rel="noopener">Start Your Order</a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ S6: ASK THE PHARMACIST ═══ -->
+<section class="sec" id="pharmacist" data-screen-label="Ask the Pharmacist">
+  <video class="sv" autoplay muted loop playsInline><source src="uploads/video_s6-1782917279984.mp4" type="video/mp4"></video>
+  <div class="ov"></div>
+  <div class="ovg"></div>
+  <div class="con">
+    <div class="g2">
+      <div>
+        <div class="stag" data-a>Section 06 &nbsp;·&nbsp; Ask a Pharmacist</div>
+        <h2 class="shead" data-a data-d="1">Need help before you buy?</h2>
+        <p style="font-size:15px;color:var(--m);line-height:1.7;max-width:440px;margin-bottom:24px" data-a data-d="2">Our pharmacist is available through the Telegram bot. Ask questions about medicines, side effects, interactions, or dosage — before you order.</p>
+        <p style="font-size:13.5px;color:rgba(177,189,176,.6);line-height:1.65;max-width:400px;margin-bottom:32px" data-a data-d="3">Prescription-only products require pharmacist review before supply. This is not optional — it is how we keep you safe.</p>
+        <a class="bp" href="https://t.me/Peacewayonline_bot" target="_blank" rel="noopener" data-a data-d="4">Ask a Pharmacist</a>
+      </div>
+      <div>
+        <div class="cw" id="chatDemo">
+          <div class="cb cu">Is it safe to take paracetamol and ibuprofen together?</div>
+          <div class="cb cp2"><div class="cpn">Peaceway Pharmacist</div>Yes, both can be taken together — but space them 4 to 6 hours apart to reduce the risk of stomach irritation. Avoid taking them at the same time.</div>
+          <div class="cb cu">I need to refill my blood pressure medication. Do I need a prescription?</div>
+          <div class="cb cp2"><div class="cpn">Peaceway Pharmacist</div>Yes, antihypertensive medicines require a prescription. Send your prescription through the bot and I will guide you through the next steps.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ S7: DELIVERY AREAS ═══ -->
+<section class="sec" id="delivery" data-screen-label="Delivery Areas">
+  <video class="sv" autoplay muted loop playsInline><source src="uploads/video_s7-1782917286495.mp4" type="video/mp4"></video>
+  <div class="ov"></div>
+  <div class="ovg"></div>
+  <div class="con">
+    <div class="g2" style="align-items:flex-start">
+      <div>
+        <div class="stag" data-a>Section 07 &nbsp;·&nbsp; Delivery Areas</div>
+        <h2 class="shead" data-a data-d="1">Delivery across Lagos, starting from Igando.</h2>
+        <p style="font-size:15px;color:var(--m);line-height:1.7;max-width:440px;margin-bottom:36px" data-a data-d="2">We deliver to communities around our pharmacy first. Coverage is expanding — if your area is not listed, ask us.</p>
+        <div class="ag" id="areaBadges">
+          <span class="ab pri">Igando ★</span><span class="ab pri">Agodo</span><span class="ab pri">Ikotun</span>
+          <span class="ab sec">Egbeda</span><span class="ab sec">Isheri</span><span class="ab sec">Idimu</span>
+          <span class="ab sec">Iyana Ipaja</span><span class="ab sec">Egbe</span><span class="ab sec">Ejigbo</span>
+          <span class="ab sec">Ijegun</span><span class="ab sec">Other Lagos Mainland</span>
+        </div>
+        <p style="font-size:12px;color:rgba(177,189,176,.45);margin-top:20px;line-height:1.6" data-a data-d="4">★ Primary delivery zones around Igando/Agodo Ikotun. Delivery fees vary by location.</p>
+      </div>
+      <div data-a data-d="3">
+        <svg viewBox="0 0 340 300" width="100%" style="max-width:340px;display:block" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M30 260 Q50 230 80 210 Q110 190 150 180 Q185 173 220 178 Q255 183 285 165 Q305 152 315 128 Q310 88 290 62 Q265 34 228 26 Q192 18 158 30 Q124 42 100 66 Q76 88 58 114 Q40 138 32 170 Z" fill="rgba(15,103,60,0.07)" stroke="rgba(15,103,60,0.2)" stroke-width="1.5"/>
+          <circle cx="140" cy="200" r="14" fill="rgba(15,103,60,0.25)" stroke="#0F673C" stroke-width="1.5"/>
+          <circle cx="140" cy="200" r="5" fill="#0F673C"/>
+          <circle cx="140" cy="200" r="24" fill="rgba(15,103,60,0.08)"/>
+          <text x="158" y="205" font-size="12" fill="#0F673C" font-family="DM Sans,sans-serif" font-weight="700">Igando</text>
+          <circle cx="165" cy="175" r="5" fill="rgba(15,103,60,0.5)" stroke="#0F673C" stroke-width="1"/>
+          <text x="173" y="179" font-size="10" fill="rgba(177,189,176,0.7)" font-family="DM Sans,sans-serif">Agodo</text>
+          <circle cx="110" cy="220" r="5" fill="rgba(15,103,60,0.4)" stroke="rgba(15,103,60,0.6)" stroke-width="1"/>
+          <text x="118" y="224" font-size="10" fill="rgba(177,189,176,0.7)" font-family="DM Sans,sans-serif">Ikotun</text>
+          <circle cx="200" cy="165" r="4" fill="rgba(177,189,176,0.25)" stroke="rgba(177,189,176,0.35)" stroke-width="1"/>
+          <text x="208" y="169" font-size="9" fill="rgba(177,189,176,0.5)" font-family="DM Sans,sans-serif">Egbeda</text>
+          <circle cx="90" cy="185" r="4" fill="rgba(177,189,176,0.25)" stroke="rgba(177,189,176,0.35)" stroke-width="1"/>
+          <text x="98" y="189" font-size="9" fill="rgba(177,189,176,0.5)" font-family="DM Sans,sans-serif">Idimu</text>
+          <circle cx="240" cy="148" r="4" fill="rgba(177,189,176,0.25)" stroke="rgba(177,189,176,0.35)" stroke-width="1"/>
+          <text x="248" y="152" font-size="9" fill="rgba(177,189,176,0.5)" font-family="DM Sans,sans-serif">Ejigbo</text>
+          <text x="100" y="280" font-size="11" fill="rgba(177,189,176,0.4)" font-family="DM Sans,sans-serif">Lagos State, Nigeria</text>
+        </svg>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ S8: COMMUNITY ═══ -->
+<section class="sec" id="community" data-screen-label="Community" style="padding:100px 0">
+  <video class="sv" autoplay muted loop playsInline><source src="uploads/video_s8-1782917293810.mp4" type="video/mp4"></video>
+  <div class="ov"></div>
+  <div class="ovg"></div>
+  <div class="con" style="text-align:center">
+    <div class="stag" data-a>Section 08 &nbsp;·&nbsp; Community</div>
+    <h2 class="shead" style="max-width:640px;margin:0 auto 12px" data-a data-d="1">Join the Peaceway health community.</h2>
+    <p style="font-size:15px;color:var(--m);max-width:460px;margin:0 auto 48px;line-height:1.7" data-a data-d="2">Stay informed. Get health tips. Ask questions. Be part of a growing Lagos health community.</p>
+    <div style="display:flex;flex-direction:column;gap:16px;max-width:640px;margin:0 auto">
+      <a class="tgcard tgc1" href="https://t.me/peacewayonline" target="_blank" rel="noopener" data-a data-d="3">
+        <div style="width:56px;height:56px;border-radius:16px;background:rgba(15,103,60,.3);border:1px solid rgba(15,103,60,.5);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="28" height="28" viewBox="0 0 24 24" fill="#0F673C"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8l-1.7 8c-.12.53-.45.66-.9.41l-2.5-1.84-1.2 1.16c-.13.13-.25.25-.51.25l.18-2.57 4.65-4.2c.2-.18-.04-.28-.32-.1L7.88 14.17l-2.44-.76c-.53-.17-.54-.53.11-.78l9.54-3.68c.44-.16.83.1.55.85z"/></svg></div>
+        <div style="text-align:left">
+          <div class="tgct">Join Telegram Channel</div>
+          <div class="tgcd">Health updates, product availability alerts, pharmacy news, and community information — direct to your Telegram.</div>
+        </div>
+        <div style="margin-left:auto;font-size:22px;color:var(--g);flex-shrink:0">→</div>
+      </a>
+      <a class="tgcard tgc2" href="https://t.me/Peacewayonline_bot" target="_blank" rel="noopener" data-a data-d="4">
+        <div style="width:56px;height:56px;border-radius:16px;background:rgba(255,255,255,.08);border:1px solid var(--bdr);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="28" height="28" viewBox="0 0 24 24" fill="rgba(177,189,176,0.7)"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8l-1.7 8c-.12.53-.45.66-.9.41l-2.5-1.84-1.2 1.16c-.13.13-.25.25-.51.25l.18-2.57 4.65-4.2c.2-.18-.04-.28-.32-.1L7.88 14.17l-2.44-.76c-.53-.17-.54-.53.11-.78l9.54-3.68c.44-.16.83.1.55.85z"/></svg></div>
+        <div style="text-align:left">
+          <div class="tgct">Order on Telegram Bot</div>
+          <div class="tgcd">Place orders, ask pharmacist questions, check product availability, and track your delivery — all in one bot.</div>
+        </div>
+        <div style="margin-left:auto;font-size:22px;color:var(--m);flex-shrink:0">→</div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ S9: CONTACT ═══ -->
+<section class="sec" id="contact" data-screen-label="Contact" style="padding:100px 0">
+  <video class="sv" autoplay muted loop playsInline><source src="uploads/video_s9-1782917301410.mp4" type="video/mp4"></video>
+  <div class="ov"></div>
+  <div class="ovg"></div>
+  <div class="con">
+    <div class="g2" style="align-items:flex-start">
+      <div>
+        <div class="stag" data-a>Section 09 &nbsp;·&nbsp; Contact</div>
+        <h2 class="shead" data-a data-d="1">Talk to Peaceway.</h2>
+        <p style="font-size:15px;color:var(--m);max-width:400px;line-height:1.7;margin-bottom:16px" data-a data-d="2">We are a real pharmacy with real people. Reach us through any of the channels below.</p>
+        <p style="font-size:13px;color:rgba(177,189,176,.5);max-width:380px;line-height:1.65" data-a data-d="3">For orders, use the Telegram bot. For general inquiries or pharmacist questions, any channel works.</p>
+      </div>
+      <div class="ctcard" data-a data-d="2">
+        <div class="ctitem">
+          <div class="ctico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0F673C" stroke-width="1.5" stroke-linecap="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>
+          <div><div class="ctlb">Email</div><div class="ctva">orders@peacewayonline.com.ng</div></div>
+        </div>
+        <div class="ctitem">
+          <div class="ctico"><svg width="20" height="20" viewBox="0 0 24 24" fill="#0F673C"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8l-1.7 8c-.12.53-.45.66-.9.41l-2.5-1.84-1.2 1.16c-.13.13-.25.25-.51.25l.18-2.57 4.65-4.2c.2-.18-.04-.28-.32-.1L7.88 14.17l-2.44-.76c-.53-.17-.54-.53.11-.78l9.54-3.68c.44-.16.83.1.55.85z"/></svg></div>
+          <div><div class="ctlb">Telegram Bot</div><a class="ctva" href="https://t.me/Peacewayonline_bot" target="_blank" rel="noopener" style="color:var(--t)">t.me/Peacewayonline_bot</a></div>
+        </div>
+        <div class="ctitem">
+          <div class="ctico"><svg width="20" height="20" viewBox="0 0 24 24" fill="#0F673C"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8l-1.7 8c-.12.53-.45.66-.9.41l-2.5-1.84-1.2 1.16c-.13.13-.25.25-.51.25l.18-2.57 4.65-4.2c.2-.18-.04-.28-.32-.1L7.88 14.17l-2.44-.76c-.53-.17-.54-.53.11-.78l9.54-3.68c.44-.16.83.1.55.85z"/></svg></div>
+          <div><div class="ctlb">Telegram Channel</div><a class="ctva" href="https://t.me/peacewayonline" target="_blank" rel="noopener" style="color:var(--t)">t.me/peacewayonline</a></div>
+        </div>
+        <div class="ctitem">
+          <div class="ctico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0F673C" stroke-width="1.5" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
+          <div><div class="ctlb">Address</div><div class="ctva">Peaceway Pharmacy, Igando/Agodo Ikotun, Lagos, Nigeria</div></div>
+        </div>
+        <div class="ctitem">
+          <div class="ctico"><svg width="20" height="20" viewBox="0 0 24 24" fill="#0F673C"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></div>
+          <div><div class="ctlb">WhatsApp</div><div class="ctva" style="color:rgba(177,189,176,.55)">[Placeholder — to be added]</div></div>
+        </div>
+        <div class="ctitem">
+          <div class="ctico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0F673C" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></div>
+          <div><div class="ctlb">Instagram</div><a class="ctva" href="https://www.instagram.com/peacewayonline?igsh=MXdiZXZ3ajM2Zng5&utm_source=qr" target="_blank" rel="noopener" style="color:var(--t)">@peacewayonline</a></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ FOOTER ═══ -->
+<footer class="ft" id="footer" data-screen-label="Footer">
+  <div class="con">
+    <div class="fg">
+      <div>
+        <img class="flogo" src="uploads/pasted-1782918307538-0.png" alt="Peaceway Pharmacy">
+        <div class="fbd">Peaceway Online</div>
+        <div class="fbs">An online extension of Peaceway Pharmacy, Igando/Agodo Ikotun, Lagos, Nigeria.</div>
+        <div class="fsa">
+          <a class="fsi" href="https://t.me/peacewayonline" target="_blank" rel="noopener" title="Telegram Channel"><svg width="18" height="18" viewBox="0 0 24 24" fill="rgba(177,189,176,0.7)"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8l-1.7 8c-.12.53-.45.66-.9.41l-2.5-1.84-1.2 1.16c-.13.13-.25.25-.51.25l.18-2.57 4.65-4.2c.2-.18-.04-.28-.32-.1L7.88 14.17l-2.44-.76c-.53-.17-.54-.53.11-.78l9.54-3.68c.44-.16.83.1.55.85z"/></svg></a>
+          <a class="fsi" href="https://www.instagram.com/peacewayonline?igsh=MXdiZXZ3ajM2Zng5&utm_source=qr" target="_blank" rel="noopener" title="Instagram"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(177,189,176,0.7)" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
+          <a class="fsi" href="#" title="WhatsApp [placeholder]"><svg width="18" height="18" viewBox="0 0 24 24" fill="rgba(177,189,176,0.4)"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></a>
+          <a class="fsi" href="#" title="Facebook [placeholder]"><svg width="18" height="18" viewBox="0 0 24 24" fill="rgba(177,189,176,0.4)"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></a>
+        </div>
+      </div>
+      <div>
+        <div class="fct">Services</div>
+        <a class="fl" href="https://t.me/Peacewayonline_bot" target="_blank" rel="noopener">OTC Medicine Delivery</a>
+        <a class="fl" href="https://t.me/Peacewayonline_bot" target="_blank" rel="noopener">Ask a Pharmacist</a>
+        <a class="fl" href="#delivery">Delivery Areas</a>
+        <a class="fl" href="#how-it-works">How It Works</a>
+        <a class="fl" href="#pharmacist">Prescription Review</a>
+      </div>
+      <div>
+        <div class="fct">Connect</div>
+        <a class="fl" href="https://t.me/Peacewayonline_bot" target="_blank" rel="noopener">Telegram Bot</a>
+        <a class="fl" href="https://t.me/peacewayonline" target="_blank" rel="noopener">Telegram Channel</a>
+        <a class="fl" href="https://www.instagram.com/peacewayonline?igsh=MXdiZXZ3ajM2Zng5&utm_source=qr" target="_blank" rel="noopener">Instagram</a>
+        <a class="fl" href="#" style="opacity:.5">WhatsApp [Soon]</a>
+        <a class="fl" href="#" style="opacity:.5">Facebook [Soon]</a>
+      </div>
+      <div>
+        <div class="fct">Legal</div>
+        <a class="fl" href="#">Privacy Policy</a>
+        <a class="fl" href="#">Terms &amp; Conditions</a>
+        <a class="fl" href="#">Refund &amp; Delivery Policy</a>
+        <a class="fl" href="#trust">About Peaceway</a>
+      </div>
+    </div>
+    <div class="fdiv"></div>
+    <div class="fleg">
+      <p>PCN Registration No: [Placeholder — to be confirmed] &nbsp;·&nbsp; Peaceway Pharmacy, Igando/Agodo Ikotun, Lagos, Nigeria &nbsp;·&nbsp; orders@peacewayonline.com.ng</p>
+      <p style="margin-top:6px">© 2026 Peaceway Online. All rights reserved. Peaceway Online is an online service of Peaceway Pharmacy.</p>
+      <p style="margin-top:6px">Prescription-only medicines require a valid prescription and pharmacist review before supply. Peaceway Online does not supply prescription medicines without proper authorisation. This website does not provide medical diagnosis or treatment advice.</p>
+    </div>
+  </div>
+</footer>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  componentDidMount() {
+    this.setupAnimations();
+    this.setupNavbar();
+    this.setupVideos();
+    this.setupChat();
+    this.setupBadges();
+  }
+
+  setupAnimations() {
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) { e.target.classList.add('vis'); io.unobserve(e.target); }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+    document.querySelectorAll('[data-a]').forEach(el => io.observe(el));
+  }
+
+  setupNavbar() {
+    const nav = document.getElementById('nav');
+    if (!nav) return;
+    const fn = () => nav.classList.toggle('sc', window.scrollY > 60);
+    window.addEventListener('scroll', fn, { passive: true });
+    this._off = fn;
+  }
+
+  setupVideos() {
+    const vo = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.target.tagName === 'VIDEO') {
+          e.isIntersecting ? e.target.play().catch(() => {}) : e.target.pause();
+        }
+      });
+    }, { threshold: 0.15 });
+    document.querySelectorAll('video').forEach(v => { v.muted = true; vo.observe(v); });
+  }
+
+  setupChat() {
+    const section = document.getElementById('pharmacist');
+    if (!section) return;
+    const co = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        document.querySelectorAll('.cb').forEach((b, i) => {
+          setTimeout(() => b.classList.add('vis'), i * 700 + 300);
+        });
+        co.disconnect();
+      }
+    }, { threshold: 0.3 });
+    co.observe(section);
+  }
+
+  setupBadges() {
+    const section = document.getElementById('delivery');
+    if (!section) return;
+    const ao = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        document.querySelectorAll('.ab').forEach((b, i) => {
+          setTimeout(() => b.classList.add('vis'), i * 80);
+        });
+        ao.disconnect();
+      }
+    }, { threshold: 0.2 });
+    ao.observe(section);
+  }
+
+  componentWillUnmount() {
+    if (this._off) window.removeEventListener('scroll', this._off);
+  }
+}
+</script>
+</body>
+</html>

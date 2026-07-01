@@ -11,6 +11,11 @@ venv/
 .env.*
 !.env.example
 
+# Frontend build/install artifacts
+web/node_modules/
+web/.next/
+web/.vercel/
+
 # Import exports (may contain catalog data)
 scripts/exports/
 
