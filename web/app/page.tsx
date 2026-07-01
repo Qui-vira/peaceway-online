@@ -57,17 +57,13 @@ export default function Page(): JSX.Element {
             <div className="vign" />
             <div className="snbg" aria-hidden="true">01</div>
             <div className="hcon">
-              <div className="htag hea hea-1">Peaceway Online · Igando, Lagos, Nigeria</div>
-              <h1 className="hh hea hea-2">YOUR LAGOS<br />PHARMACY<br />IS NOW ONLINE</h1>
-              <p className="hs hea hea-3">Genuine medicines, pharmacist guidance, and delivery across Lagos.</p>
-              <div className="ctg hea hea-4">
+              <div className="htag">Peaceway Online · Igando, Lagos, Nigeria</div>
+              <h1 className="hh">YOUR LAGOS<br />PHARMACY<br />IS NOW ONLINE</h1>
+              <p className="hs">Genuine medicines, pharmacist guidance, and delivery across Lagos.</p>
+              <div className="ctg">
                 <a className="bp" href={siteConfig.telegramBotUrl} target="_blank" rel="noreferrer noopener">Order on Telegram</a>
                 <a className="bg2" href={siteConfig.telegramChannelUrl} target="_blank" rel="noreferrer noopener">Join Our Community</a>
               </div>
-            </div>
-            <div className="scrow" id="scrow" style={{ opacity: 1 }}>
-              <div className="scrl" />
-              <span className="scrt">Scroll to reveal</span>
             </div>
           </div>
         </div>

@@ -8,218 +8,140 @@ export function MotionEffects(): JSX.Element | null {
       return;
     }
 
-    const root = document.documentElement;
     const reduceMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     const finePointerQuery = window.matchMedia("(hover: hover) and (pointer: fine)");
 
-    const revealSelector = [
-      ".htag",
-      ".hh",
-      ".hs",
-      ".stag",
-      ".shead",
-      ".ssub",
-      ".pc",
-      ".gc",
-      ".titem",
-      ".sstep",
-      ".tgcard",
-      ".ctcard",
-      ".cb",
+    if (reduceMotionQuery.matches || !finePointerQuery.matches) {
+      return;
+    }
+
+    const root = document.documentElement;
+    const dot = document.createElement("div");
+    const ring = document.createElement("div");
+
+    dot.className = "pw-cursor pw-cursor-dot";
+    ring.className = "pw-cursor pw-cursor-ring";
+
+    document.body.append(dot, ring);
+    root.classList.add("has-custom-cursor");
+
+    const hoverSelector = [
+      "a",
+      "button",
+      "[role='button']",
+      "[data-cursor-hover='true']",
       ".bp",
       ".bg2",
       ".ncta",
-      ".phimg",
-      ".ag .ab",
-      ".fbd",
-      ".fbs",
-      ".fct",
+      ".nl",
       ".fl",
-      ".fleg p"
+      ".tgcard",
+      ".ctcard",
+      ".pc",
+      ".gc",
+      ".ctitem",
+      ".fsi"
     ].join(", ");
 
-    const revealElements = Array.from(
-      new Set(
-        Array.from(document.querySelectorAll<HTMLElement>(revealSelector))
-      )
-    );
-    const parallaxElements = Array.from(
-      document.querySelectorAll<HTMLElement>(".snbg")
-    );
-    const tiltElements = Array.from(
-      document.querySelectorAll<HTMLElement>(".pc, .gc, .tgcard, .ctcard")
-    );
-    const videos = Array.from(document.querySelectorAll<HTMLVideoElement>("video"));
-
-    const cleanupFns: Array<() => void> = [];
-
-    const applyReducedMotion = (): void => {
-      root.classList.add("reduced-motion");
-      root.classList.remove("motion-ready");
-      videos.forEach((video) => {
-        video.pause();
-      });
-    };
-
-    if (reduceMotionQuery.matches) {
-      applyReducedMotion();
-      return undefined;
-    }
-
-    revealElements.forEach((element, index) => {
-      element.dataset.motionReveal = "true";
-      element.style.setProperty("--motion-delay", `${Math.min(index * 45, 320)}ms`);
-    });
-
-    parallaxElements.forEach((element) => {
-      element.dataset.motionParallax = "true";
-    });
-
-    tiltElements.forEach((element) => {
-      element.dataset.motionTilt = "true";
-    });
-
-    root.classList.add("motion-ready");
-
-    const revealObserver = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          const target = entry.target as HTMLElement;
-
-          if (entry.isIntersecting) {
-            target.classList.add("is-visible");
-
-            if (target.tagName === "VIDEO") {
-              const video = target as HTMLVideoElement;
-              void video.play().catch(() => {
-                // Autoplay remains best effort.
-              });
-            }
-            return;
-          }
-
-          if (target.tagName === "VIDEO") {
-            const video = target as HTMLVideoElement;
-            video.pause();
-          }
-        });
-      },
-      {
-        threshold: 0.18,
-        rootMargin: "0px 0px -10% 0px"
-      }
-    );
-
-    revealElements.forEach((element) => revealObserver.observe(element));
-    videos.forEach((video) => {
-      video.muted = true;
-      video.playsInline = true;
-      video.loop = true;
-      revealObserver.observe(video);
-    });
-
-    cleanupFns.push(() => revealObserver.disconnect());
-
-    const updateParallax = (): void => {
-      const viewportHeight = window.innerHeight;
-
-      parallaxElements.forEach((element) => {
-        const section = element.closest(".sticky");
-        if (!section) {
-          return;
-        }
-
-        const rect = section.getBoundingClientRect();
-        const center = rect.top + rect.height / 2;
-        const distance = (center - viewportHeight / 2) / (viewportHeight / 2);
-        const offset = Math.max(-24, Math.min(24, -distance * 18));
-
-        element.style.transform = `translate3d(0, ${offset}px, 0)`;
-      });
-    };
-
+    let pointerX = window.innerWidth / 2;
+    let pointerY = window.innerHeight / 2;
+    let ringX = pointerX;
+    let ringY = pointerY;
+    let visible = false;
+    let hovering = false;
     let rafId = 0;
-    const scheduleParallax = (): void => {
-      if (rafId) {
+
+    const applyState = (): void => {
+      dot.classList.toggle("is-visible", visible);
+      ring.classList.toggle("is-visible", visible);
+      dot.classList.toggle("is-hover", hovering);
+      ring.classList.toggle("is-hover", hovering);
+      root.classList.toggle("cursor-hover", hovering);
+    };
+
+    const updateHoverState = (): void => {
+      const element = document.elementFromPoint(pointerX, pointerY) as HTMLElement | null;
+      const nextHover = Boolean(element?.closest(hoverSelector));
+
+      if (nextHover !== hovering) {
+        hovering = nextHover;
+        applyState();
+      }
+    };
+
+    const tick = (): void => {
+      ringX += (pointerX - ringX) * 0.14;
+      ringY += (pointerY - ringY) * 0.14;
+
+      updateHoverState();
+
+      const dotScale = hovering ? 0.92 : 1;
+      const ringScale = hovering ? 1.24 : 1;
+
+      dot.style.transform = `translate3d(${pointerX}px, ${pointerY}px, 0) translate(-50%, -50%) scale(${dotScale})`;
+      ring.style.transform = `translate3d(${ringX}px, ${ringY}px, 0) translate(-50%, -50%) scale(${ringScale})`;
+
+      if (Math.abs(pointerX - ringX) > 0.1 || Math.abs(pointerY - ringY) > 0.1) {
+        rafId = window.requestAnimationFrame(tick);
         return;
       }
 
-      rafId = window.requestAnimationFrame(() => {
-        rafId = 0;
-        updateParallax();
-      });
+      rafId = 0;
     };
 
-    window.addEventListener("scroll", scheduleParallax, { passive: true });
-    window.addEventListener("resize", scheduleParallax);
-    cleanupFns.push(() => {
-      window.removeEventListener("scroll", scheduleParallax);
-      window.removeEventListener("resize", scheduleParallax);
+    const start = (): void => {
+      if (!rafId) {
+        rafId = window.requestAnimationFrame(tick);
+      }
+    };
+
+    const onMove = (event: PointerEvent): void => {
+      pointerX = event.clientX;
+      pointerY = event.clientY;
+      visible = true;
+      applyState();
+      start();
+    };
+
+    const onLeave = (): void => {
+      visible = false;
+      hovering = false;
+      applyState();
+    };
+
+    const onDown = (): void => {
+      root.classList.add("cursor-pressed");
+    };
+
+    const onUp = (): void => {
+      root.classList.remove("cursor-pressed");
+    };
+
+    window.addEventListener("pointermove", onMove, { passive: true });
+    window.addEventListener("pointerleave", onLeave);
+    window.addEventListener("blur", onLeave);
+    window.addEventListener("pointerdown", onDown);
+    window.addEventListener("pointerup", onUp);
+
+    const cleanup = (): void => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerleave", onLeave);
+      window.removeEventListener("blur", onLeave);
+      window.removeEventListener("pointerdown", onDown);
+      window.removeEventListener("pointerup", onUp);
+
       if (rafId) {
         window.cancelAnimationFrame(rafId);
       }
-    });
 
-    updateParallax();
-
-    if (finePointerQuery.matches) {
-      const resetTilt = (element: HTMLElement): void => {
-        element.style.transform = "";
-      };
-
-      tiltElements.forEach((element) => {
-        const onMove = (event: PointerEvent): void => {
-          const rect = element.getBoundingClientRect();
-          const x = (event.clientX - rect.left) / rect.width - 0.5;
-          const y = (event.clientY - rect.top) / rect.height - 0.5;
-          const rotateY = Math.max(-8, Math.min(8, x * 12));
-          const rotateX = Math.max(-8, Math.min(8, -y * 12));
-
-          element.style.transform = `perspective(900px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-2px)`;
-        };
-
-        const onEnter = (): void => {
-          element.dataset.motionHover = "true";
-        };
-
-        const onLeave = (): void => {
-          delete element.dataset.motionHover;
-          resetTilt(element);
-        };
-
-        element.addEventListener("pointerenter", onEnter);
-        element.addEventListener("pointermove", onMove);
-        element.addEventListener("pointerleave", onLeave);
-
-        cleanupFns.push(() => {
-          element.removeEventListener("pointerenter", onEnter);
-          element.removeEventListener("pointermove", onMove);
-          element.removeEventListener("pointerleave", onLeave);
-          resetTilt(element);
-        });
-      });
-    }
-
-    const onMotionChange = (): void => {
-      if (reduceMotionQuery.matches) {
-        applyReducedMotion();
-        return;
-      }
-
-      root.classList.remove("reduced-motion");
-      root.classList.add("motion-ready");
-      updateParallax();
+      dot.remove();
+      ring.remove();
+      root.classList.remove("has-custom-cursor", "cursor-hover", "cursor-pressed");
     };
 
-    reduceMotionQuery.addEventListener("change", onMotionChange);
-    cleanupFns.push(() => {
-      reduceMotionQuery.removeEventListener("change", onMotionChange);
-    });
+    reduceMotionQuery.addEventListener("change", cleanup, { once: true });
 
-    return () => {
-      cleanupFns.forEach((cleanup) => cleanup());
-      root.classList.remove("motion-ready");
-    };
+    return cleanup;
   }, []);
 
   return null;
