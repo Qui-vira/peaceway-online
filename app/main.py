@@ -8,7 +8,9 @@ from __future__ import annotations
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
+from app.api.v1.router import router as api_v1_router
 from app.bot.dispatcher import build_bot, build_dispatcher, set_bot_commands
 from app.core.config import get_settings
 from app.core.logging import configure_logging, get_logger
@@ -57,9 +59,27 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="Peaceway Online", lifespan=lifespan)
+
+# CORS — allow the Vercel web frontend to call /api/v1/* from the browser.
+# Origins are configured via ALLOWED_ORIGINS env var (comma-separated).
+# Telegram webhooks are server-to-server and are unaffected by CORS.
+_settings = get_settings()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=_settings.allowed_origin_list,
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization", "X-Requested-With"],
+    max_age=3600,
+)
+
+# Existing Telegram + payment + logistics webhooks — order and paths unchanged.
 app.include_router(telegram_webhook.router)
 app.include_router(logistics_webhook.router)
 app.include_router(flutterwave_webhook.router)
+
+# Web API — mounted under /api/v1 so it never collides with bot webhook paths.
+app.include_router(api_v1_router)
 
 
 @app.get("/health")

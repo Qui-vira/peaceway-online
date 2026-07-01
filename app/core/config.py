@@ -86,6 +86,14 @@ class Settings(BaseSettings):
     # Crypto off-ramp (Phase 3 — optional, manual settlement)
     crypto_wallets: str = ""  # "NETWORK:TOKEN:ADDRESS" entries, comma-separated
 
+    # Web API
+    # Comma-separated origins allowed to call /api/v1/* from a browser.
+    # Example: https://peacewayonline.com.ng,http://localhost:3000
+    allowed_origins: str = "http://localhost:3000"
+    # Random 32-char secret used to sign web session tokens (Phase 1+).
+    # Generate with: python -c "import secrets; print(secrets.token_urlsafe(32))"
+    web_secret: str = ""
+
     # Runtime
     env: str = "development"
     log_level: str = "INFO"
@@ -162,6 +170,11 @@ class Settings(BaseSettings):
             if len(parts) == 3 and all(parts):
                 out.append({"network": parts[0], "token": parts[1], "address": parts[2]})
         return out
+
+    @property
+    def allowed_origin_list(self) -> list[str]:
+        """Parse ALLOWED_ORIGINS (comma-separated) into a list for CORSMiddleware."""
+        return [o.strip() for o in (self.allowed_origins or "").split(",") if o.strip()]
 
 
 @lru_cache
