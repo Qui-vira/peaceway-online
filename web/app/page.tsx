@@ -43,7 +43,7 @@ export default function Page(): JSX.Element {
         </div>
       </header>
 
-      <main>
+      <main id="lmain">
         <div id="spbar"><div id="spfill" /></div>
 
         <div className="scene" id="s1" style={{ height: "190vh" }}>
@@ -331,8 +331,8 @@ export default function Page(): JSX.Element {
             </div>
           </div>
         </div>
-      </main>
-
+      {/* Footer lives inside main so it becomes the last slide in the
+          mobile carousel; on desktop it flows after the scenes as before. */}
       <footer className="ft" id="footer" data-screen-label="Footer">
         <div style={{ maxWidth: 1240, margin: "0 auto", padding: "0 56px" }}>
           <div className="fg">
@@ -380,6 +380,7 @@ export default function Page(): JSX.Element {
           </div>
         </div>
       </footer>
+      </main>
     </>
   );
 }

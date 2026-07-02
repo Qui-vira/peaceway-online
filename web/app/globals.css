@@ -265,6 +265,12 @@ footer {
   text-wrap: balance;
 }
 
+/* Installed PWA draws edge-to-edge under the system status bar — keep the
+   nav clear of the clock/battery icons. No-op in a normal browser tab. */
+#nav {
+  padding-top: env(safe-area-inset-top);
+}
+
 .ni {
   display: flex;
   justify-content: space-between;
@@ -856,17 +862,100 @@ footer {
 }
 
 @media (max-width: 800px) {
-  /* Stacked mobile layouts outgrow the pinned 100vh boxes and get clipped
-     (overflow: hidden), and the tall vh scenes add dead scroll space.
-     On phones every scene flows at its natural height instead. */
-  .scene { height: auto !important; }
+  /* ── Landing carousel: manual horizontal slides ──────────────────────
+     Each scene (and the footer) is one full-screen slide; swipe left/right
+     to move between them, scroll vertically inside a slide when its content
+     is taller than the screen. Desktop keeps the cinematic scroll. */
+  #nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 400;
+    /* scrim so slide content scrolling underneath stays readable */
+    background: linear-gradient(
+      to bottom,
+      rgba(7, 8, 6, 0.85) 0%,
+      rgba(7, 8, 6, 0.4) 70%,
+      transparent 100%
+    );
+  }
+
+  #lmain {
+    display: flex;
+    flex-direction: row;
+    height: 100vh;
+    height: 100svh;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  #lmain::-webkit-scrollbar { display: none; }
+
+  #lmain .scene,
+  #lmain footer.ft {
+    flex: 0 0 100vw;
+    width: 100vw;
+    height: 100% !important;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    overflow: hidden;
+  }
   .sticky {
     position: relative;
-    height: auto;
-    min-height: 100vh;
-    min-height: 100svh;
+    height: 100%;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
   }
-  .con { padding-bottom: 64px; }
+  #s5 .sticky {
+    height: 100%;
+    min-height: 0;
+    overflow-y: auto;
+  }
+  .sticky > .con,
+  .sticky > .hcon {
+    height: auto;
+    min-height: 100%;
+  }
+  #lmain footer.ft {
+    overflow-y: auto;
+    padding-top: calc(88px + env(safe-area-inset-top));
+  }
+  #spbar { display: none; }
+  .con { padding-bottom: 96px; }
+
+  /* Slide dots (built by motion-effects.tsx) */
+  .pw-dots {
+    position: fixed;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: calc(14px + env(safe-area-inset-bottom));
+    display: flex;
+    gap: 7px;
+    z-index: 500;
+    padding: 7px 11px;
+    border-radius: 999px;
+    background: rgba(7, 8, 6, 0.55);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+  .pw-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.28);
+    border: none;
+    padding: 0;
+    transition: background 0.25s ease, transform 0.25s ease;
+  }
+  .pw-dot.is-active {
+    background: #2eb576;
+    transform: scale(1.25);
+  }
 
   .nlinks { display: none; }
   .ni, .hcon, .con, footer > div { padding-left: 20px !important; padding-right: 20px !important; }
@@ -881,10 +970,23 @@ footer {
   .phimg { height: 240px; }
   .tgcard { flex-direction: column; text-align: center; }
   .ctcard { padding: 24px 20px; }
-  .con { padding-top: 72px; }
-  /* Hero: centering + 88px offset left a large dead zone under the nav on
-     phones — anchor content near the top instead. */
-  .hcon { padding: 64px 20px 0; justify-content: flex-start; }
+  /* Fixed header floats over the slides — keep content clear of it and of
+     the phone's status bar. */
+  .con { padding-top: calc(84px + env(safe-area-inset-top)); }
+  .hcon {
+    padding: calc(80px + env(safe-area-inset-top)) 20px 0;
+    justify-content: flex-start;
+  }
+}
+
+/* Touch feedback: hover doesn't exist on phones, so give buttons and cards
+   a quick press response instead. */
+@media (hover: none) {
+  .bp:active, .bg2:active, .ncta:active,
+  .gc:active, .pc:active, .tgcard:active {
+    transform: scale(0.98);
+    transition: transform 0.12s ease;
+  }
 }
 
 /* ── Premium hover micro-interactions — desktop pointers only ──────────── */

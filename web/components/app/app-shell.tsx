@@ -22,10 +22,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   return (
-    <div className="min-h-screen bg-[#0b0c09] pb-24">
+    <div className="min-h-screen bg-[#0b0c09] pb-28 pt-[env(safe-area-inset-top)]">
       {children}
 
-      <nav className="fixed bottom-0 inset-x-0 z-50 border-t border-white/10 bg-[#0e100c]/95 backdrop-blur-md">
+      <nav className="fixed bottom-0 inset-x-0 z-50 border-t border-white/10 bg-[#0e100c]/95 backdrop-blur-md pb-[env(safe-area-inset-bottom)]">
         <div className="mx-auto flex max-w-md items-stretch justify-around">
           {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
             const active =

@@ -31,12 +31,16 @@ function setupReveals(): (() => void) | undefined {
   if (!sections.length) return undefined;
 
   const viewportBottom = window.innerHeight * 0.92;
+  const viewportRight = window.innerWidth * 0.92;
   const groupCounts = new Map<Element, number>();
   const tagged: HTMLElement[] = [];
 
   sections.forEach((section) => {
     section.querySelectorAll<HTMLElement>(REVEAL_TARGETS).forEach((el) => {
-      if (el.getBoundingClientRect().top <= viewportBottom) return; // already visible — leave static
+      const rect = el.getBoundingClientRect();
+      // Skip only what's on screen right now (below-the-fold vertically OR
+      // off to the right in the mobile carousel gets tagged for reveal).
+      if (rect.top <= viewportBottom && rect.left <= viewportRight) return;
       const parent = el.parentElement ?? section;
       const index = groupCounts.get(parent) ?? 0;
       groupCounts.set(parent, index + 1);
@@ -79,6 +83,54 @@ function setupReveals(): (() => void) | undefined {
       el.classList.remove("pw-reveal", "pw-in");
       el.style.transitionDelay = "";
     });
+  };
+}
+
+/* Mobile landing carousel dots: one per slide, tracks swipe position.
+   Navigation, not decoration — runs even under prefers-reduced-motion. */
+function setupCarouselDots(reducedMotion: boolean): (() => void) | undefined {
+  if (!window.matchMedia("(max-width: 800px)").matches) return undefined;
+  const track = document.getElementById("lmain");
+  if (!track || !document.getElementById("s1")) return undefined;
+
+  const slides = Array.from(
+    track.querySelectorAll<HTMLElement>(":scope > .scene, :scope > footer.ft")
+  );
+  if (slides.length < 2) return undefined;
+
+  const dots = document.createElement("div");
+  dots.className = "pw-dots";
+  const buttons = slides.map((_, i) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "pw-dot" + (i === 0 ? " is-active" : "");
+    b.setAttribute("aria-label", `Go to section ${i + 1}`);
+    b.addEventListener("click", () => {
+      track.scrollTo({
+        left: i * track.clientWidth,
+        behavior: reducedMotion ? "auto" : "smooth",
+      });
+    });
+    dots.appendChild(b);
+    return b;
+  });
+  document.body.appendChild(dots);
+
+  let raf = 0;
+  const update = (): void => {
+    raf = 0;
+    const active = Math.round(track.scrollLeft / Math.max(1, track.clientWidth));
+    buttons.forEach((b, i) => b.classList.toggle("is-active", i === active));
+  };
+  const onScroll = (): void => {
+    if (!raf) raf = window.requestAnimationFrame(update);
+  };
+  track.addEventListener("scroll", onScroll, { passive: true });
+
+  return () => {
+    track.removeEventListener("scroll", onScroll);
+    if (raf) window.cancelAnimationFrame(raf);
+    dots.remove();
   };
 }
 
@@ -217,19 +269,32 @@ export function MotionEffects(): JSX.Element | null {
     const reduceMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     const finePointerQuery = window.matchMedia("(hover: hover) and (pointer: fine)");
 
-    if (reduceMotionQuery.matches) {
-      return; // no reveals, no cursor — everything stays static and visible
-    }
-
     const cleanups: Array<() => void> = [];
 
-    const revealCleanup = setupReveals();
-    if (revealCleanup) cleanups.push(revealCleanup);
+    // Carousel dots are navigation — they run even under reduced motion, and
+    // re-mount when the viewport crosses the mobile breakpoint (rotation,
+    // resize, or emulation applying after hydration).
+    const carouselMq = window.matchMedia("(max-width: 800px)");
+    let dotsCleanup = setupCarouselDots(reduceMotionQuery.matches);
+    const onCarouselMqChange = (): void => {
+      dotsCleanup?.();
+      dotsCleanup = setupCarouselDots(reduceMotionQuery.matches);
+    };
+    carouselMq.addEventListener("change", onCarouselMqChange);
+    cleanups.push(() => {
+      carouselMq.removeEventListener("change", onCarouselMqChange);
+      dotsCleanup?.();
+    });
 
-    // Custom cursor only makes sense with a mouse
-    if (finePointerQuery.matches) {
-      const cursorCleanup = setupCursor();
-      if (cursorCleanup) cleanups.push(cursorCleanup);
+    if (!reduceMotionQuery.matches) {
+      const revealCleanup = setupReveals();
+      if (revealCleanup) cleanups.push(revealCleanup);
+
+      // Custom cursor only makes sense with a mouse
+      if (finePointerQuery.matches) {
+        const cursorCleanup = setupCursor();
+        if (cursorCleanup) cleanups.push(cursorCleanup);
+      }
     }
 
     const cleanup = (): void => {
