@@ -239,10 +239,10 @@ export default function RequestPage() {
               Submit another request
             </button>
             <Link
-              href="/"
+              href="/requests"
               className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 px-6 py-3.5 text-sm font-semibold text-white/70 transition hover:border-white/20 hover:text-white"
             >
-              Back to Home
+              Track My Requests
             </Link>
           </div>
         </div>

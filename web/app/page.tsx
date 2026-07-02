@@ -37,8 +37,8 @@ export default function Page(): JSX.Element {
             <a className="nl" href="#s7">Delivery</a>
             <a className="nl" href="#s9">Contact</a>
           </div>
-          <a className="ncta" href="/start">
-            Get Started
+          <a className="ncta" href="/app">
+            Use Web App
           </a>
         </div>
       </header>

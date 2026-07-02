@@ -35,6 +35,21 @@ export async function getMe(): Promise<CustomerProfile> {
   return apiFetch<CustomerProfile>("/me");
 }
 
+export type UpdateProfilePayload = {
+  full_name?: string;
+  email?: string;
+  delivery_area?: string;
+};
+
+export async function updateProfile(
+  data: UpdateProfilePayload
+): Promise<CustomerProfile> {
+  return apiFetch<CustomerProfile>("/me", {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+}
+
 export async function listZones(): Promise<Zone[]> {
   return apiFetch<Zone[]>("/zones");
 }

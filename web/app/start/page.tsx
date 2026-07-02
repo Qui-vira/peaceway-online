@@ -117,21 +117,21 @@ export default function StartPage() {
             </p>
           </div>
           <div className="flex flex-col gap-3">
+            <Link
+              href="/app"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-6 py-3.5 text-sm font-semibold text-black transition hover:bg-emerald-400"
+            >
+              Open the Web App
+              <ChevronRight className="h-4 w-4" />
+            </Link>
             <a
               href="https://t.me/Peacewayonline_bot"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-6 py-3.5 text-sm font-semibold text-black transition hover:bg-emerald-400"
-            >
-              Order on Telegram
-              <ChevronRight className="h-4 w-4" />
-            </a>
-            <Link
-              href="/"
               className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 px-6 py-3.5 text-sm font-semibold text-white/70 transition hover:border-white/20 hover:text-white"
             >
-              Back to Home
-            </Link>
+              Order on Telegram
+            </a>
           </div>
         </div>
       </main>
