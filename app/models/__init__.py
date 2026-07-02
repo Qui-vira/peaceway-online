@@ -34,6 +34,14 @@ from app.models.ops import (
     Staff,
     StaffRole,
 )
+from app.models.reminders import (
+    MedicationReminder,
+    MedicationReminderEvent,
+    ReminderConsent,
+    ReminderEventStatus,
+    ReminderSource,
+    ReminderStatus,
+)
 from app.models.orders import (
     Customer,
     CustomerContactEvent,
@@ -53,6 +61,12 @@ from app.models.payments import Payment, PaymentStatus, PaymentWebhookEvent
 __all__ = [
     "Base",
     "TimestampMixin",
+    "MedicationReminder",
+    "MedicationReminderEvent",
+    "ReminderConsent",
+    "ReminderEventStatus",
+    "ReminderSource",
+    "ReminderStatus",
     "Product",
     "ProductAlias",
     "ProductIdentifier",

@@ -94,6 +94,10 @@ class Settings(BaseSettings):
     # Generate with: python -c "import secrets; print(secrets.token_urlsafe(32))"
     web_secret: str = ""
 
+    # Medication reminders: master switch for the dispatcher job.
+    # Ships OFF so the feature can deploy dormant and be enabled per env.
+    reminders_enabled: bool = False
+
     # Runtime
     env: str = "development"
     log_level: str = "INFO"

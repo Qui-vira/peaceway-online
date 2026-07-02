@@ -27,6 +27,63 @@ def start_scheduler() -> None:
         scheduler.start()
         log.info("scheduler_started")
 
+    from app.core.config import get_settings
+
+    if get_settings().reminders_enabled and not scheduler.get_job("medication_reminders_dispatch"):
+        scheduler.add_job(
+            dispatch_due_reminders,
+            "interval",
+            seconds=60,
+            id="medication_reminders_dispatch",
+            max_instances=1,
+            coalesce=True,
+        )
+        log.info("reminder_dispatcher_started")
+
+
+async def dispatch_due_reminders() -> None:
+    """Every minute: fire reminders whose next_run_at is due.
+
+    DB-driven (next_run_at column), so schedules survive restarts. Missed
+    occurrences past the grace window are audited as skipped, not sent late.
+    """
+    from app.bot.dispatcher import build_bot
+    from app.core.db import get_session
+    from app.models import Customer
+    from app.services.reminders import build_reminder_text, collect_due, record_send_result
+
+    async with get_session() as session:
+        work = await collect_due(session)
+        sendable = [(r, at) for r, at, action in work if action == "send"]
+
+        if sendable:
+            bot = build_bot()
+            try:
+                for reminder, scheduled_for in sendable:
+                    customer = await session.get(Customer, reminder.customer_id)
+                    if not customer or not customer.telegram_id:
+                        record_send_result(
+                            session, reminder, scheduled_for,
+                            error="customer has no Telegram channel",
+                        )
+                        continue
+                    try:
+                        await bot.send_message(customer.telegram_id, build_reminder_text(reminder))
+                        record_send_result(session, reminder, scheduled_for)
+                    except Exception as exc:  # noqa: BLE001
+                        record_send_result(session, reminder, scheduled_for, error=str(exc))
+                        log.error(
+                            "reminder_send_failed",
+                            reminder_id=str(reminder.id),
+                            error=str(exc),
+                        )
+            finally:
+                await bot.session.close()
+
+        await session.commit()
+        if work:
+            log.info("reminders_dispatched", total=len(work), sent=len(sendable))
+
 
 def schedule_followup(_bot, order_id: UUID, delay_hours: int = 24) -> None:
     run_date = datetime.now(timezone.utc) + timedelta(hours=delay_hours)
