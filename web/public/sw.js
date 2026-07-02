@@ -1,15 +1,14 @@
-const CACHE_NAME = "peaceway-online-pwa-v3";
+const CACHE_NAME = "peaceway-online-pwa-v4";
+
+// Only these never change — content-hashed by Next.js build
+const IMMUTABLE_PREFIX = "/_next/static/";
+
+// Offline fallback pages to precache
 const PRECACHE_URLS = [
-  "/",
   "/offline",
   "/manifest.json",
-  "/robots.txt",
-  "/sitemap.xml",
   "/icons/icon-192.png",
-  "/icons/icon-512.png",
-  "/images/posters/hero.svg",
-  "/images/posters/section.svg",
-  "/images/posters/trust.svg"
+  "/icons/icon-512.png"
 ];
 
 self.addEventListener("install", (event) => {
@@ -22,9 +21,7 @@ self.addEventListener("install", (event) => {
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
-      Promise.all(
-        keys.map((key) => (key === CACHE_NAME ? null : caches.delete(key)))
-      )
+      Promise.all(keys.map((key) => (key !== CACHE_NAME ? caches.delete(key) : null)))
     )
   );
   self.clients.claim();
@@ -32,40 +29,37 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   const { request } = event;
+  if (request.method !== "GET") return;
 
-  if (request.method !== "GET") {
-    return;
-  }
+  const url = new URL(request.url);
 
-  if (request.mode === "navigate") {
+  // Next.js static chunks are content-hashed — safe to cache forever
+  if (url.pathname.startsWith(IMMUTABLE_PREFIX)) {
     event.respondWith(
-      fetch(request)
-        .then((response) => {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
-          return response;
+      caches.match(request).then(
+        (cached) => cached || fetch(request).then((res) => {
+          const copy = res.clone();
+          caches.open(CACHE_NAME).then((c) => c.put(request, copy));
+          return res;
         })
-        .catch(async () => {
-          const cachedOffline = await caches.match("/offline");
-          return cachedOffline || caches.match("/") || Response.error();
-        })
+      )
     );
     return;
   }
 
+  // Everything else: network-first — users always get latest on good connection
   event.respondWith(
-    caches.match(request).then((cached) => {
-      if (cached) {
-        return cached;
-      }
-
-      return fetch(request)
-        .then((response) => {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
-          return response;
-        })
-        .catch(() => caches.match("/offline"));
-    })
+    fetch(request)
+      .then((response) => {
+        // Cache a copy for offline fallback
+        const copy = response.clone();
+        caches.open(CACHE_NAME).then((c) => c.put(request, copy));
+        return response;
+      })
+      .catch(() =>
+        caches.match(request).then(
+          (cached) => cached || caches.match("/offline") || Response.error()
+        )
+      )
   );
 });
