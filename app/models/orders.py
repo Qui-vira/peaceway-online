@@ -67,9 +67,12 @@ class Customer(Base, TimestampMixin):
     __tablename__ = "customers"
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
-    telegram_id: Mapped[int] = mapped_column(BigInteger, unique=True, index=True, nullable=False)
+    # Nullable: web-only customers have no Telegram account.
+    telegram_id: Mapped[int | None] = mapped_column(BigInteger, unique=True, index=True, nullable=True)
     full_name: Mapped[str | None] = mapped_column(String(255))
     phone: Mapped[str | None] = mapped_column(String(50))
+    # Set as httpOnly cookie after web registration; used by /api/v1/me.
+    web_session_token: Mapped[str | None] = mapped_column(String(64), unique=True)
     # Saved delivery addresses [{address, area, landmark, preferred_time, note}]
     addresses: Mapped[list | None] = mapped_column(JSONB)
 
