@@ -1,4 +1,4 @@
-const CACHE_NAME = "peaceway-online-pwa-v2";
+const CACHE_NAME = "peaceway-online-pwa-v3";
 const PRECACHE_URLS = [
   "/",
   "/offline",
