@@ -27,6 +27,24 @@ def _generate_session_token() -> str:
     return secrets.token_urlsafe(48)  # 64 chars URL-safe base64
 
 
+def get_delivery_area(customer: Customer) -> str | None:
+    """Delivery area lives in the addresses JSONB list: first entry's `area`."""
+    if customer.addresses and isinstance(customer.addresses, list):
+        first = customer.addresses[0]
+        if isinstance(first, dict):
+            return first.get("area")
+    return None
+
+
+def set_delivery_area(customer: Customer, area: str) -> None:
+    addresses = list(customer.addresses) if customer.addresses else []
+    if addresses and isinstance(addresses[0], dict):
+        addresses[0] = {**addresses[0], "area": area}
+    else:
+        addresses.insert(0, {"area": area})
+    customer.addresses = addresses
+
+
 async def get_or_create_web_customer(
     session: AsyncSession,
     *,
@@ -69,6 +87,9 @@ async def get_or_create_web_customer(
 
     # Always issue a fresh session token on web registration/login
     customer.web_session_token = _generate_session_token()
+
+    if delivery_area:
+        set_delivery_area(customer, delivery_area)
 
     if email and is_valid_email(email):
         now = datetime.now(timezone.utc)

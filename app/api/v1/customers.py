@@ -1,10 +1,18 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException, Response, status
+from datetime import datetime, timezone
+
+from fastapi import APIRouter, Response, status
 from pydantic import BaseModel, field_validator
 
 from app.api.deps import CurrentCustomer, DbSession
-from app.services.web_customers import get_or_create_web_customer, is_valid_phone
+from app.services.customers import is_valid_email
+from app.services.web_customers import (
+    get_delivery_area,
+    get_or_create_web_customer,
+    is_valid_phone,
+    set_delivery_area,
+)
 
 router = APIRouter(tags=["customers"])
 
@@ -35,6 +43,30 @@ class RegisterRequest(BaseModel):
         return v
 
 
+class UpdateProfileRequest(BaseModel):
+    full_name: str | None = None
+    email: str | None = None
+    delivery_area: str | None = None
+
+    @field_validator("full_name")
+    @classmethod
+    def name_not_blank(cls, v: str | None) -> str | None:
+        if v is not None:
+            v = v.strip()
+            if not v:
+                raise ValueError("Full name cannot be empty.")
+        return v
+
+    @field_validator("email")
+    @classmethod
+    def email_valid(cls, v: str | None) -> str | None:
+        if v is not None:
+            v = v.strip()
+            if v and not is_valid_email(v):
+                raise ValueError("Enter a valid email address.")
+        return v
+
+
 class CustomerOut(BaseModel):
     id: str
     full_name: str | None
@@ -43,6 +75,16 @@ class CustomerOut(BaseModel):
     delivery_area: str | None = None
 
     model_config = {"from_attributes": True}
+
+
+def _customer_out(customer) -> CustomerOut:
+    return CustomerOut(
+        id=str(customer.id),
+        full_name=customer.full_name,
+        phone=customer.phone,
+        email=customer.email,
+        delivery_area=get_delivery_area(customer),
+    )
 
 
 @router.post("/customers", status_code=status.HTTP_200_OK)
@@ -73,21 +115,33 @@ async def register_or_login(
         path="/",
     )
 
-    return CustomerOut(
-        id=str(customer.id),
-        full_name=customer.full_name,
-        phone=customer.phone,
-        email=customer.email,
-        delivery_area=body.delivery_area,
-    )
+    return _customer_out(customer)
 
 
 @router.get("/me")
 async def get_me(customer: CurrentCustomer) -> CustomerOut:
     """Return the authenticated customer's profile."""
-    return CustomerOut(
-        id=str(customer.id),
-        full_name=customer.full_name,
-        phone=customer.phone,
-        email=customer.email,
-    )
+    return _customer_out(customer)
+
+
+@router.patch("/me")
+async def update_me(
+    body: UpdateProfileRequest,
+    customer: CurrentCustomer,
+    db: DbSession,
+) -> CustomerOut:
+    """Update the authenticated customer's profile (name, email, delivery area)."""
+    if body.full_name is not None:
+        customer.full_name = body.full_name
+    if body.email is not None and body.email:
+        now = datetime.now(timezone.utc)
+        customer.email = body.email
+        if not customer.email_collected_at:
+            customer.email_collected_at = now
+        customer.email_source = "web_profile"
+        customer.email_updated_at = now
+    if body.delivery_area is not None and body.delivery_area.strip():
+        set_delivery_area(customer, body.delivery_area.strip())
+
+    db.add(customer)
+    return _customer_out(customer)
