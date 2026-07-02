@@ -56,7 +56,7 @@ export default function AskPharmacistPage() {
     <AppShell>
       <AppHeader
         title="Ask a Pharmacist"
-        subtitle="Dosage, interactions, side effects — a qualified pharmacist will answer."
+        subtitle="Dosage, interactions, side effects. A qualified pharmacist will answer."
       />
 
       {guest && <GuestWall message="Create a profile so our pharmacist can reply to you." />}

@@ -145,7 +145,7 @@ export default function Page(): JSX.Element {
                   <div className="titem"><div className="tdot"><div className="tdi" /></div><div><div className="tt">Physical pharmacy in Igando/Agodo Ikotun</div><div className="tb">A real building, real address, real staff.</div></div></div>
                   <div className="titem"><div className="tdot"><div className="tdi" /></div><div><div className="tt">Pharmacist-led service</div><div className="tb">Every order and question is handled by qualified pharmacy staff.</div></div></div>
                   <div className="titem"><div className="tdot"><div className="tdi" /></div><div><div className="tt">Genuine, properly sourced medicines</div><div className="tb">Sourced through legitimate supply chains only.</div></div></div>
-                  <div className="titem"><div className="tdot"><div className="tdi" /></div><div><div className="tt">Prescription products require pharmacist review</div><div className="tb">No Rx supply without proper review - this is non-negotiable.</div></div></div>
+                  <div className="titem"><div className="tdot"><div className="tdi" /></div><div><div className="tt">Prescription products require pharmacist review</div><div className="tb">No Rx supply without proper review. This is non-negotiable.</div></div></div>
                   <div className="titem" style={{ borderBottom: "none" }}><div className="tdot"><div className="tdi" /></div><div><div className="tt">PCN Registration <span style={{ fontSize: 11, color: "rgba(177,189,176,.45)", fontWeight: 400 }}>[Placeholder - to be confirmed]</span></div><div className="tb">Registered with the Pharmacists Council of Nigeria.</div></div></div>
                 </div>
               </div>
@@ -153,7 +153,7 @@ export default function Page(): JSX.Element {
           </div>
         </div>
 
-        <div className="scene" id="s5" style={{ height: "215vh" }}>
+        <div className="scene" id="s5" style={{ height: "auto" }}>
           <div className="sticky" data-screen-label="How Ordering Works">
             <div className="sv-fb" />
             <LazyVideo className="sv" src={media.howItWorksVideo} poster={media.sectionPoster} />
@@ -208,7 +208,7 @@ export default function Page(): JSX.Element {
                 </div>
                 <div className="cw">
                   <div className="cb cu2">Is it safe to take paracetamol and ibuprofen together?</div>
-                  <div className="cb cp2"><div className="cpn">Peaceway Pharmacist</div>Yes, both can be taken together - but space them 4 to 6 hours apart to reduce stomach irritation. Avoid taking them at the exact same time.</div>
+                  <div className="cb cp2"><div className="cpn">Peaceway Pharmacist</div>Yes, both can be taken together, but space them 4 to 6 hours apart to reduce stomach irritation, and ulcer patients should avoid ibuprofen. Avoid taking them at the exact same time.</div>
                   <div className="cb cu2">I need to refill my blood pressure medication.</div>
                   <div className="cb cp2"><div className="cpn">Peaceway Pharmacist</div>Antihypertensive medicines require a prescription. Send your prescription through the bot and I will guide you through the next steps.</div>
                 </div>
@@ -230,7 +230,7 @@ export default function Page(): JSX.Element {
                 <div>
                   <div className="stag">Section 07 · Delivery Areas</div>
                   <h2 className="shead">Delivery across Lagos,<br />starting from Igando.</h2>
-                  <p style={{ fontSize: 15, color: "var(--m)", lineHeight: 1.7, maxWidth: 420, marginBottom: 32 }}>We deliver to communities around our pharmacy first. Coverage is expanding - if your area is not listed, ask us.</p>
+                  <p style={{ fontSize: 15, color: "var(--m)", lineHeight: 1.7, maxWidth: 420, marginBottom: 32 }}>We deliver to communities around our pharmacy first. Coverage is expanding. If your area is not listed, ask us.</p>
                   <div className="ag">
                     {["Igando ★", "Agodo", "Ikotun", "Egbeda", "Isheri", "Idimu", "Iyana Ipaja", "Egbe", "Ejigbo", "Ijegun", "Other Lagos Mainland"].map((label, index) => (
                       <span key={label} className={index < 3 ? "ab pri" : "ab sec"}>{label}</span>
@@ -286,7 +286,7 @@ export default function Page(): JSX.Element {
                   >
                     <Users size={22} strokeWidth={2} />
                   </IconBadge>
-                  <div style={{ textAlign: "left" }}><div className="tgct">Join Telegram Channel</div><div className="tgcd">Health updates, product alerts, pharmacy news, and community information - direct to your Telegram.</div></div>
+                  <div style={{ textAlign: "left" }}><div className="tgct">Join Telegram Channel</div><div className="tgcd">Health updates, product alerts, pharmacy news, and community information, direct to your Telegram.</div></div>
                   <div style={{ marginLeft: "auto", fontSize: 20, color: "var(--g)", flexShrink: 0 }}>→</div>
                 </a>
                 <a className="tgcard tgc2" href={siteConfig.telegramBotUrl} target="_blank" rel="noreferrer noopener">
@@ -295,7 +295,7 @@ export default function Page(): JSX.Element {
                   >
                     <SendHorizontal size={22} strokeWidth={2} />
                   </IconBadge>
-                  <div style={{ textAlign: "left" }}><div className="tgct">Order on Telegram Bot</div><div className="tgcd">Place orders, ask pharmacist questions, check availability, and track delivery - all in one bot.</div></div>
+                  <div style={{ textAlign: "left" }}><div className="tgct">Order on Telegram Bot</div><div className="tgcd">Place orders, ask pharmacist questions, check availability, and track delivery, all in one bot.</div></div>
                   <div style={{ marginLeft: "auto", fontSize: 20, color: "var(--m)", flexShrink: 0 }}>→</div>
                 </a>
               </div>

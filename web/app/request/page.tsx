@@ -28,7 +28,7 @@ type Field =
 type Errors = Partial<Record<Field | "form_error", string>>;
 
 const URGENCY_OPTIONS: { value: Urgency; label: string }[] = [
-  { value: "TODAY", label: "Today — urgent" },
+  { value: "TODAY", label: "Today (urgent)" },
   { value: "WITHIN_24H", label: "Within 24 hours" },
   { value: "THIS_WEEK", label: "This week" },
   { value: "JUST_CHECKING", label: "Just checking availability" },

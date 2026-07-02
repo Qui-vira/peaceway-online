@@ -109,10 +109,10 @@ export default function ProfilePage() {
           <div>
             <Label>Phone Number</Label>
             <FieldShell icon={<Phone className="h-4 w-4" />}>
-              <span className="flex-1 text-sm text-white/55">{me.phone ?? "—"}</span>
+              <span className="flex-1 text-sm text-white/55">{me.phone ?? "Not set"}</span>
             </FieldShell>
             <p className="mt-1.5 pl-1 text-xs text-white/30">
-              Phone is your login — contact us to change it.
+              Phone is your login. Contact us to change it.
             </p>
           </div>
 
@@ -145,7 +145,7 @@ export default function ProfilePage() {
                   )}
                 {zones.map((z) => (
                   <option key={z.id} value={z.name}>
-                    {z.name} — ₦{z.fee.toLocaleString()}
+                    {z.name} · ₦{z.fee.toLocaleString()}
                   </option>
                 ))}
               </select>

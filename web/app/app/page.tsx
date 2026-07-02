@@ -32,7 +32,7 @@ export default function AppDashboard() {
         <>
           <AppHeader
             title="Welcome to Peaceway"
-            subtitle="Check medicine availability, ask a pharmacist, and track your requests — right here on the web."
+            subtitle="Check medicine availability, ask a pharmacist, and track your requests, right here on the web."
           />
           <GuestWall />
         </>
@@ -48,13 +48,13 @@ export default function AppDashboard() {
               href="/request"
               icon={<Search className="h-5 w-5" />}
               title="Check Medicine Availability"
-              description="Tell us what you need — we'll confirm stock"
+              description="Tell us what you need and we'll confirm stock"
             />
             <ActionCard
               href="/ask-pharmacist"
               icon={<MessageCircle className="h-5 w-5" />}
               title="Ask a Pharmacist"
-              description="Dosage, interactions, side effects — ask freely"
+              description="Dosage, interactions, side effects, ask freely"
             />
             <ActionCard
               href="/requests"

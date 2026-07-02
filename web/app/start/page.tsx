@@ -211,7 +211,7 @@ export default function StartPage() {
                 <option value="">Select your area…</option>
                 {zones.map((z) => (
                   <option key={z.id} value={z.name}>
-                    {z.name} — ₦{z.fee.toLocaleString()}
+                    {z.name} · ₦{z.fee.toLocaleString()}
                     {z.eta_minutes ? ` · ~${z.eta_minutes}min` : ""}
                   </option>
                 ))}
