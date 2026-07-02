@@ -49,17 +49,17 @@ export function ActionCard({
   return (
     <Link
       href={href}
-      className="flex items-center gap-4 rounded-2xl border border-white/10 bg-white/4 px-5 py-4.5 transition-colors hover:border-emerald-500/40 hover:bg-white/6 active:bg-white/8"
+      className="group flex items-center gap-4 rounded-2xl border border-white/10 bg-white/4 px-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-emerald-500/40 hover:bg-white/6 hover:shadow-[0_10px_28px_rgba(0,0,0,0.35)] active:bg-white/8 motion-reduce:transform-none motion-reduce:transition-none"
       style={{ paddingTop: 18, paddingBottom: 18 }}
     >
-      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-500/12 text-emerald-400">
+      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-500/12 text-emerald-400 transition-all duration-300 group-hover:bg-emerald-500/20 group-hover:shadow-[0_0_16px_rgba(16,185,129,0.35)]">
         {icon}
       </span>
       <span className="min-w-0 flex-1">
         <span className="block text-sm font-semibold text-white">{title}</span>
         <span className="block truncate text-xs text-white/45">{description}</span>
       </span>
-      <ChevronRight className="h-4 w-4 shrink-0 text-white/30" />
+      <ChevronRight className="h-4 w-4 shrink-0 text-white/30 transition-all duration-300 group-hover:translate-x-1 group-hover:text-emerald-400 motion-reduce:transform-none" />
     </Link>
   );
 }

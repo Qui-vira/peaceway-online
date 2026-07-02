@@ -887,9 +887,142 @@ footer {
   .hcon { padding: 64px 20px 0; justify-content: flex-start; }
 }
 
+/* ── Premium hover micro-interactions — desktop pointers only ──────────── */
+@media (hover: hover) and (pointer: fine) {
+  /* Buttons: 2px lift + stronger green glow */
+  .bp, .bg2, .ncta {
+    transition:
+      transform 0.25s cubic-bezier(0.22, 0.61, 0.36, 1),
+      box-shadow 0.25s ease,
+      background-color 0.25s ease,
+      border-color 0.25s ease,
+      color 0.25s ease;
+  }
+  .bp:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 26px rgba(15, 103, 60, 0.45), 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+  .bg2:hover {
+    transform: translateY(-2px);
+    border-color: rgba(15, 103, 60, 0.75);
+    color: #fff;
+    background: rgba(15, 103, 60, 0.1);
+    box-shadow: 0 8px 22px rgba(15, 103, 60, 0.2);
+  }
+  .ncta:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(15, 103, 60, 0.42);
+  }
+
+  /* Cards: subtle lift, border glow, brighter glass, soft icon glow */
+  .gc, .pc, .tgcard {
+    transition:
+      transform 0.3s cubic-bezier(0.22, 0.61, 0.36, 1),
+      border-color 0.3s ease,
+      background 0.3s ease,
+      box-shadow 0.3s ease;
+  }
+  .gc:hover, .pc:hover {
+    transform: translateY(-4px);
+    border-color: rgba(15, 103, 60, 0.5);
+    background: rgba(255, 255, 255, 0.085);
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.4);
+  }
+  .ic-g, .ic-r {
+    transition: box-shadow 0.3s ease, background 0.3s ease;
+  }
+  .gc:hover .ic-g {
+    background: rgba(15, 103, 60, 0.28);
+    box-shadow: 0 0 18px rgba(15, 103, 60, 0.55);
+  }
+  .pc:hover .ic-r {
+    box-shadow: 0 0 16px rgba(168, 11, 22, 0.4);
+  }
+
+  /* Community CTA cards: depth + arrow slides right */
+  .tgcard:hover {
+    transform: translateY(-3px);
+    border-color: rgba(15, 103, 60, 0.55);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.38);
+  }
+  .tgcard > div:last-child {
+    transition: transform 0.3s cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+  .tgcard:hover > div:last-child {
+    transform: translateX(5px);
+  }
+  .icon-badge {
+    transition: box-shadow 0.3s ease;
+  }
+  .tgcard:hover .icon-badge {
+    box-shadow: 0 0 18px rgba(15, 103, 60, 0.45);
+  }
+
+  /* Nav links: green shift + underline reveal */
+  .nl {
+    position: relative;
+    transition: color 0.25s ease;
+  }
+  .nl::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -3px;
+    width: 100%;
+    height: 1px;
+    background: rgba(87, 200, 147, 0.9);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+  .nl:hover {
+    color: #57c893;
+  }
+  .nl:hover::after {
+    transform: scaleX(1);
+  }
+
+  /* Footer links: green shift + gentle slide (block links, so no underline) */
+  .fl {
+    transition: color 0.25s ease, transform 0.25s ease;
+  }
+  .fl:hover {
+    color: #57c893;
+    transform: translateX(3px);
+  }
+
+  /* Footer social icons */
+  .fsi {
+    transition: transform 0.25s ease, border-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
+  }
+  .fsi:hover {
+    transform: translateY(-2px);
+    border-color: rgba(15, 103, 60, 0.6);
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(15, 103, 60, 0.3);
+  }
+
+  /* Contact rows: faint highlight + slide */
+  .ctitem {
+    transition: background 0.25s ease, transform 0.25s ease;
+  }
+  .ctitem:hover {
+    background: rgba(255, 255, 255, 0.035);
+    transform: translateX(3px);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
+  }
+
+  .bp:hover, .bg2:hover, .ncta:hover,
+  .gc:hover, .pc:hover, .tgcard:hover,
+  .tgcard:hover > div:last-child,
+  .fl:hover, .fsi:hover, .ctitem:hover {
+    transform: none !important;
+    box-shadow: none !important;
   }
 
   *, *::before, *::after {
