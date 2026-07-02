@@ -17,6 +17,7 @@ import {
 } from "@/lib/api/requests";
 import { getMe } from "@/lib/api/customers";
 import type { ApiError } from "@/lib/api";
+import { AppShell } from "@/components/app/app-shell";
 
 type Field =
   | "product_name"
@@ -168,17 +169,20 @@ export default function RequestPage() {
   // Loading auth state
   if (authed === null) {
     return (
-      <main className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-white/30" />
-      </main>
+      <AppShell>
+        <main className="min-h-[70vh] flex items-center justify-center">
+          <Loader2 className="h-6 w-6 animate-spin text-white/30" />
+        </main>
+      </AppShell>
     );
   }
 
   // Not authenticated
   if (!authed) {
     return (
-      <main className="min-h-screen flex items-center justify-center px-5 py-20">
-        <div className="w-full max-w-md text-center space-y-6">
+      <AppShell>
+        <main className="min-h-[70vh] flex items-center justify-center px-5 py-20">
+          <div className="w-full max-w-md text-center space-y-6">
           <span className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-white/5 border border-white/10">
             <Package className="h-8 w-8 text-white/40" />
           </span>
@@ -195,16 +199,18 @@ export default function RequestPage() {
             Get started
             <ChevronRight className="h-4 w-4" />
           </Link>
-        </div>
-      </main>
+          </div>
+        </main>
+      </AppShell>
     );
   }
 
   // Success state
   if (submitted) {
     return (
-      <main className="min-h-screen flex items-center justify-center px-5 py-20">
-        <div className="w-full max-w-md text-center space-y-6">
+      <AppShell>
+        <main className="min-h-[70vh] flex items-center justify-center px-5 py-20">
+          <div className="w-full max-w-md text-center space-y-6">
           <span className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/15 border border-emerald-500/30">
             <CheckCircle className="h-8 w-8 text-emerald-400" />
           </span>
@@ -245,15 +251,17 @@ export default function RequestPage() {
               Track My Requests
             </Link>
           </div>
-        </div>
-      </main>
+          </div>
+        </main>
+      </AppShell>
     );
   }
 
   // Form
   return (
-    <main className="min-h-screen flex items-start justify-center px-5 py-20">
-      <div className="w-full max-w-md space-y-8">
+    <AppShell>
+      <main className="flex items-start justify-center px-5 py-16">
+        <div className="w-full max-w-md space-y-8">
 
         <div className="space-y-2">
           <p className="text-xs font-semibold uppercase tracking-widest text-emerald-400">
@@ -396,11 +404,12 @@ export default function RequestPage() {
         </form>
 
         <div className="text-center">
-          <Link href="/" className="text-xs text-white/30 hover:text-white/60 transition">
-            ← Back to home
+          <Link href="/app" className="text-xs text-white/30 hover:text-white/60 transition">
+            ← Back to dashboard
           </Link>
         </div>
-      </div>
-    </main>
+        </div>
+      </main>
+    </AppShell>
   );
 }

@@ -53,3 +53,7 @@ export async function updateProfile(
 export async function listZones(): Promise<Zone[]> {
   return apiFetch<Zone[]>("/zones");
 }
+
+export async function logout(): Promise<void> {
+  await apiFetch<void>("/logout", { method: "POST" });
+}

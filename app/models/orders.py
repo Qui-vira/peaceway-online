@@ -73,6 +73,9 @@ class Customer(Base, TimestampMixin):
     phone: Mapped[str | None] = mapped_column(String(50))
     # Set as httpOnly cookie after web registration; used by /api/v1/me.
     web_session_token: Mapped[str | None] = mapped_column(String(64), unique=True)
+    # Server-side session expiry — a token past this instant is rejected even
+    # if the browser still holds the cookie.
+    web_session_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     # Saved delivery addresses [{address, area, landmark, preferred_time, note}]
     addresses: Mapped[list | None] = mapped_column(JSONB)
 

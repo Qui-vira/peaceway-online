@@ -5,9 +5,11 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Response, status
 from pydantic import BaseModel, field_validator
 
-from app.api.deps import CurrentCustomer, DbSession
+from app.api.deps import CurrentCustomer, DbSession, OptionalCustomer
 from app.services.customers import is_valid_email
 from app.services.web_customers import (
+    SESSION_TTL_DAYS,
+    clear_web_session,
     get_delivery_area,
     get_or_create_web_customer,
     is_valid_phone,
@@ -17,7 +19,7 @@ from app.services.web_customers import (
 router = APIRouter(tags=["customers"])
 
 SESSION_COOKIE = "pw_session"
-COOKIE_MAX_AGE = 60 * 60 * 24 * 30  # 30 days
+COOKIE_MAX_AGE = SESSION_TTL_DAYS * 24 * 60 * 60  # mirrors server-side expiry
 
 
 class RegisterRequest(BaseModel):
@@ -116,6 +118,28 @@ async def register_or_login(
     )
 
     return _customer_out(customer)
+
+
+@router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
+async def logout(
+    response: Response,
+    db: DbSession,
+    customer: OptionalCustomer,
+) -> None:
+    """Sign out: invalidate the session token server-side and clear the cookie.
+
+    Idempotent — safe to call without a valid session.
+    """
+    if customer is not None:
+        clear_web_session(customer)
+        db.add(customer)
+    response.delete_cookie(
+        key=SESSION_COOKIE,
+        path="/",
+        secure=True,
+        samesite="none",
+        httponly=True,
+    )
 
 
 @router.get("/me")

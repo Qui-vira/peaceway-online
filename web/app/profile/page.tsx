@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CheckCircle, Loader2, Mail, MapPin, Phone, User } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { CheckCircle, Loader2, LogOut, Mail, MapPin, Phone, User } from "lucide-react";
 import {
   getMe,
   listZones,
+  logout,
   updateProfile,
   type CustomerProfile,
   type Zone,
@@ -37,12 +39,14 @@ function Label({ children }: { children: React.ReactNode }) {
 }
 
 export default function ProfilePage() {
+  const router = useRouter();
   const [me, setMe] = useState<CustomerProfile | null>(null);
   const [zones, setZones] = useState<Zone[]>([]);
   const [guest, setGuest] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
   const [error, setError] = useState("");
 
   const [form, setForm] = useState({ full_name: "", email: "", delivery_area: "" });
@@ -61,6 +65,16 @@ export default function ProfilePage() {
       .catch(() => setGuest(true))
       .finally(() => setLoading(false));
   }, []);
+
+  async function handleSignOut() {
+    setSigningOut(true);
+    try {
+      await logout();
+    } catch {
+      // even if the network call fails, drop the local session view
+    }
+    router.push("/");
+  }
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
@@ -177,6 +191,26 @@ export default function ProfilePage() {
               "Save Changes"
             )}
           </button>
+
+          <button
+            type="button"
+            onClick={handleSignOut}
+            disabled={signingOut}
+            className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-red-500/25 px-6 py-3.5 text-sm font-semibold text-red-400/90 transition hover:border-red-500/50 hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {signingOut ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <LogOut className="h-4 w-4" />
+            )}
+            Sign Out
+          </button>
+
+          <p className="pt-1 text-center text-xs leading-relaxed text-white/30">
+            Signing out ends your session on this device. Your requests and
+            profile stay safe and come back when you sign in with your phone
+            number again.
+          </p>
         </form>
       )}
     </AppShell>

@@ -29,7 +29,13 @@ async def get_optional_customer(
     db: DbSession,
     pw_session: Annotated[str | None, Cookie()] = None,
 ) -> Customer | None:
-    """Return the Customer for the session cookie, or None if not authenticated."""
+    """Return the Customer for the session cookie, or None if not authenticated.
+
+    Sessions are validated server-side: an expired (or pre-expiry-era) token
+    is rejected even if the browser still holds the cookie.
+    """
+    from app.services.web_customers import is_session_expired
+
     if not pw_session:
         return None
     customer = (
@@ -37,6 +43,8 @@ async def get_optional_customer(
             select(Customer).where(Customer.web_session_token == pw_session)
         )
     ).scalar_one_or_none()
+    if customer is None or is_session_expired(customer):
+        return None
     return customer
 
 

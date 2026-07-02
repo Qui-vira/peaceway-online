@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import secrets
 import re
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -18,6 +18,10 @@ from app.services.customers import is_valid_email, save_email
 
 PHONE_RE = re.compile(r"^\+?[\d\s\-().]{7,20}$")
 
+# Web sessions live this long; enforced server-side (web_session_expires_at)
+# and mirrored in the cookie max-age.
+SESSION_TTL_DAYS = 30
+
 
 def is_valid_phone(value: str) -> bool:
     return bool(PHONE_RE.match(value.strip()))
@@ -25,6 +29,23 @@ def is_valid_phone(value: str) -> bool:
 
 def _generate_session_token() -> str:
     return secrets.token_urlsafe(48)  # 64 chars URL-safe base64
+
+
+def clear_web_session(customer: Customer) -> None:
+    """Invalidate the customer's web session server-side (logout)."""
+    customer.web_session_token = None
+    customer.web_session_expires_at = None
+
+
+def is_session_expired(customer: Customer, now: datetime | None = None) -> bool:
+    """True when the session must be rejected. Legacy sessions with no expiry
+    (created before c9e2a51b7f3d) count as expired — one re-login fixes them."""
+    expires = customer.web_session_expires_at
+    if expires is None:
+        return True
+    if expires.tzinfo is None:  # SQLite test sessions return naive datetimes
+        expires = expires.replace(tzinfo=timezone.utc)
+    return expires <= (now or datetime.now(timezone.utc))
 
 
 def get_delivery_area(customer: Customer) -> str | None:
@@ -87,6 +108,7 @@ async def get_or_create_web_customer(
 
     # Always issue a fresh session token on web registration/login
     customer.web_session_token = _generate_session_token()
+    customer.web_session_expires_at = datetime.now(timezone.utc) + timedelta(days=SESSION_TTL_DAYS)
 
     if delivery_area:
         set_delivery_area(customer, delivery_area)
