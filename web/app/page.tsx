@@ -1,5 +1,6 @@
 import Image from "next/image";
 import type { ReactNode } from "react";
+import { LazyVideo } from "@/components/ui/lazy-video";
 import {
   Camera,
   Mail,
@@ -71,9 +72,7 @@ export default function Page(): JSX.Element {
         <div className="scene" id="s2" style={{ height: "155vh" }}>
           <div className="sticky" data-screen-label="The Problem">
             <div className="sv-fb" />
-            <video className="sv" autoPlay muted loop playsInline preload="auto" poster={media.sectionPoster}>
-              <source src={media.problemVideo} type="video/mp4" />
-            </video>
+            <LazyVideo className="sv" src={media.problemVideo} poster={media.sectionPoster} />
             <div className="ov" style={{ background: "rgba(7,8,6,.72)" }} />
             <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom,rgba(7,8,6,.6) 0%,rgba(40,4,8,.2) 50%,rgba(7,8,6,.96) 100%)", zIndex: 1, pointerEvents: "none" }} />
             <div className="vign" />
@@ -106,9 +105,7 @@ export default function Page(): JSX.Element {
         <div className="scene" id="s3" style={{ height: "200vh" }}>
           <div className="sticky" data-screen-label="Services">
             <div className="sv-fb" />
-            <video className="sv" autoPlay muted loop playsInline preload="auto" poster={media.sectionPoster}>
-              <source src={media.servicesVideo} type="video/mp4" />
-            </video>
+            <LazyVideo className="sv" src={media.servicesVideo} poster={media.sectionPoster} />
             <div className="ov" />
             <div className="ovg" />
             <div className="vign" />
@@ -131,9 +128,7 @@ export default function Page(): JSX.Element {
         <div className="scene" id="s4" style={{ height: "165vh" }}>
           <div className="sticky" data-screen-label="Why Trust Peaceway">
             <div className="sv-fb" />
-            <video className="sv" autoPlay muted loop playsInline preload="auto" poster={media.trustPoster}>
-              <source src={media.trustVideo} type="video/mp4" />
-            </video>
+            <LazyVideo className="sv" src={media.trustVideo} poster={media.trustPoster} />
             <div className="ov" />
             <div className="ovg" />
             <div className="vign" />
@@ -161,9 +156,7 @@ export default function Page(): JSX.Element {
         <div className="scene" id="s5" style={{ height: "215vh" }}>
           <div className="sticky" data-screen-label="How Ordering Works">
             <div className="sv-fb" />
-            <video className="sv" autoPlay muted loop playsInline preload="auto" poster={media.sectionPoster}>
-              <source src={media.howItWorksVideo} type="video/mp4" />
-            </video>
+            <LazyVideo className="sv" src={media.howItWorksVideo} poster={media.sectionPoster} />
             <div className="ov" />
             <div className="ovg" />
             <div className="vign" />
@@ -199,9 +192,7 @@ export default function Page(): JSX.Element {
         <div className="scene" id="s6" style={{ height: "165vh" }}>
           <div className="sticky" data-screen-label="Ask the Pharmacist">
             <div className="sv-fb" />
-            <video className="sv" autoPlay muted loop playsInline preload="auto" poster={media.sectionPoster}>
-              <source src={media.pharmacistVideo} type="video/mp4" />
-            </video>
+            <LazyVideo className="sv" src={media.pharmacistVideo} poster={media.sectionPoster} />
             <div className="ov" />
             <div className="ovg" />
             <div className="vign" />
@@ -229,9 +220,7 @@ export default function Page(): JSX.Element {
         <div className="scene" id="s7" style={{ height: "160vh" }}>
           <div className="sticky" data-screen-label="Delivery Areas">
             <div className="sv-fb" />
-            <video className="sv" autoPlay muted loop playsInline preload="auto" poster={media.sectionPoster}>
-              <source src={media.deliveryVideo} type="video/mp4" />
-            </video>
+            <LazyVideo className="sv" src={media.deliveryVideo} poster={media.sectionPoster} />
             <div className="ov" />
             <div className="ovg" />
             <div className="vign" />
@@ -280,9 +269,7 @@ export default function Page(): JSX.Element {
         <div className="scene" id="s8" style={{ height: "145vh" }}>
           <div className="sticky" data-screen-label="Community">
             <div className="sv-fb" />
-            <video className="sv" autoPlay muted loop playsInline preload="auto" poster={media.sectionPoster}>
-              <source src={media.communityVideo} type="video/mp4" />
-            </video>
+            <LazyVideo className="sv" src={media.communityVideo} poster={media.sectionPoster} />
             <div className="ov" />
             <div className="ovg" />
             <div className="vign" />
@@ -319,9 +306,7 @@ export default function Page(): JSX.Element {
         <div className="scene" id="s9" style={{ height: "145vh" }}>
           <div className="sticky" data-screen-label="Contact">
             <div className="sv-fb" />
-            <video className="sv" autoPlay muted loop playsInline preload="auto" poster={media.sectionPoster}>
-              <source src={media.contactVideo} type="video/mp4" />
-            </video>
+            <LazyVideo className="sv" src={media.contactVideo} poster={media.sectionPoster} />
             <div className="ov" />
             <div className="ovg" />
             <div className="vign" />
