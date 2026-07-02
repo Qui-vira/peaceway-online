@@ -36,8 +36,8 @@ export default function Page(): JSX.Element {
             <a className="nl" href="#s7">Delivery</a>
             <a className="nl" href="#s9">Contact</a>
           </div>
-          <a className="ncta" href={siteConfig.telegramBotUrl} target="_blank" rel="noreferrer noopener">
-            Order on Telegram
+          <a className="ncta" href="/start">
+            Get Started
           </a>
         </div>
       </header>
@@ -62,7 +62,7 @@ export default function Page(): JSX.Element {
               <p className="hs">Genuine medicines, pharmacist guidance, and delivery across Lagos.</p>
               <div className="ctg">
                 <a className="bp" href={siteConfig.telegramBotUrl} target="_blank" rel="noreferrer noopener">Order on Telegram</a>
-                <a className="bg2" href={siteConfig.telegramChannelUrl} target="_blank" rel="noreferrer noopener">Join Our Community</a>
+                <a className="bg2" href="/request">Check Product Availability</a>
               </div>
             </div>
           </div>
@@ -365,6 +365,7 @@ export default function Page(): JSX.Element {
             <div>
               <div className="fct">Services</div>
               <a className="fl" href={siteConfig.telegramBotUrl} target="_blank" rel="noreferrer noopener">OTC Medicine Delivery</a>
+              <a className="fl" href="/request">Check Availability</a>
               <a className="fl" href={siteConfig.telegramBotUrl} target="_blank" rel="noreferrer noopener">Ask a Pharmacist</a>
               <a className="fl" href="#s7">Delivery Areas</a>
               <a className="fl" href="#s5">How It Works</a>
