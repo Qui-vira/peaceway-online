@@ -971,7 +971,7 @@ footer {
 
   .con,
   .hcon {
-    justify-content: flex-start;
+    justify-content: center;
   }
 
   .con::before,
@@ -1241,8 +1241,8 @@ footer {
     );
   }
   .hcon {
-    padding: calc(112px + env(safe-area-inset-top)) 20px 88px;
-    justify-content: flex-start;
+    padding: calc(80px + env(safe-area-inset-top)) 20px 100px;
+    justify-content: center;
   }
 }
 

@@ -2,13 +2,12 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Bell, ChevronRight } from "lucide-react";
+import { Bell, ChevronRight, User } from "lucide-react";
 import { getMe, type CustomerProfile } from "@/lib/api/customers";
 import { listTodayReminders, type MedicationReminder } from "@/lib/api/reminders";
 import { AppShell } from "@/components/app/app-shell";
 import {
   FeatureCard,
-  GuestWall,
   MedCard,
   SectionLabel,
   SkeletonCard,
@@ -120,18 +119,6 @@ export default function AppDashboard() {
     <AppShell>
       {loading ? (
         <Spinner />
-      ) : !me ? (
-        <div className="space-y-6 px-5 pt-10 pb-4">
-          <div className="space-y-1">
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-emerald-400">
-              Peaceway Online
-            </p>
-            <h1 className="font-syne text-[26px] font-bold text-white">
-              Welcome to Peaceway.
-            </h1>
-          </div>
-          <GuestWall />
-        </div>
       ) : (
         <div className="space-y-7 pb-4">
 
@@ -141,16 +128,31 @@ export default function AppDashboard() {
               <p className="text-[10px] font-semibold uppercase tracking-widest text-white/35">
                 Peaceway Online
               </p>
-              <p className="text-[10px] text-white/30">{todayLabel()}</p>
+              {me && <p className="text-[10px] text-white/30">{todayLabel()}</p>}
             </div>
             <h1 className="mt-1 font-syne text-[26px] font-bold leading-tight text-white">
-              Hello, {me.full_name?.split(" ")[0] ?? "there"}.
+              {me ? `Hello, ${me.full_name?.split(" ")[0] ?? "there"}.` : "Welcome to Peaceway."}
             </h1>
+            {!me && (
+              <Link
+                href="/start"
+                className="mt-4 flex items-center gap-3 rounded-2xl border border-emerald-500/25 bg-emerald-500/8 px-4 py-3.5 transition hover:border-emerald-500/40"
+              >
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-500/15">
+                  <User className="h-5 w-5 text-emerald-400" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-sm font-semibold text-white">Sign in or create account</span>
+                  <span className="block text-xs text-white/50">To checkout, track orders &amp; get reminders</span>
+                </span>
+                <ChevronRight className="h-4 w-4 shrink-0 text-emerald-400/60" />
+              </Link>
+            )}
             <div className="mt-4 h-px bg-white/6" />
           </div>
 
-          {/* Today's medications */}
-          <TodayMedsSection />
+          {/* Today's medications — authenticated only */}
+          {me && <TodayMedsSection />}
 
           {/* Feature cards */}
           <div className="px-5 space-y-3">

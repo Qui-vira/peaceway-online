@@ -285,11 +285,11 @@ export default function StartPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-start justify-center bg-[#0b0c09] px-5 py-8 sm:py-12">
+    <main className="flex min-h-svh items-center justify-center bg-[#0b0c09] px-5 py-10">
       <div className="w-full max-w-md space-y-6">
 
         {/* Brand mark */}
-        <div className="flex flex-col items-center gap-3 pt-2 text-center sm:pt-4">
+        <div className="flex flex-col items-center gap-3 text-center">
           <PeacewayMark />
           <div>
             <p className="font-syne text-lg font-bold text-white">Peaceway Online</p>
