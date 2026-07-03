@@ -1,16 +1,17 @@
-"""Admin web API — password-gated staff endpoints."""
+"""Admin web API — Telegram-bridge OTP auth + role-gated staff endpoints."""
 from __future__ import annotations
 
-import os
 from decimal import Decimal
 from typing import Literal
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Header, HTTPException, status
+from fastapi import APIRouter, HTTPException, Request, status
 from pydantic import BaseModel
 from sqlalchemy import func, or_, select
 
-from app.api.deps import DbSession
+from app.api.deps import AdminSessionDep, DbSession
+from app.core import rbac
+from app.models.admin import AdminUser
 from app.models.catalog import Product, ProductPricing
 from app.models.ops import ProductRequest
 from app.models.orders import Customer, Order
@@ -18,14 +19,103 @@ from app.services.products_admin import apply_change, parse_int, parse_money
 
 router = APIRouter(tags=["admin"])
 
-ADMIN_PASSWORD = os.getenv("ADMIN_WEB_PASSWORD", "")
+
+# ── Auth endpoints ─────────────────────────────────────────────────────────────
+
+class RequestOtpBody(BaseModel):
+    telegram_id: int
 
 
-# ── Auth ──────────────────────────────────────────────────────────────────────
+class VerifyOtpBody(BaseModel):
+    telegram_id: int
+    code: str
 
-class AuthBody(BaseModel):
-    password: str
 
+class AdminMeResponse(BaseModel):
+    telegram_id: int
+    full_name: str | None
+    roles: list[str]
+    permissions: list[str]
+
+
+@router.post("/admin/request-otp")
+async def admin_request_otp(body: RequestOtpBody, request: Request, db: DbSession) -> dict:
+    """Send a 6-digit OTP to the admin's Telegram chat.
+
+    Always returns {ok: true} — never reveals whether the telegram_id exists.
+    """
+    from app.services.admin_web_auth import create_web_otp
+
+    result = await create_web_otp(db, body.telegram_id)
+    if result is not None:
+        code, telegram_id = result
+        bot = request.app.state.bot
+        try:
+            await bot.send_message(
+                chat_id=telegram_id,
+                text=(
+                    f"🔐 <b>Peaceway web login code:</b> <code>{code}</code>\n\n"
+                    f"Expires in 5 minutes. Do not share this code."
+                ),
+                parse_mode="HTML",
+            )
+        except Exception:
+            pass
+    return {"ok": True}
+
+
+@router.post("/admin/verify-otp")
+async def admin_verify_otp(body: VerifyOtpBody, db: DbSession) -> dict:
+    """Verify OTP and return a session token."""
+    from app.services.admin_web_auth import verify_web_otp_and_create_session
+
+    token = await verify_web_otp_and_create_session(db, body.telegram_id, body.code)
+    if token is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired code.")
+    return {"token": token}
+
+
+@router.get("/admin/me")
+async def admin_me(auth: AdminSessionDep) -> AdminMeResponse:
+    """Return the current admin's profile and permissions."""
+    admin, role_keys = auth
+    permissions: set[str] = set()
+    for rk in role_keys:
+        perms = rbac.ROLE_PERMISSIONS.get(rk, set())
+        if rbac.WILDCARD in perms:
+            permissions.add("*")
+        else:
+            permissions.update(perms)
+    permissions -= rbac.WILDCARD_EXCLUDES
+    return AdminMeResponse(
+        telegram_id=admin.telegram_id,
+        full_name=admin.full_name,
+        roles=sorted(role_keys),
+        permissions=sorted(permissions),
+    )
+
+
+@router.delete("/admin/session", status_code=204)
+async def admin_logout(auth: AdminSessionDep, db: DbSession) -> None:
+    """Delete all active sessions for the current admin (logout)."""
+    from datetime import datetime, timezone
+    from app.models.admin import WebAdminSession
+
+    admin, _ = auth
+    now = datetime.now(timezone.utc)
+    sessions = (
+        await db.execute(
+            select(WebAdminSession).where(
+                WebAdminSession.admin_id == admin.id,
+                WebAdminSession.expires_at > now,
+            )
+        )
+    ).scalars().all()
+    for s in sessions:
+        await db.delete(s)
+
+
+# ── Helpers ────────────────────────────────────────────────────────────────────
 
 class AdminProductPatch(BaseModel):
     selling_price: str | None = None
@@ -62,25 +152,13 @@ def _product_out(product: Product) -> dict:
     }
 
 
-@router.post("/admin/auth")
-async def admin_auth(body: AuthBody) -> dict:
-    if not ADMIN_PASSWORD or body.password != ADMIN_PASSWORD:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid password.")
-    return {"ok": True}
-
-
-def _check_admin(x_admin_password: str = Header(default="")) -> None:
-    if not ADMIN_PASSWORD or x_admin_password != ADMIN_PASSWORD:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized.")
-
-
-AdminGuard = Depends(_check_admin)
-
-
 # ── Requests ──────────────────────────────────────────────────────────────────
 
-@router.get("/admin/requests", dependencies=[AdminGuard])
-async def admin_list_requests(db: DbSession) -> list[dict]:
+@router.get("/admin/requests")
+async def admin_list_requests(db: DbSession, auth: AdminSessionDep) -> list[dict]:
+    _, role_keys = auth
+    if not rbac.has_permission(role_keys, "view_product_requests"):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden.")
     rows = (
         await db.execute(
             select(ProductRequest).order_by(ProductRequest.created_at.desc()).limit(200)
@@ -99,10 +177,13 @@ async def admin_list_requests(db: DbSession) -> list[dict]:
     ]
 
 
-# ── Orders ────────────────────────────────────────────────────────────────────
+# ── Orders ─────────────────────────────────────────────────────────────────────
 
-@router.get("/admin/orders", dependencies=[AdminGuard])
-async def admin_list_orders(db: DbSession) -> list[dict]:
+@router.get("/admin/orders")
+async def admin_list_orders(db: DbSession, auth: AdminSessionDep) -> list[dict]:
+    _, role_keys = auth
+    if not (rbac.has_permission(role_keys, "view_all_orders") or rbac.has_permission(role_keys, "view_customer_orders")):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden.")
     rows = (
         await db.execute(
             select(Order).order_by(Order.created_at.desc()).limit(200)
@@ -120,10 +201,13 @@ async def admin_list_orders(db: DbSession) -> list[dict]:
     ]
 
 
-# ── Customers ─────────────────────────────────────────────────────────────────
+# ── Customers ──────────────────────────────────────────────────────────────────
 
-@router.get("/admin/customers", dependencies=[AdminGuard])
-async def admin_list_customers(db: DbSession) -> list[dict]:
+@router.get("/admin/customers")
+async def admin_list_customers(db: DbSession, auth: AdminSessionDep) -> list[dict]:
+    _, role_keys = auth
+    if not rbac.has_permission(role_keys, "view_customers"):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden.")
     rows = (
         await db.execute(
             select(Customer).order_by(Customer.created_at.desc()).limit(200)
@@ -141,16 +225,20 @@ async def admin_list_customers(db: DbSession) -> list[dict]:
     ]
 
 
-# ── Products / Inventory ─────────────────────────────────────────────────────
+# ── Products / Inventory ───────────────────────────────────────────────────────
 
-@router.get("/admin/products", dependencies=[AdminGuard])
+@router.get("/admin/products")
 async def admin_list_products(
     db: DbSession,
+    auth: AdminSessionDep,
     q: str | None = None,
     status_filter: Literal["all", "listed", "unlisted", "in_stock", "out_of_stock", "unpriced"] = "all",
     limit: int = 100,
     offset: int = 0,
 ) -> dict:
+    _, role_keys = auth
+    if not (rbac.has_permission(role_keys, "view_all_products") or rbac.has_permission(role_keys, "edit_pricing")):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden.")
     limit = max(1, min(limit, 500))
     offset = max(0, offset)
 
@@ -227,8 +315,11 @@ async def admin_list_products(
     }
 
 
-@router.patch("/admin/products/{product_id}", dependencies=[AdminGuard])
-async def admin_update_product(product_id: UUID, body: AdminProductPatch, db: DbSession) -> dict:
+@router.patch("/admin/products/{product_id}")
+async def admin_update_product(product_id: UUID, body: AdminProductPatch, db: DbSession, auth: AdminSessionDep) -> dict:
+    _, role_keys = auth
+    if not rbac.has_permission(role_keys, "edit_pricing"):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden.")
     product = (
         await db.execute(select(Product).where(Product.id == product_id))
     ).scalar_one_or_none()
