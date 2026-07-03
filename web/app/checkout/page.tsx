@@ -6,6 +6,8 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { getCart, cartTotal, clearCart, type CartItem } from "@/lib/cart";
 import { createOrder } from "@/lib/api/orders";
+import type { ApiError } from "@/lib/api";
+import { getMe } from "@/lib/api/customers";
 import { AppShell } from "@/components/app/app-shell";
 import { Spinner } from "@/components/app/ui";
 
@@ -30,7 +32,9 @@ export default function CheckoutPage() {
       return;
     }
     setCart(c);
-    setLoading(false);
+    getMe()
+      .catch(() => router.replace("/start"))
+      .finally(() => setLoading(false));
   }, [router]);
 
   async function handleSubmit() {
@@ -46,7 +50,12 @@ export default function CheckoutPage() {
       clearCart();
       router.push(`/orders/${order.id}?placed=1`);
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Something went wrong.";
+      const apiErr = e as ApiError;
+      if (apiErr?.status === 401) {
+        router.push("/start");
+        return;
+      }
+      const msg = apiErr?.detail ?? "Something went wrong.";
       setError(msg);
       setSubmitting(false);
     }
