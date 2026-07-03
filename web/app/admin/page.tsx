@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import {
   LayoutGrid, ClipboardList, Package, Users, DollarSign, ShoppingBag,
-  LogOut, ChevronRight,
+  LogOut, Search, Save, RefreshCcw,
 } from "lucide-react";
 import { getApiBase } from "@/lib/api";
 const ADMIN_KEY = "pw_admin_session";
@@ -55,6 +55,45 @@ interface AdminOrder {
   total: string;
   created_at: string;
 }
+
+interface AdminProduct {
+  id: string;
+  name: string;
+  generic_name: string;
+  brand_name: string | null;
+  dosage_form: string | null;
+  strength: string | null;
+  category: string | null;
+  requires_prescription: boolean;
+  requires_review: boolean;
+  is_listed: boolean;
+  cost_price: string | null;
+  selling_price: string | null;
+  stock_qty: number;
+  is_in_stock: boolean;
+  updated_at: string;
+}
+
+interface AdminProductsResponse {
+  items: AdminProduct[];
+  total: number;
+  limit: number;
+  offset: number;
+  metrics: {
+    total: number;
+    listed: number;
+    in_stock: number;
+    unpriced: number;
+  };
+}
+
+type ProductDraft = {
+  selling_price: string;
+  cost_price: string;
+  stock_qty: string;
+  is_listed: boolean;
+  requires_prescription: boolean;
+};
 
 // ── Status labels / colors ────────────────────────────────────────────────────
 const REQ_STATUS_COLOR: Record<string, string> = {
@@ -224,9 +263,315 @@ function Dashboard({ pwd }: { pwd: string }) {
           <div className="py-10 text-center text-white/40">Payment records — coming soon</div>
         )}
         {tab === "catalog" && (
-          <div className="py-10 text-center text-white/40">Catalog management — coming soon</div>
+          <CatalogTab pwd={pwd} />
         )}
       </main>
+    </div>
+  );
+}
+
+function productToDraft(product: AdminProduct): ProductDraft {
+  return {
+    selling_price: product.selling_price ? String(Number(product.selling_price)) : "",
+    cost_price: product.cost_price ? String(Number(product.cost_price)) : "",
+    stock_qty: String(product.stock_qty ?? 0),
+    is_listed: product.is_listed,
+    requires_prescription: product.requires_prescription,
+  };
+}
+
+function formatMoney(value: string | null): string {
+  if (!value || Number(value) <= 0) return "No price";
+  return `₦${Number(value).toLocaleString("en-NG")}`;
+}
+
+function CatalogTab({ pwd }: { pwd: string }) {
+  const [q, setQ] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [data, setData] = useState<AdminProductsResponse | null>(null);
+  const [drafts, setDrafts] = useState<Record<string, ProductDraft>>({});
+  const [loading, setLoading] = useState(false);
+  const [savingId, setSavingId] = useState<string | null>(null);
+  const [message, setMessage] = useState("");
+
+  const loadProducts = useCallback(async () => {
+    setLoading(true);
+    setMessage("");
+    try {
+      const params = new URLSearchParams();
+      if (q.trim()) params.set("q", q.trim());
+      params.set("status_filter", statusFilter);
+      params.set("limit", "100");
+      const result = await adminFetch<AdminProductsResponse>(`/admin/products?${params.toString()}`, pwd);
+      setData(result);
+      setDrafts((current) => {
+        const next = { ...current };
+        result.items.forEach((product) => {
+          next[product.id] = next[product.id] ?? productToDraft(product);
+        });
+        return next;
+      });
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Could not load products.");
+    } finally {
+      setLoading(false);
+    }
+  }, [pwd, q, statusFilter]);
+
+  useEffect(() => {
+    const timeout = window.setTimeout(loadProducts, 300);
+    return () => window.clearTimeout(timeout);
+  }, [loadProducts]);
+
+  function updateDraft(id: string, patch: Partial<ProductDraft>) {
+    setDrafts((current) => ({
+      ...current,
+      [id]: {
+        ...(current[id] ?? {
+          selling_price: "",
+          cost_price: "",
+          stock_qty: "0",
+          is_listed: false,
+          requires_prescription: false,
+        }),
+        ...patch,
+      },
+    }));
+  }
+
+  async function saveProduct(product: AdminProduct, patch?: Partial<ProductDraft>) {
+    const draft = { ...(drafts[product.id] ?? productToDraft(product)), ...(patch ?? {}) };
+    const stockQty = Number.parseInt(draft.stock_qty || "0", 10);
+    if (Number.isNaN(stockQty) || stockQty < 0) {
+      setMessage("Stock must be a whole number.");
+      return;
+    }
+
+    setSavingId(product.id);
+    setMessage("");
+    try {
+      const payload: Record<string, string | number | boolean> = {};
+      const sellingPrice = draft.selling_price.trim();
+      const costPrice = draft.cost_price.trim();
+      if (sellingPrice !== (product.selling_price ? String(Number(product.selling_price)) : "")) {
+        payload.selling_price = sellingPrice;
+      }
+      if (costPrice !== (product.cost_price ? String(Number(product.cost_price)) : "")) {
+        payload.cost_price = costPrice;
+      }
+      if (stockQty !== product.stock_qty) {
+        payload.stock_qty = stockQty;
+      }
+      if (draft.is_listed !== product.is_listed) {
+        payload.is_listed = draft.is_listed;
+      }
+      if (draft.requires_prescription !== product.requires_prescription) {
+        payload.requires_prescription = draft.requires_prescription;
+      }
+      if (Object.keys(payload).length === 0) {
+        setMessage("No product changes to save.");
+        return;
+      }
+      const updated = await adminFetch<AdminProduct>(`/admin/products/${product.id}`, pwd, {
+        method: "PATCH",
+        body: JSON.stringify(payload),
+      });
+      setData((current) => {
+        if (!current) return current;
+        return {
+          ...current,
+          items: current.items.map((item) => (item.id === updated.id ? updated : item)),
+        };
+      });
+      setDrafts((current) => ({ ...current, [updated.id]: productToDraft(updated) }));
+      setMessage(`Saved ${updated.name}`);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Could not save product.");
+    } finally {
+      setSavingId(null);
+    }
+  }
+
+  const metrics = data?.metrics;
+
+  return (
+    <div className="space-y-5">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <h2 className="font-syne text-[18px] font-bold text-white">Catalog Inventory</h2>
+          <p className="mt-1 text-[12px] text-white/40">
+            Search all imported products. Price, stock, and listing changes update the shop immediately.
+          </p>
+        </div>
+        <button
+          onClick={loadProducts}
+          className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 text-[12px] font-semibold text-white/70 hover:border-emerald-500/40 hover:text-white"
+        >
+          <RefreshCcw className="h-4 w-4" />
+          Refresh
+        </button>
+      </div>
+
+      {metrics && (
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          {[
+            ["Total products", metrics.total.toLocaleString("en-NG")],
+            ["Listed in shop", metrics.listed.toLocaleString("en-NG")],
+            ["In stock", metrics.in_stock.toLocaleString("en-NG")],
+            ["Need price", metrics.unpriced.toLocaleString("en-NG")],
+          ].map(([label, value]) => (
+            <div key={label} className="rounded-2xl border border-white/8 bg-white/4 p-4">
+              <p className="text-[20px] font-bold text-white">{value}</p>
+              <p className="mt-0.5 text-[11px] text-white/40">{label}</p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="grid gap-3 lg:grid-cols-[1fr_190px]">
+        <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/4 px-4 py-3">
+          <Search className="h-4 w-4 shrink-0 text-white/30" />
+          <input
+            value={q}
+            onChange={(event) => setQ(event.target.value)}
+            placeholder="Search medicine, brand, generic name, NAFDAC..."
+            className="flex-1 bg-transparent text-sm text-white placeholder-white/30 outline-none"
+          />
+        </div>
+        <select
+          value={statusFilter}
+          onChange={(event) => setStatusFilter(event.target.value)}
+          className="h-[46px] rounded-xl border border-white/10 bg-[#10110e] px-3 text-sm text-white outline-none"
+        >
+          <option value="all">All products</option>
+          <option value="listed">Listed</option>
+          <option value="unlisted">Unlisted</option>
+          <option value="in_stock">In stock</option>
+          <option value="out_of_stock">Out of stock</option>
+          <option value="unpriced">Unpriced</option>
+        </select>
+      </div>
+
+      {message && (
+        <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-[12px] text-white/70">
+          {message}
+        </div>
+      )}
+
+      <div className="overflow-hidden rounded-2xl border border-white/8 bg-white/4">
+        <div className="flex items-center justify-between border-b border-white/6 px-4 py-3">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/40">
+            {loading ? "Loading products" : `${data?.total.toLocaleString("en-NG") ?? 0} matching products`}
+          </p>
+          <p className="text-[11px] text-white/30">Showing first 100</p>
+        </div>
+
+        {loading && (
+          <div className="px-4 py-10 text-center text-[13px] text-white/30">Loading catalog…</div>
+        )}
+
+        {!loading && data?.items.length === 0 && (
+          <div className="px-4 py-10 text-center text-[13px] text-white/30">No products found</div>
+        )}
+
+        {!loading && data && data.items.length > 0 && (
+          <div className="divide-y divide-white/6">
+            {data.items.map((product) => {
+              const draft = drafts[product.id] ?? productToDraft(product);
+              const saving = savingId === product.id;
+              return (
+                <div key={product.id} className="grid gap-4 px-4 py-4 xl:grid-cols-[minmax(260px,1fr)_140px_120px_190px_160px]">
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="truncate text-[14px] font-semibold text-white">{product.name}</p>
+                      {product.is_listed ? (
+                        <span className="rounded-full border border-emerald-500/25 bg-emerald-500/12 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">Listed</span>
+                      ) : (
+                        <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-semibold text-white/35">Hidden</span>
+                      )}
+                      {!product.is_in_stock && (
+                        <span className="rounded-full border border-red-500/25 bg-red-500/12 px-2 py-0.5 text-[10px] font-semibold text-red-300">Out</span>
+                      )}
+                    </div>
+                    <p className="mt-1 line-clamp-2 text-[11px] text-white/40">
+                      {product.generic_name}
+                      {product.strength ? ` · ${product.strength}` : ""}
+                      {product.category ? ` · ${product.category}` : ""}
+                    </p>
+                    <p className="mt-1 text-[11px] text-emerald-400/80">{formatMoney(product.selling_price)}</p>
+                  </div>
+
+                  <label className="space-y-1">
+                    <span className="text-[10px] uppercase tracking-[0.12em] text-white/35">Price</span>
+                    <input
+                      inputMode="decimal"
+                      value={draft.selling_price}
+                      onChange={(event) => updateDraft(product.id, { selling_price: event.target.value })}
+                      placeholder="0"
+                      className="h-10 w-full rounded-xl border border-white/10 bg-black/20 px-3 text-sm text-white outline-none focus:border-emerald-500/50"
+                    />
+                  </label>
+
+                  <label className="space-y-1">
+                    <span className="text-[10px] uppercase tracking-[0.12em] text-white/35">Stock</span>
+                    <input
+                      inputMode="numeric"
+                      value={draft.stock_qty}
+                      onChange={(event) => updateDraft(product.id, { stock_qty: event.target.value })}
+                      placeholder="0"
+                      className="h-10 w-full rounded-xl border border-white/10 bg-black/20 px-3 text-sm text-white outline-none focus:border-emerald-500/50"
+                    />
+                  </label>
+
+                  <div className="grid grid-cols-2 gap-2 xl:grid-cols-1">
+                    <button
+                      onClick={() => updateDraft(product.id, { is_listed: !draft.is_listed })}
+                      className={`h-10 rounded-xl border px-3 text-[12px] font-semibold ${
+                        draft.is_listed
+                          ? "border-emerald-500/30 bg-emerald-500/12 text-emerald-400"
+                          : "border-white/10 bg-white/5 text-white/45"
+                      }`}
+                    >
+                      {draft.is_listed ? "Listed in shop" : "Hidden from shop"}
+                    </button>
+                    <button
+                      onClick={() => updateDraft(product.id, { requires_prescription: !draft.requires_prescription })}
+                      className={`h-10 rounded-xl border px-3 text-[12px] font-semibold ${
+                        draft.requires_prescription
+                          ? "border-amber-500/30 bg-amber-500/12 text-amber-300"
+                          : "border-white/10 bg-white/5 text-white/45"
+                      }`}
+                    >
+                      {draft.requires_prescription ? "Rx required" : "OTC"}
+                    </button>
+                  </div>
+
+                  <div className="flex gap-2 xl:flex-col">
+                    <button
+                      onClick={() => saveProduct(product)}
+                      disabled={saving}
+                      className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-500 px-3 text-[12px] font-bold text-black disabled:opacity-50"
+                    >
+                      <Save className="h-3.5 w-3.5" />
+                      {saving ? "Saving…" : "Save"}
+                    </button>
+                    <button
+                      onClick={() => {
+                        updateDraft(product.id, { stock_qty: "0" });
+                        void saveProduct(product, { stock_qty: "0" });
+                      }}
+                      disabled={saving}
+                      className="h-10 flex-1 rounded-xl border border-red-500/25 bg-red-500/10 px-3 text-[12px] font-semibold text-red-300 disabled:opacity-50"
+                    >
+                      Mark out
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
