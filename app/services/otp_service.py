@@ -131,7 +131,6 @@ async def create_otp_request(
             "expires_at": expires_at,
         },
     )
-    await session.commit()
 
     return code
 
@@ -169,12 +168,11 @@ async def verify_otp_request(
         raise HTTPException(400, "Invalid or expired code.")
 
     if hash_code(code) != row["code_hash"]:
-        # Mark as used to prevent brute force
+        # Invalidate on first wrong guess — prevents brute-force; resend flow is frictionless
         await session.execute(
             text("UPDATE otp_requests SET used = TRUE WHERE id = :id"),
             {"id": row["id"]},
         )
-        await session.commit()
         raise HTTPException(400, "Invalid or expired code.")
 
     # Mark as used on success
@@ -182,6 +180,5 @@ async def verify_otp_request(
         text("UPDATE otp_requests SET used = TRUE WHERE id = :id"),
         {"id": row["id"]},
     )
-    await session.commit()
 
     return row["email"], row["full_name"]

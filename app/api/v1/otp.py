@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException, Response
 from pydantic import BaseModel, field_validator
+from sqlalchemy import select
 
 from app.api.deps import DbSession
 from app.api.v1.customers import (
@@ -12,6 +13,7 @@ from app.api.v1.customers import (
     _customer_out,
 )
 from app.models import Customer
+from app.services.customers import is_valid_email
 from app.services.otp_service import (
     create_otp_request,
     send_otp_email,
@@ -80,7 +82,6 @@ async def send_otp(body: SendOtpRequest, db: DbSession) -> SendOtpResponse:
 
     if body.mode == "login":
         # Look up customer by phone
-        from sqlalchemy import select
         result = await db.execute(
             select(Customer).where(Customer.phone == body.phone)
         )
@@ -101,6 +102,8 @@ async def send_otp(body: SendOtpRequest, db: DbSession) -> SendOtpResponse:
         # signup mode — require email and full_name
         if not body.email or not body.email.strip():
             raise HTTPException(422, "email is required for signup.")
+        if not is_valid_email(body.email.strip()):
+            raise HTTPException(422, "Enter a valid email address.")
         if not body.full_name or not body.full_name.strip():
             raise HTTPException(422, "full_name is required for signup.")
         email = body.email.strip()
@@ -134,7 +137,7 @@ async def verify_otp(
     customer, _created = await get_or_create_web_customer(
         db,
         phone=body.phone,
-        full_name=full_name or "",
+        full_name=full_name,
         email=email,
     )
 
