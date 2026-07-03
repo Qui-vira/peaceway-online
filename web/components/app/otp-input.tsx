@@ -52,12 +52,13 @@ export function OtpInput({ value, onChange, disabled }: OtpInputProps) {
           onFocus={(e) => e.target.select()}
           className={[
             "h-14 w-12 rounded-xl border text-center text-xl font-bold text-white transition",
-            "bg-white/4 backdrop-blur-sm outline-none",
+            "outline-none",
             digits[i] && digits[i] !== " "
               ? "border-emerald-500/60"
               : "border-white/15 focus:border-emerald-500/50",
             "disabled:opacity-40 disabled:cursor-not-allowed",
           ].join(" ")}
+          style={{ background: "rgba(255,255,255,0.06)", WebkitTextFillColor: "white", WebkitBoxShadow: "0 0 0px 1000px #141614 inset", caretColor: "white" }}
         />
       ))}
     </div>
