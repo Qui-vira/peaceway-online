@@ -24,7 +24,7 @@ export default function ShopPage() {
   const [category, setCategory] = useState("All");
   const [cart, setCart] = useState<CartItem[]>([]);
   const [addedIds, setAddedIds] = useState<Set<string>>(new Set());
-  const [categories, setCategories] = useState<string[]>([]);
+  const [categories, setCategories] = useState<string[]>(["All"]);
 
   useEffect(() => {
     setCart(getCart());
