@@ -65,13 +65,27 @@ async def list_catalog(
             )
         )
     if category:
-        stmt = stmt.where(Product.category == category)
+        stmt = stmt.where(Product.category.ilike(category))
     stmt = stmt.order_by(Product.name)
     rows = (await db.execute(stmt)).scalars().all()
     products = [_out(p) for p in rows]
     if in_stock_only:
         products = [p for p in products if p.is_in_stock]
     return products
+
+
+@router.get("/catalog/categories")
+async def list_categories(db: DbSession) -> list[str]:
+    """Return distinct non-null category values from listed products, sorted."""
+    rows = (
+        await db.execute(
+            select(Product.category)
+            .where(Product.is_listed == True, Product.category.is_not(None))  # noqa: E712
+            .distinct()
+            .order_by(Product.category)
+        )
+    ).scalars().all()
+    return [r for r in rows if r]
 
 
 @router.get("/catalog/{product_id}")
