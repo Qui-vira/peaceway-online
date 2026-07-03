@@ -94,6 +94,12 @@ export function GuestWall({ message }: { message?: string }) {
         Start Profile
         <ChevronRight className="h-4 w-4" />
       </Link>
+      <Link
+        href="/app"
+        className="text-[13px] text-white/35 hover:text-white/60 transition"
+      >
+        ← Back to Home
+      </Link>
     </div>
   );
 }

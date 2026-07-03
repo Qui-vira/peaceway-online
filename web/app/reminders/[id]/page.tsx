@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Clock } from "lucide-react";
+import { ArrowLeft, Clock, CalendarPlus } from "lucide-react";
 import {
   getReminder,
   pauseReminder,
@@ -25,6 +25,39 @@ type State =
   | { kind: "loading" }
   | { kind: "error"; message: string }
   | { kind: "ready"; reminder: MedicationReminder };
+
+/** Build a Google Calendar deep-link for one occurrence (first time slot).
+ *  Opens pre-filled in browser — no OAuth needed. */
+function buildGCalUrl(r: MedicationReminder): string {
+  const firstTime = r.times[0] ?? "08:00";
+  const [hh, mm] = firstTime.split(":").map(Number);
+
+  // Build start datetime on start_date at firstTime (local, no TZ offset needed — GCal handles it)
+  const dateStr = r.start_date.replace(/-/g, "");
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const startDt = `${dateStr}T${pad(hh)}${pad(mm)}00`;
+  // Duration: 15 minutes
+  const endMin = mm + 15;
+  const endHh = hh + Math.floor(endMin / 60);
+  const endDt = `${dateStr}T${pad(endHh % 24)}${pad(endMin % 60)}00`;
+
+  const title = encodeURIComponent(`💊 ${r.medicine_name}`);
+  const details = encodeURIComponent(
+    r.instructions_text ? r.instructions_text : `Medication reminder set via Peaceway Online.`
+  );
+
+  // Daily recurrence; until end_date if set
+  const until = r.end_date ? `UNTIL=${r.end_date.replace(/-/g, "")}T235959Z` : "";
+  const rrule = encodeURIComponent(`RRULE:FREQ=DAILY${until ? `;${until}` : ""}`);
+
+  return (
+    `https://calendar.google.com/calendar/render?action=TEMPLATE` +
+    `&text=${title}` +
+    `&dates=${startDt}/${endDt}` +
+    `&details=${details}` +
+    `&recur=${rrule}`
+  );
+}
 
 export default function ReminderDetailPage() {
   const params = useParams();
@@ -86,6 +119,7 @@ export default function ReminderDetailPage() {
   const isActive = reminder.status === "ACTIVE";
   const isPaused = reminder.status === "PAUSED";
   const isDone = reminder.status === "STOPPED" || reminder.status === "COMPLETED";
+  const gcalUrl = buildGCalUrl(reminder);
 
   return (
     <AppShell>
@@ -154,6 +188,17 @@ export default function ReminderDetailPage() {
             From {reminder.start_date}
             {reminder.end_date ? ` → ${reminder.end_date}` : " · Ongoing"}
           </p>
+
+          {/* Google Calendar CTA */}
+          <a
+            href={gcalUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-1 inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/4 px-4 py-2.5 text-[13px] font-medium text-white/60 transition hover:border-white/20 hover:text-white/80"
+          >
+            <CalendarPlus className="h-4 w-4 text-[#4285F4]" />
+            Add to Google Calendar
+          </a>
         </div>
 
         {/* Controls */}
