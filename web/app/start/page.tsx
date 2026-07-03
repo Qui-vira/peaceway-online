@@ -11,7 +11,7 @@ import {
   Phone,
   User,
 } from "lucide-react";
-import { getMe } from "@/lib/api/customers";
+import { getMe, invalidateMeCache } from "@/lib/api/customers";
 import { sendOtp, verifyOtp } from "@/lib/api/otp";
 import { OtpInput } from "@/components/app/otp-input";
 import type { ApiError } from "@/lib/api";
@@ -198,6 +198,7 @@ export default function StartPage() {
     setOtpError("");
     setLoading(true);
     try {
+      invalidateMeCache();
       const customer = await verifyOtp({
         phone: form.phone.trim(),
         code: otp.replace(/\s/g, ""),

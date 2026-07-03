@@ -1,5 +1,14 @@
 import { apiFetch } from "@/lib/api";
 
+// In-memory auth cache — survives SPA navigations, cleared on logout/error.
+// TTL keeps the cache fresh without hammering Railway on every page mount.
+const AUTH_TTL_MS = 30_000; // 30 seconds
+let _meCache: { profile: CustomerProfile; expiresAt: number } | null = null;
+
+export function invalidateMeCache() {
+  _meCache = null;
+}
+
 export type Zone = {
   id: string;
   name: string;
@@ -59,7 +68,13 @@ export async function registerCustomer(
 }
 
 export async function getMe(): Promise<CustomerProfile> {
-  return apiFetch<CustomerProfile>("/me");
+  const now = Date.now();
+  if (_meCache && _meCache.expiresAt > now) {
+    return _meCache.profile;
+  }
+  const profile = await apiFetch<CustomerProfile>("/me");
+  _meCache = { profile, expiresAt: now + AUTH_TTL_MS };
+  return profile;
 }
 
 export type UpdateProfilePayload = {
@@ -87,5 +102,6 @@ export async function listZones(): Promise<Zone[]> {
 }
 
 export async function logout(): Promise<void> {
+  invalidateMeCache();
   await apiFetch<void>("/logout", { method: "POST" });
 }
