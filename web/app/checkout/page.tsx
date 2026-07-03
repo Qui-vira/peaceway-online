@@ -50,8 +50,11 @@ export default function CheckoutPage() {
       clearCart();
       router.push(`/orders/${order.id}?placed=1`);
     } catch (e: unknown) {
-      const apiErr = e as ApiError;
+      const apiErr = (typeof e === "object" && e !== null && "status" in e && "detail" in e)
+        ? (e as ApiError)
+        : null;
       if (apiErr?.status === 401) {
+        setSubmitting(false);
         router.push("/start");
         return;
       }
