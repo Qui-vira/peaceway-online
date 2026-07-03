@@ -30,3 +30,7 @@ export async function listCatalog(opts?: {
 export async function getProduct(id: string): Promise<Product> {
   return apiFetch<Product>(`/catalog/${id}`);
 }
+
+export async function listCategories(): Promise<string[]> {
+  return apiFetch<string[]>("/catalog/categories");
+}

@@ -3,13 +3,11 @@
 import { useEffect, useState, useCallback } from "react";
 import { ShoppingCart, Search } from "lucide-react";
 import Link from "next/link";
-import { listCatalog, type Product } from "@/lib/api/catalog";
+import { listCatalog, listCategories, type Product } from "@/lib/api/catalog";
 import { addToCart, getCart, type CartItem } from "@/lib/cart";
 import { AppShell } from "@/components/app/app-shell";
 import { Spinner, EmptyState, SectionLabel } from "@/components/app/ui";
 import { DrugIcon } from "@/components/app/drug-icons";
-
-const CATEGORIES = ["All", "Painkillers", "Antibiotics", "Vitamins", "Antimalaria", "Supplements"];
 
 type State =
   | { kind: "loading" }
@@ -26,9 +24,11 @@ export default function ShopPage() {
   const [category, setCategory] = useState("All");
   const [cart, setCart] = useState<CartItem[]>([]);
   const [addedIds, setAddedIds] = useState<Set<string>>(new Set());
+  const [categories, setCategories] = useState<string[]>([]);
 
   useEffect(() => {
     setCart(getCart());
+    listCategories().then((cats) => setCategories(["All", ...cats])).catch(() => setCategories(["All"]));
   }, []);
 
   const load = useCallback(async () => {
@@ -101,7 +101,7 @@ export default function ShopPage() {
 
         {/* Categories */}
         <div className="mb-5 flex gap-2 overflow-x-auto px-5 pb-1">
-          {CATEGORIES.map((c) => (
+          {categories.map((c) => (
             <button
               key={c}
               onClick={() => setCategory(c)}
