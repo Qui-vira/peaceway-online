@@ -25,7 +25,7 @@ COOKIE_MAX_AGE = SESSION_TTL_DAYS * 24 * 60 * 60  # mirrors server-side expiry
 class RegisterRequest(BaseModel):
     full_name: str
     phone: str
-    email: str | None = None
+    email: str
     delivery_area: str | None = None
 
     @field_validator("full_name")
@@ -42,6 +42,16 @@ class RegisterRequest(BaseModel):
         v = v.strip()
         if not is_valid_phone(v):
             raise ValueError("Enter a valid phone number.")
+        return v
+
+    @field_validator("email")
+    @classmethod
+    def email_required(cls, v: str) -> str:
+        v = v.strip()
+        if not v:
+            raise ValueError("Email address is required.")
+        if not is_valid_email(v):
+            raise ValueError("Enter a valid email address.")
         return v
 
 

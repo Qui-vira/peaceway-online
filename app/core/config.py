@@ -74,6 +74,10 @@ class Settings(BaseSettings):
     smtp_password: str = ""
     smtp_from_email: str = ""
 
+    # Resend (email OTP)
+    resend_api_key: str = ""
+    resend_from_email: str = ""
+
     # Optional staff group
     staff_group_chat_id: str = ""
 
@@ -144,6 +148,10 @@ class Settings(BaseSettings):
     @property
     def email_enabled(self) -> bool:
         return bool(self.smtp_host and self.smtp_from_email)
+
+    @property
+    def resend_enabled(self) -> bool:
+        return bool(self.resend_api_key and self.resend_from_email)
 
     @property
     def bank_account_list(self) -> list[dict]:
