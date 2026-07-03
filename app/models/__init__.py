@@ -6,6 +6,8 @@ from app.models.admin import (
     Permission,
     Role,
     RolePermission,
+    WebAdminOtp,
+    WebAdminSession,
 )
 from app.models.base import Base, TimestampMixin
 from app.models.catalog import PriceHistory, Product, ProductAlias, ProductIdentifier, ProductPricing, ProductScanAttempt
@@ -116,4 +118,6 @@ __all__ = [
     "Role",
     "Permission",
     "RolePermission",
+    "WebAdminOtp",
+    "WebAdminSession",
 ]

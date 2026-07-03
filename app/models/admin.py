@@ -10,7 +10,7 @@ import enum
 from datetime import datetime
 from uuid import UUID, uuid4
 
-from sqlalchemy import BigInteger, Boolean, DateTime
+from sqlalchemy import BigInteger, Boolean, DateTime, func
 from sqlalchemy import Enum as SAEnum
 from sqlalchemy import ForeignKey, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -94,3 +94,31 @@ class AdminActivityLog(Base, TimestampMixin):
     entity: Mapped[str | None] = mapped_column(String(80))
     entity_id: Mapped[str | None] = mapped_column(String(80))
     detail: Mapped[dict | None] = mapped_column(JSONB)
+
+
+class WebAdminOtp(Base, TimestampMixin):
+    """Short-lived OTP for Telegram-bridge web login."""
+    __tablename__ = "web_admin_otps"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    telegram_id: Mapped[int] = mapped_column(BigInteger, nullable=False, index=True)
+    code_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    used: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+
+
+class WebAdminSession(Base):
+    """Active web admin session — UUID token sent to client."""
+    __tablename__ = "web_admin_sessions"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    admin_id: Mapped[UUID] = mapped_column(
+        ForeignKey("admin_users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    last_used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+    admin: Mapped["AdminUser"] = relationship(lazy="selectin")
