@@ -1,45 +1,22 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import Link from "next/link";
 import {
   LayoutGrid, ClipboardList, Package, Users, DollarSign, ShoppingBag,
   LogOut, Search, Save, RefreshCcw,
 } from "lucide-react";
-import { getApiBase } from "@/lib/api";
-const ADMIN_KEY = "pw_admin_session";
-const ADMIN_PWD_KEY = "pw_admin_pwd";
-
-function adminFetch<T>(path: string, pwd: string, options: RequestInit = {}): Promise<T> {
-  const API_BASE = getApiBase();
-  return fetch(`${API_BASE}${path}`, {
-    ...options,
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Admin-Password": pwd,
-      ...(options.headers ?? {}),
-    },
-  }).then(async (res) => {
-    if (!res.ok) {
-      const body = await res.json().catch(() => ({}));
-      throw new Error(body?.detail ?? res.statusText);
-    }
-    return res.json() as Promise<T>;
-  });
-}
-
-// ── Sidebar items ──────────────────────────────────────────────────────────────
-const NAV = [
-  { key: "overview", icon: LayoutGrid, label: "Overview" },
-  { key: "catalog", icon: ShoppingBag, label: "Inventory" },
-  { key: "requests", icon: ClipboardList, label: "Requests" },
-  { key: "orders", icon: Package, label: "Orders" },
-  { key: "customers", icon: Users, label: "Customers" },
-  { key: "payments", icon: DollarSign, label: "Payments" },
-];
+import {
+  adminFetch, setAdminToken, clearAdminToken, getAdminToken, anyPermission,
+} from "@/lib/admin-auth";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
+interface AdminMe {
+  telegram_id: number;
+  full_name: string | null;
+  roles: string[];
+  permissions: string[];
+}
+
 interface AdminRequest {
   id: string;
   product_name: string;
@@ -95,6 +72,22 @@ type ProductDraft = {
   requires_prescription: boolean;
 };
 
+// ── Nav definition (permission-gated) ────────────────────────────────────────
+const ALL_NAV = [
+  { key: "overview",  icon: LayoutGrid,    label: "Overview",   permissions: [] as string[] },
+  { key: "catalog",   icon: ShoppingBag,   label: "Inventory",  permissions: ["edit_pricing", "view_all_products"] },
+  { key: "requests",  icon: ClipboardList, label: "Requests",   permissions: ["view_product_requests"] },
+  { key: "orders",    icon: Package,       label: "Orders",     permissions: ["view_all_orders", "view_customer_orders"] },
+  { key: "customers", icon: Users,         label: "Customers",  permissions: ["view_customers"] },
+  { key: "payments",  icon: DollarSign,    label: "Payments",   permissions: ["review_payment_proof", "view_payment_history", "view_payment_status"] },
+];
+
+function visibleNav(permissions: string[]) {
+  return ALL_NAV.filter(
+    (item) => item.permissions.length === 0 || anyPermission(permissions, item.permissions)
+  );
+}
+
 // ── Status labels / colors ────────────────────────────────────────────────────
 const REQ_STATUS_COLOR: Record<string, string> = {
   NEW: "bg-white/8 text-white/50 border-white/12",
@@ -113,25 +106,53 @@ const REQ_STATUS_LABEL: Record<string, string> = {
   CLOSED: "Closed",
 };
 
-// ── Login gate ────────────────────────────────────────────────────────────────
-function LoginGate({ onLogin }: { onLogin: (pwd: string) => void }) {
-  const [password, setPassword] = useState("");
+// ── Telegram OTP login gate ───────────────────────────────────────────────────
+function TelegramOtpGate({ onLogin }: { onLogin: (admin: AdminMe) => void }) {
+  const [step, setStep] = useState<"id" | "code">("id");
+  const [telegramId, setTelegramId] = useState("");
+  const [code, setCode] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  async function handleLogin() {
+  async function handleSendCode() {
+    const tid = telegramId.trim();
+    if (!tid || !/^\d+$/.test(tid)) {
+      setError("Enter your numeric Telegram ID.");
+      return;
+    }
     setLoading(true);
     setError("");
     try {
-      await adminFetch("/admin/auth", password, {
+      await adminFetch<{ ok: boolean }>("/admin/request-otp", {
         method: "POST",
-        body: JSON.stringify({ password }),
+        body: JSON.stringify({ telegram_id: Number(tid) }),
       });
-      sessionStorage.setItem(ADMIN_KEY, "1");
-      sessionStorage.setItem(ADMIN_PWD_KEY, password);
-      onLogin(password);
-    } catch {
-      setError("Invalid password.");
+      setStep("code");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not send code.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleVerify() {
+    const c = code.trim();
+    if (!c || c.length !== 6) {
+      setError("Enter the 6-digit code from Telegram.");
+      return;
+    }
+    setLoading(true);
+    setError("");
+    try {
+      const { token } = await adminFetch<{ token: string }>("/admin/verify-otp", {
+        method: "POST",
+        body: JSON.stringify({ telegram_id: Number(telegramId.trim()), code: c }),
+      });
+      setAdminToken(token);
+      const me = await adminFetch<AdminMe>("/admin/me");
+      onLogin(me);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Invalid code.");
     } finally {
       setLoading(false);
     }
@@ -145,34 +166,75 @@ function LoginGate({ onLogin }: { onLogin: (pwd: string) => void }) {
           <p className="mt-1 text-[13px] text-white/40">Staff access only</p>
         </div>
         <div className="rounded-2xl border border-white/8 bg-white/4 p-6 space-y-4">
-          <div className="space-y-1.5">
-            <label className="text-[11px] font-medium text-white/50">Admin password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-              placeholder="Enter admin password"
-              className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-white/30 outline-none focus:border-emerald-500/50"
-            />
-          </div>
-          {error && <p className="text-[13px] text-red-400">{error}</p>}
-          <button
-            onClick={handleLogin}
-            disabled={loading || !password}
-            className="w-full rounded-xl bg-emerald-500 py-3.5 text-sm font-semibold text-black disabled:opacity-50"
-          >
-            {loading ? "Checking…" : "Sign In"}
-          </button>
+          {step === "id" ? (
+            <>
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-medium text-white/50">Your Telegram ID</label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={telegramId}
+                  onChange={(e) => setTelegramId(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleSendCode()}
+                  placeholder="e.g. 123456789"
+                  className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-white/30 outline-none focus:border-emerald-500/50"
+                />
+                <p className="text-[11px] text-white/30">
+                  Send <code>/myid</code> to the Peaceway bot to find your ID.
+                </p>
+              </div>
+              {error && <p className="text-[13px] text-red-400">{error}</p>}
+              <button
+                onClick={handleSendCode}
+                disabled={loading || !telegramId.trim()}
+                className="w-full rounded-xl bg-emerald-500 py-3.5 text-sm font-semibold text-black disabled:opacity-50"
+              >
+                {loading ? "Sending…" : "Send Code via Telegram"}
+              </button>
+            </>
+          ) : (
+            <>
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-medium text-white/50">6-digit code</label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={6}
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleVerify()}
+                  placeholder="000000"
+                  className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-white/30 outline-none focus:border-emerald-500/50 tracking-[0.3em]"
+                  autoFocus
+                />
+                <p className="text-[11px] text-white/30">Check your Telegram — the code expires in 5 minutes.</p>
+              </div>
+              {error && <p className="text-[13px] text-red-400">{error}</p>}
+              <button
+                onClick={handleVerify}
+                disabled={loading || code.trim().length !== 6}
+                className="w-full rounded-xl bg-emerald-500 py-3.5 text-sm font-semibold text-black disabled:opacity-50"
+              >
+                {loading ? "Verifying…" : "Verify & Sign In"}
+              </button>
+              <button
+                onClick={() => { setStep("id"); setCode(""); setError(""); }}
+                className="w-full text-center text-[12px] text-white/30 hover:text-white/60"
+              >
+                ← Resend / use different ID
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>
   );
 }
 
-// ── Dashboard content ─────────────────────────────────────────────────────────
-function Dashboard({ pwd }: { pwd: string }) {
-  const [tab, setTab] = useState("overview");
+// ── Dashboard ─────────────────────────────────────────────────────────────────
+function Dashboard({ admin }: { admin: AdminMe }) {
+  const nav = visibleNav(admin.permissions);
+  const [tab, setTab] = useState(nav[0]?.key ?? "overview");
   const [requests, setRequests] = useState<AdminRequest[]>([]);
   const [orders, setOrders] = useState<AdminOrder[]>([]);
   const [loading, setLoading] = useState(false);
@@ -180,17 +242,22 @@ function Dashboard({ pwd }: { pwd: string }) {
   useEffect(() => {
     setLoading(true);
     Promise.allSettled([
-      adminFetch<AdminRequest[]>("/admin/requests", pwd),
-      adminFetch<AdminOrder[]>("/admin/orders", pwd),
+      adminFetch<AdminRequest[]>("/admin/requests"),
+      adminFetch<AdminOrder[]>("/admin/orders"),
     ]).then(([reqRes, ordRes]) => {
       if (reqRes.status === "fulfilled") setRequests(reqRes.value);
       if (ordRes.status === "fulfilled") setOrders(ordRes.value);
       setLoading(false);
     });
-  }, [pwd]);
+  }, []);
 
-  function signOut() {
-    sessionStorage.removeItem(ADMIN_KEY);
+  async function signOut() {
+    try {
+      await adminFetch("/admin/session", { method: "DELETE" });
+    } catch {
+      // ignore
+    }
+    clearAdminToken();
     window.location.reload();
   }
 
@@ -200,9 +267,9 @@ function Dashboard({ pwd }: { pwd: string }) {
       <aside className="hidden w-[200px] shrink-0 flex-col gap-2 border-r border-white/8 bg-[#0a0b08] px-3 py-6 lg:flex">
         <div className="mb-4 px-3">
           <p className="font-syne text-[13px] font-bold text-white">Peaceway</p>
-          <p className="text-[10px] text-white/30">Admin panel</p>
+          <p className="text-[10px] text-white/30">{admin.full_name ?? "Admin panel"}</p>
         </div>
-        {NAV.map((item) => (
+        {nav.map((item) => (
           <button
             key={item.key}
             onClick={() => setTab(item.key)}
@@ -229,7 +296,7 @@ function Dashboard({ pwd }: { pwd: string }) {
 
       {/* Mobile top nav */}
       <div className="fixed top-0 left-0 right-0 z-10 flex gap-1 overflow-x-auto border-b border-white/8 bg-[#0a0b08] px-3 py-2 lg:hidden">
-        {NAV.map((item) => (
+        {nav.map((item) => (
           <button
             key={item.key}
             onClick={() => setTab(item.key)}
@@ -263,7 +330,7 @@ function Dashboard({ pwd }: { pwd: string }) {
           <div className="py-10 text-center text-white/40">Payment records — coming soon</div>
         )}
         {tab === "catalog" && (
-          <CatalogTab pwd={pwd} />
+          <CatalogTab />
         )}
       </main>
     </div>
@@ -285,7 +352,8 @@ function formatMoney(value: string | null): string {
   return `₦${Number(value).toLocaleString("en-NG")}`;
 }
 
-function CatalogTab({ pwd }: { pwd: string }) {
+// ── CatalogTab ────────────────────────────────────────────────────────────────
+function CatalogTab() {
   const [q, setQ] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [data, setData] = useState<AdminProductsResponse | null>(null);
@@ -302,7 +370,7 @@ function CatalogTab({ pwd }: { pwd: string }) {
       if (q.trim()) params.set("q", q.trim());
       params.set("status_filter", statusFilter);
       params.set("limit", "100");
-      const result = await adminFetch<AdminProductsResponse>(`/admin/products?${params.toString()}`, pwd);
+      const result = await adminFetch<AdminProductsResponse>(`/admin/products?${params.toString()}`);
       setData(result);
       setDrafts((current) => {
         const next = { ...current };
@@ -316,7 +384,7 @@ function CatalogTab({ pwd }: { pwd: string }) {
     } finally {
       setLoading(false);
     }
-  }, [pwd, q, statusFilter]);
+  }, [q, statusFilter]);
 
   useEffect(() => {
     const timeout = window.setTimeout(loadProducts, 300);
@@ -372,7 +440,7 @@ function CatalogTab({ pwd }: { pwd: string }) {
         setMessage("No product changes to save.");
         return;
       }
-      const updated = await adminFetch<AdminProduct>(`/admin/products/${product.id}`, pwd, {
+      const updated = await adminFetch<AdminProduct>(`/admin/products/${product.id}`, {
         method: "PATCH",
         body: JSON.stringify(payload),
       });
@@ -469,11 +537,9 @@ function CatalogTab({ pwd }: { pwd: string }) {
         {loading && (
           <div className="px-4 py-10 text-center text-[13px] text-white/30">Loading catalog…</div>
         )}
-
         {!loading && data?.items.length === 0 && (
           <div className="px-4 py-10 text-center text-[13px] text-white/30">No products found</div>
         )}
-
         {!loading && data && data.items.length > 0 && (
           <div className="divide-y divide-white/6">
             {data.items.map((product) => {
@@ -601,8 +667,6 @@ function OverviewTab({
           {new Date().toLocaleDateString("en-NG", { weekday: "long", day: "numeric", month: "long" })}
         </p>
       </div>
-
-      {/* Stats grid */}
       <div className="grid grid-cols-2 gap-3">
         {[
           { label: "Pending requests", value: String(pending), note: "Need attention" },
@@ -619,7 +683,6 @@ function OverviewTab({
           </div>
         ))}
       </div>
-
       <button
         onClick={() => onTab("catalog")}
         className="flex w-full items-center justify-between rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-4 text-left transition hover:border-emerald-500/40"
@@ -632,16 +695,10 @@ function OverviewTab({
         </div>
         <ShoppingBag className="h-5 w-5 shrink-0 text-emerald-400" />
       </button>
-
-      {/* Recent requests */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/40">
-            Recent Requests
-          </p>
-          <button onClick={() => onTab("requests")} className="text-[12px] text-emerald-400 hover:underline">
-            View all
-          </button>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/40">Recent Requests</p>
+          <button onClick={() => onTab("requests")} className="text-[12px] text-emerald-400 hover:underline">View all</button>
         </div>
         <div className="rounded-2xl border border-white/8 bg-white/4 divide-y divide-white/6">
           {loading ? (
@@ -738,18 +795,22 @@ function OrdersTab({ orders, loading }: { orders: AdminOrder[]; loading: boolean
 
 // ── Root component ────────────────────────────────────────────────────────────
 export default function AdminPage() {
-  const [pwd, setPwd] = useState<string | null>(null);
+  const [admin, setAdmin] = useState<AdminMe | null>(null);
   const [checked, setChecked] = useState(false);
 
   useEffect(() => {
-    if (sessionStorage.getItem(ADMIN_KEY) === "1") {
-      setPwd(sessionStorage.getItem(ADMIN_PWD_KEY) ?? "");
+    const token = getAdminToken();
+    if (token) {
+      adminFetch<AdminMe>("/admin/me")
+        .then((me) => setAdmin(me))
+        .catch(() => clearAdminToken())
+        .finally(() => setChecked(true));
+    } else {
+      setChecked(true);
     }
-    setChecked(true);
   }, []);
 
   if (!checked) return null;
-
-  if (pwd !== null) return <Dashboard pwd={pwd} />;
-  return <LoginGate onLogin={(p) => setPwd(p)} />;
+  if (admin) return <Dashboard admin={admin} />;
+  return <TelegramOtpGate onLogin={(me) => setAdmin(me)} />;
 }
