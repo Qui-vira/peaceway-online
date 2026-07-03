@@ -15,12 +15,16 @@ export function getAdminToken(): string | null {
 }
 
 export function setAdminToken(token: string): void {
+  if (typeof window === "undefined") return;
   sessionStorage.setItem(TOKEN_KEY, token);
 }
 
 export function clearAdminToken(): void {
+  if (typeof window === "undefined") return;
   sessionStorage.removeItem(TOKEN_KEY);
 }
+
+let _reloading = false;
 
 export function adminFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = getAdminToken();
@@ -35,8 +39,11 @@ export function adminFetch<T>(path: string, options: RequestInit = {}): Promise<
     },
   }).then(async (res) => {
     if (res.status === 401) {
-      clearAdminToken();
-      window.location.reload();
+      if (!_reloading) {
+        _reloading = true;
+        clearAdminToken();
+        window.location.reload();
+      }
       throw new Error("Session expired.");
     }
     if (!res.ok) {
