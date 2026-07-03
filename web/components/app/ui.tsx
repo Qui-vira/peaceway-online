@@ -95,7 +95,7 @@ export function GuestWall({ message }: { message?: string }) {
         <ChevronRight className="h-4 w-4" />
       </Link>
       <Link
-        href="/app"
+        href="/"
         className="text-[13px] text-white/35 hover:text-white/60 transition"
       >
         ← Back to Home
