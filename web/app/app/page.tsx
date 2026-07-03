@@ -20,6 +20,7 @@ import {
   RequestsListIcon,
   MedicationsIcon,
   TelegramIcon,
+  ShopIcon,
 } from "@/components/app/drug-icons";
 import { siteConfig } from "@/lib/constants";
 
@@ -178,6 +179,25 @@ export default function AppDashboard() {
                 icon={<MedicationsIcon size={28} />}
                 title="My Medications"
                 subtitle="Reminders & schedule"
+              />
+            </div>
+          </div>
+
+          {/* Shop + Orders section */}
+          <div className="px-5 space-y-3">
+            <SectionLabel>Shop & Orders</SectionLabel>
+            <div className="grid grid-cols-2 gap-3">
+              <FeatureCard
+                href="/shop"
+                icon={<ShopIcon size={28} />}
+                title="Shop"
+                subtitle="Browse medicines"
+              />
+              <FeatureCard
+                href="/orders"
+                icon={<RequestsListIcon size={28} />}
+                title="My Orders"
+                subtitle="Track deliveries"
               />
             </div>
           </div>

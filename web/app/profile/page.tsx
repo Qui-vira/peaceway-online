@@ -224,6 +224,29 @@ export default function ProfilePage() {
             {/* Divider */}
             <div className="h-px bg-white/6" />
 
+            {/* Quick links */}
+            <div className="space-y-3">
+              <SectionLabel>More</SectionLabel>
+              {[
+                { href: "/prescription", label: "Upload Prescription", sub: "Send a script for review" },
+                { href: "/orders", label: "My Orders", sub: "Track your deliveries" },
+                { href: "/referral", label: "Refer a Friend", sub: "Earn ₦200 per referral" },
+                { href: "/track", label: "Track an Order", sub: "No account needed" },
+              ].map((link) => (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  className="flex items-center justify-between rounded-xl border border-white/8 bg-white/3 px-4 py-3.5 transition hover:border-white/15"
+                >
+                  <div>
+                    <p className="text-[13px] font-medium text-white">{link.label}</p>
+                    <p className="text-[11px] text-white/40">{link.sub}</p>
+                  </div>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.25)" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
+                </a>
+              ))}
+            </div>
+
             {/* Account section */}
             <div className="space-y-4">
               <SectionLabel>Account</SectionLabel>

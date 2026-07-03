@@ -176,6 +176,17 @@ export function TelegramIcon({ size = 24, className }: IconProps) {
   );
 }
 
+export function ShopIcon({ size = 36, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+      <rect x="4" y="14" width="28" height="17" rx="3" fill={GF} stroke={G} strokeWidth="1.5"/>
+      <path d="M12 14 C12 14 10 8 18 8 C26 8 24 14 24 14" stroke={G} strokeWidth="1.5" strokeLinecap="round"/>
+      <line x1="4" y1="20" x2="32" y2="20" stroke={G} strokeWidth="1" strokeOpacity="0.4"/>
+      <rect x="14" y="22" width="8" height="9" rx="1.5" fill={GM}/>
+    </svg>
+  );
+}
+
 // ── Composite DrugIcon with icon map ─────────────────────────────────────────
 
 import { getDrugIconKey } from "@/lib/drug-icons";
