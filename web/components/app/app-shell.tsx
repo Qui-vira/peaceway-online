@@ -3,16 +3,16 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  Bell,
   ClipboardList,
   Home,
   MessageCircle,
-  Search,
   User,
 } from "lucide-react";
 
 const NAV_ITEMS = [
   { href: "/app", label: "Home", icon: Home },
-  { href: "/request", label: "Availability", icon: Search },
+  { href: "/reminders", label: "Reminders", icon: Bell },
   { href: "/ask-pharmacist", label: "Ask", icon: MessageCircle },
   { href: "/requests", label: "Requests", icon: ClipboardList },
   { href: "/profile", label: "Profile", icon: User },

@@ -3,45 +3,67 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { CheckCircle, ChevronRight, Loader2, MapPin, Phone, User, Mail } from "lucide-react";
+import {
+  CheckCircle,
+  ChevronRight,
+  Loader2,
+  Mail,
+  MapPin,
+  Phone,
+  User,
+} from "lucide-react";
 import { getMe, listZones, registerCustomer, type Zone } from "@/lib/api/customers";
 import type { ApiError } from "@/lib/api";
 
 type Field = "full_name" | "phone" | "email" | "delivery_area";
 type Errors = Partial<Record<Field | "form", string>>;
 
-function Label({ children }: { children: React.ReactNode }) {
+function PeacewayMark() {
   return (
-    <label className="block text-xs font-semibold uppercase tracking-widest text-white/40 mb-2">
-      {children}
-    </label>
+    <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="20" cy="20" r="18" fill="rgba(16,185,129,0.15)" stroke="#10b981" strokeWidth="1.8"/>
+      <line x1="20" y1="8" x2="20" y2="32" stroke="#10b981" strokeWidth="2.2" strokeLinecap="round"/>
+      <line x1="8" y1="20" x2="32" y2="20" stroke="#10b981" strokeWidth="2.2" strokeLinecap="round"/>
+    </svg>
   );
 }
 
-function InputRow({
-  icon,
+function FieldGroup({
+  label,
+  optional,
   error,
+  icon,
   children,
 }: {
-  icon: React.ReactNode;
+  label: string;
+  optional?: boolean;
   error?: string;
+  icon: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
     <div className="space-y-1.5">
+      <label className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-widest text-white/40">
+        {label}
+        {optional && (
+          <span className="rounded-full bg-white/8 px-1.5 py-px text-[9px] normal-case tracking-normal font-normal text-white/25">
+            optional
+          </span>
+        )}
+      </label>
       <div
         className={[
           "flex items-center gap-3 rounded-xl border px-4 py-3.5 transition-colors",
           "bg-white/4 backdrop-blur-sm",
           error
             ? "border-red-500/50 focus-within:border-red-400"
-            : "border-white/10 focus-within:border-emerald-500/60",
+            : "border-white/10 focus-within:border-emerald-500/50",
         ].join(" ")}
       >
         <span className="shrink-0 text-white/30">{icon}</span>
         {children}
       </div>
-      {error && <p className="text-xs text-red-400 pl-1">{error}</p>}
+      {error && <p className="pl-1 text-xs text-red-400">{error}</p>}
     </div>
   );
 }
@@ -62,8 +84,6 @@ export default function StartPage() {
   const [checkingAuth, setCheckingAuth] = useState(true);
 
   useEffect(() => {
-    // Redirect already-authenticated users straight to the app so they never
-    // land on this form again (avoids the post-registration GuestWall loop).
     getMe()
       .then(() => router.replace("/app"))
       .catch(() => setCheckingAuth(false));
@@ -109,7 +129,7 @@ export default function StartPage() {
 
   if (checkingAuth) {
     return (
-      <main className="min-h-screen flex items-center justify-center">
+      <main className="flex min-h-screen items-center justify-center bg-[#0b0c09]">
         <Loader2 className="h-6 w-6 animate-spin text-white/30" />
       </main>
     );
@@ -117,18 +137,18 @@ export default function StartPage() {
 
   if (done) {
     return (
-      <main className="min-h-screen flex items-center justify-center px-5 py-20">
-        <div className="w-full max-w-md text-center space-y-6">
+      <main className="flex min-h-screen items-center justify-center bg-[#0b0c09] px-5 py-16">
+        <div className="w-full max-w-md space-y-8 text-center">
           <div className="flex justify-center">
-            <span className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/15 border border-emerald-500/30">
-              <CheckCircle className="h-8 w-8 text-emerald-400" />
+            <span className="inline-flex h-[72px] w-[72px] items-center justify-center rounded-full border border-emerald-500/30 bg-emerald-500/12">
+              <CheckCircle className="h-9 w-9 text-emerald-400" />
             </span>
           </div>
-          <div className="space-y-2">
-            <h1 className="text-2xl font-bold text-white">
+          <div className="space-y-2.5">
+            <h1 className="font-syne text-[26px] font-bold text-white">
               Welcome, {customerName.split(" ")[0]}.
             </h1>
-            <p className="text-white/55 text-sm leading-relaxed">
+            <p className="text-sm leading-relaxed text-white/55">
               You&apos;re registered with Peaceway Online. We&apos;ll reach out on Telegram or by phone to confirm your first order.
             </p>
           </div>
@@ -155,31 +175,41 @@ export default function StartPage() {
   }
 
   return (
-    <main className="min-h-screen flex items-start justify-center px-5 py-20">
+    <main className="flex min-h-screen items-start justify-center bg-[#0b0c09] px-5 py-12">
       <div className="w-full max-w-md space-y-8">
 
-        {/* Header */}
-        <div className="space-y-2">
-          <p className="text-xs font-semibold uppercase tracking-widest text-emerald-400">
-            Peaceway Online · Get Started
-          </p>
-          <h1 className="text-3xl font-bold text-white leading-tight">
-            Tell us how to reach you.
-          </h1>
-          <p className="text-white/50 text-sm leading-relaxed">
-            We use your details to confirm orders, answer pharmacist questions, and send delivery updates. No spam.
-          </p>
-          <p className="text-white/35 text-xs leading-relaxed">
-            Already registered? Just enter your phone number below to sign back in.
-          </p>
+        {/* Brand mark */}
+        <div className="flex flex-col items-center gap-3 pt-4 text-center">
+          <PeacewayMark />
+          <div>
+            <p className="font-syne text-lg font-bold text-white">Peaceway Online</p>
+            <p className="text-xs text-white/40">Igando · Lagos · Licensed Pharmacy</p>
+          </div>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} noValidate className="space-y-4">
+        {/* Form card */}
+        <div className="rounded-2xl border border-white/8 bg-white/[0.03] px-6 py-7 space-y-6">
+          <div className="space-y-1.5">
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-emerald-400">
+              Get Started
+            </p>
+            <h1 className="font-syne text-2xl font-bold leading-tight text-white">
+              Tell us how to reach you.
+            </h1>
+            <p className="text-sm leading-relaxed text-white/50">
+              We use your details to confirm orders and send updates. No spam.
+            </p>
+            <p className="text-xs text-white/30">
+              Already registered? Enter your phone number to sign back in.
+            </p>
+          </div>
 
-          <div>
-            <Label>Full Name *</Label>
-            <InputRow icon={<User className="h-4 w-4" />} error={errors.full_name}>
+          <form onSubmit={handleSubmit} noValidate className="space-y-4">
+            <FieldGroup
+              label="Full Name"
+              icon={<User className="h-4 w-4" />}
+              error={errors.full_name}
+            >
               <input
                 type="text"
                 placeholder="e.g. Amaka Johnson"
@@ -188,12 +218,13 @@ export default function StartPage() {
                 className="flex-1 bg-transparent text-sm text-white placeholder-white/25 outline-none"
                 autoComplete="name"
               />
-            </InputRow>
-          </div>
+            </FieldGroup>
 
-          <div>
-            <Label>Phone Number *</Label>
-            <InputRow icon={<Phone className="h-4 w-4" />} error={errors.phone}>
+            <FieldGroup
+              label="Phone Number"
+              icon={<Phone className="h-4 w-4" />}
+              error={errors.phone}
+            >
               <input
                 type="tel"
                 placeholder="e.g. 08012345678"
@@ -202,26 +233,30 @@ export default function StartPage() {
                 className="flex-1 bg-transparent text-sm text-white placeholder-white/25 outline-none"
                 autoComplete="tel"
               />
-            </InputRow>
-          </div>
+            </FieldGroup>
 
-          <div>
-            <Label>Email Address (optional)</Label>
-            <InputRow icon={<Mail className="h-4 w-4" />} error={errors.email}>
+            <FieldGroup
+              label="Email Address"
+              optional
+              icon={<Mail className="h-4 w-4" />}
+              error={errors.email}
+            >
               <input
                 type="email"
-                placeholder="For order receipts and updates"
+                placeholder="For receipts and updates"
                 value={form.email}
                 onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
                 className="flex-1 bg-transparent text-sm text-white placeholder-white/25 outline-none"
                 autoComplete="email"
               />
-            </InputRow>
-          </div>
+            </FieldGroup>
 
-          <div>
-            <Label>Delivery Area (optional)</Label>
-            <InputRow icon={<MapPin className="h-4 w-4" />} error={errors.delivery_area}>
+            <FieldGroup
+              label="Delivery Area"
+              optional
+              icon={<MapPin className="h-4 w-4" />}
+              error={errors.delivery_area}
+            >
               <select
                 value={form.delivery_area}
                 onChange={(e) => setForm((f) => ({ ...f, delivery_area: e.target.value }))}
@@ -235,40 +270,41 @@ export default function StartPage() {
                   </option>
                 ))}
               </select>
-            </InputRow>
-          </div>
+            </FieldGroup>
 
-          {errors.form && (
-            <p className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
-              {errors.form}
-            </p>
-          )}
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="mt-2 w-full inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-6 py-3.5 text-sm font-semibold text-black transition hover:bg-emerald-400 disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            {loading ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Saving…
-              </>
-            ) : (
-              <>
-                Continue
-                <ChevronRight className="h-4 w-4" />
-              </>
+            {errors.form && (
+              <p className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+                {errors.form}
+              </p>
             )}
-          </button>
 
-          <p className="text-center text-xs text-white/30 leading-relaxed pt-1">
-            By continuing you agree that Peaceway may contact you by phone or Telegram to process your request.
-          </p>
-        </form>
+            <button
+              type="submit"
+              disabled={loading}
+              className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 px-6 py-3.5 text-sm font-semibold text-black transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
+              style={{ minHeight: 52 }}
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Saving…
+                </>
+              ) : (
+                <>
+                  Continue
+                  <ChevronRight className="h-4 w-4" />
+                </>
+              )}
+            </button>
+
+            <p className="text-center text-[11px] leading-relaxed text-white/30">
+              By continuing you agree that Peaceway may contact you by phone or Telegram to process your request.
+            </p>
+          </form>
+        </div>
 
         <div className="text-center">
-          <Link href="/" className="text-xs text-white/30 hover:text-white/60 transition">
+          <Link href="/" className="text-xs text-white/30 transition hover:text-white/60">
             ← Back to home
           </Link>
         </div>

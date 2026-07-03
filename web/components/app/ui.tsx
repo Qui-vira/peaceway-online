@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { ChevronRight, Loader2, UserPlus } from "lucide-react";
+import { DrugIcon } from "@/components/app/drug-icons";
+import type { MedicationReminder } from "@/lib/api/reminders";
 
 export const STATUS_LABELS: Record<string, string> = {
   NEW: "Received",
@@ -127,6 +129,157 @@ export function EmptyState({
           <ChevronRight className="h-4 w-4" />
         </Link>
       )}
+    </div>
+  );
+}
+
+// ── New design-system additions ───────────────────────────────────────────────
+
+export function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/40">
+      {children}
+    </p>
+  );
+}
+
+export function FeatureCard({
+  href,
+  icon,
+  title,
+  subtitle,
+}: {
+  href: string;
+  icon: React.ReactNode;
+  title: string;
+  subtitle: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="group flex flex-col gap-3 rounded-2xl border border-white/8 bg-white/4 p-5 transition-all duration-200 hover:border-emerald-500/30 hover:bg-white/6 active:bg-white/8"
+    >
+      <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-500/12 transition-all duration-200 group-hover:bg-emerald-500/20">
+        {icon}
+      </span>
+      <span>
+        <span className="block text-[15px] font-semibold leading-tight text-white">
+          {title}
+        </span>
+        <span className="mt-0.5 block text-xs leading-snug text-white/45">
+          {subtitle}
+        </span>
+      </span>
+    </Link>
+  );
+}
+
+export type TimeChipStatus = "upcoming" | "sent" | "missed";
+
+export function TimeChip({
+  time,
+  status = "upcoming",
+}: {
+  time: string;
+  status?: TimeChipStatus;
+}) {
+  const tone =
+    status === "missed"
+      ? "bg-red-500/15 text-red-400 border-red-500/25"
+      : status === "sent"
+      ? "bg-white/8 text-white/40 border-white/10"
+      : "bg-emerald-500/15 text-emerald-400 border-emerald-500/25";
+  return (
+    <span
+      className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-medium ${tone}`}
+    >
+      {time}
+    </span>
+  );
+}
+
+export function ReminderStatusBadge({ status }: { status: string }) {
+  const cfg: Record<string, string> = {
+    ACTIVE: "bg-emerald-500/15 text-emerald-400 border-emerald-500/25",
+    PAUSED: "bg-amber-500/15 text-amber-400 border-amber-500/25",
+    STOPPED: "bg-red-500/15 text-red-400 border-red-500/25",
+    COMPLETED: "bg-white/8 text-white/40 border-white/10",
+  };
+  const labels: Record<string, string> = {
+    ACTIVE: "Active",
+    PAUSED: "Paused",
+    STOPPED: "Stopped",
+    COMPLETED: "Completed",
+  };
+  const tone = cfg[status] ?? "bg-white/8 text-white/40 border-white/10";
+  return (
+    <span
+      className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${tone}`}
+    >
+      {labels[status] ?? status}
+    </span>
+  );
+}
+
+export function MedCard({
+  reminder,
+  onClick,
+}: {
+  reminder: MedicationReminder;
+  onClick?: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className="flex w-full items-center gap-3 rounded-2xl border border-white/8 bg-white/4 px-4 py-4 text-left transition-colors hover:border-emerald-500/30 hover:bg-white/6 active:bg-white/8"
+    >
+      <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-emerald-500/20 bg-emerald-500/12">
+        <DrugIcon size={28} />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-[15px] font-semibold text-white">
+          {reminder.medicine_name}
+        </span>
+        {reminder.instructions_text && (
+          <span className="block truncate text-xs text-white/45">
+            {reminder.instructions_text}
+          </span>
+        )}
+        <span className="mt-1.5 flex flex-wrap gap-1">
+          {reminder.times.slice(0, 3).map((t) => (
+            <TimeChip key={t} time={t} />
+          ))}
+          {reminder.times.length > 3 && (
+            <span className="text-xs text-white/30">
+              +{reminder.times.length - 3} more
+            </span>
+          )}
+        </span>
+      </span>
+      <span className="flex shrink-0 flex-col items-end gap-2">
+        <ReminderStatusBadge status={reminder.status} />
+        <ChevronRight className="h-4 w-4 text-white/25" />
+      </span>
+    </button>
+  );
+}
+
+export function SkeletonCard({ lines = 2 }: { lines?: 2 | 3 }) {
+  return (
+    <div className="flex items-center gap-3 rounded-2xl border border-white/6 bg-white/3 px-4 py-4">
+      <div className="h-12 w-12 shrink-0 animate-pulse rounded-xl bg-white/8" />
+      <div className="flex-1 space-y-2">
+        <div className="h-3.5 w-2/3 animate-pulse rounded-full bg-white/8" />
+        {lines >= 2 && (
+          <div className="h-3 w-1/2 animate-pulse rounded-full bg-white/6" />
+        )}
+        {lines >= 3 && (
+          <div className="flex gap-1.5 pt-0.5">
+            <div className="h-5 w-14 animate-pulse rounded-full bg-white/6" />
+            <div className="h-5 w-14 animate-pulse rounded-full bg-white/6" />
+          </div>
+        )}
+      </div>
     </div>
   );
 }

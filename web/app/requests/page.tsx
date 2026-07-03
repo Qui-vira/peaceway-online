@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ChevronRight, ClipboardList } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { listRequests, type ProductRequest } from "@/lib/api/requests";
-import { AppShell, AppHeader } from "@/components/app/app-shell";
-import { EmptyState, GuestWall, Spinner, StatusChip } from "@/components/app/ui";
+import { AppShell } from "@/components/app/app-shell";
+import { EmptyState, GuestWall, SectionLabel, SkeletonCard, StatusChip } from "@/components/app/ui";
+import { GenericIcon } from "@/components/app/drug-icons";
 
 type State =
   | { kind: "loading" }
@@ -31,45 +32,72 @@ export default function RequestsPage() {
 
   return (
     <AppShell>
-      <AppHeader
-        title="My Requests"
-        subtitle="Every availability request you've made, with live status."
-      />
+      <div className="space-y-6 px-5 pt-10 pb-4">
 
-      {state.kind === "loading" && <Spinner />}
-      {state.kind === "guest" && <GuestWall />}
-      {state.kind === "ready" && state.requests.length === 0 && (
-        <EmptyState
-          icon={<ClipboardList className="h-6 w-6" />}
-          title="No requests yet"
-          message="When you ask us to check a medicine, it will show up here with its status."
-          ctaHref="/request"
-          ctaLabel="Check Availability"
-        />
-      )}
-      {state.kind === "ready" && state.requests.length > 0 && (
-        <div className="space-y-3 px-5">
-          {state.requests.map((r) => (
-            <Link
-              key={r.id}
-              href={`/requests/${r.id}`}
-              className="flex items-center gap-4 rounded-2xl border border-white/10 bg-white/4 px-5 py-4 transition-colors hover:border-emerald-500/40 active:bg-white/8"
-            >
-              <span className="min-w-0 flex-1 space-y-1.5">
-                <span className="block truncate text-sm font-semibold text-white">
-                  {r.product_name}
-                  {r.strength ? ` · ${r.strength}` : ""}
-                </span>
-                <span className="flex items-center gap-2">
-                  <StatusChip status={r.status} />
-                  <span className="text-xs text-white/35">{formatDate(r.created_at)}</span>
-                </span>
-              </span>
-              <ChevronRight className="h-4 w-4 shrink-0 text-white/30" />
-            </Link>
-          ))}
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <h1 className="font-syne text-[22px] font-bold text-white">My Requests</h1>
+          {state.kind === "ready" && state.requests.length > 0 && (
+            <span className="rounded-full border border-white/10 bg-white/6 px-2.5 py-0.5 text-xs font-semibold text-white/50">
+              {state.requests.length}
+            </span>
+          )}
         </div>
-      )}
+
+        {state.kind === "loading" && (
+          <div className="space-y-3">
+            <SectionLabel>Loading your requests</SectionLabel>
+            <SkeletonCard lines={2} />
+            <SkeletonCard lines={2} />
+            <SkeletonCard lines={2} />
+          </div>
+        )}
+
+        {state.kind === "guest" && <GuestWall />}
+
+        {state.kind === "ready" && state.requests.length === 0 && (
+          <EmptyState
+            icon={<GenericIcon size={28} />}
+            title="No requests yet"
+            message="When you ask us to check a medicine, it will show up here with its status."
+            ctaHref="/request"
+            ctaLabel="Check Availability"
+          />
+        )}
+
+        {state.kind === "ready" && state.requests.length > 0 && (
+          <div className="space-y-3">
+            {state.requests.map((r) => (
+              <Link
+                key={r.id}
+                href={`/requests/${r.id}`}
+                className="flex items-center gap-4 rounded-2xl border border-white/8 bg-white/4 px-4 py-4 transition-all hover:border-emerald-500/30 hover:bg-white/6 active:bg-white/8"
+              >
+                {/* Drug icon */}
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-emerald-500/20 bg-emerald-500/10">
+                  <GenericIcon size={26} />
+                </span>
+
+                {/* Content */}
+                <span className="min-w-0 flex-1 space-y-1.5">
+                  <span className="block truncate text-[15px] font-semibold text-white">
+                    {r.product_name}
+                    {r.strength && (
+                      <span className="ml-1.5 font-normal text-white/40">· {r.strength}</span>
+                    )}
+                  </span>
+                  <span className="flex items-center gap-2">
+                    <StatusChip status={r.status} />
+                    <span className="text-[11px] text-white/35">{formatDate(r.created_at)}</span>
+                  </span>
+                </span>
+
+                <ChevronRight className="h-4 w-4 shrink-0 text-white/25" />
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
     </AppShell>
   );
 }
