@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { CheckCircle, ChevronRight, Loader2, MapPin, Phone, User, Mail } from "lucide-react";
-import { listZones, registerCustomer, type Zone } from "@/lib/api/customers";
+import { getMe, listZones, registerCustomer, type Zone } from "@/lib/api/customers";
 import type { ApiError } from "@/lib/api";
 
 type Field = "full_name" | "phone" | "email" | "delivery_area";
@@ -46,6 +47,7 @@ function InputRow({
 }
 
 export default function StartPage() {
+  const router = useRouter();
   const [zones, setZones] = useState<Zone[]>([]);
   const [form, setForm] = useState({
     full_name: "",
@@ -57,10 +59,16 @@ export default function StartPage() {
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
   const [customerName, setCustomerName] = useState("");
+  const [checkingAuth, setCheckingAuth] = useState(true);
 
   useEffect(() => {
+    // Redirect already-authenticated users straight to the app so they never
+    // land on this form again (avoids the post-registration GuestWall loop).
+    getMe()
+      .then(() => router.replace("/app"))
+      .catch(() => setCheckingAuth(false));
     listZones().then(setZones).catch(() => {});
-  }, []);
+  }, [router]);
 
   function validate(): Errors {
     const e: Errors = {};
@@ -97,6 +105,14 @@ export default function StartPage() {
     } finally {
       setLoading(false);
     }
+  }
+
+  if (checkingAuth) {
+    return (
+      <main className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-white/30" />
+      </main>
+    );
   }
 
   if (done) {
@@ -152,6 +168,9 @@ export default function StartPage() {
           </h1>
           <p className="text-white/50 text-sm leading-relaxed">
             We use your details to confirm orders, answer pharmacist questions, and send delivery updates. No spam.
+          </p>
+          <p className="text-white/35 text-xs leading-relaxed">
+            Already registered? Just enter your phone number below to sign back in.
           </p>
         </div>
 
