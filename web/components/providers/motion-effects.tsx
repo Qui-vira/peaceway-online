@@ -100,7 +100,13 @@ function setupCarouselDots(reducedMotion: boolean): (() => void) | undefined {
   );
   if (slides.length < 2) return undefined;
 
-  const existingDots = document.querySelector<HTMLElement>(".pw-dots");
+  const dotsContainers = Array.from(document.querySelectorAll<HTMLElement>(".pw-dots"));
+  const existingDots =
+    dotsContainers.find((candidate) => candidate.parentElement === track) ??
+    dotsContainers[0];
+  dotsContainers.forEach((candidate) => {
+    if (candidate !== existingDots) candidate.remove();
+  });
   const dots = existingDots ?? document.createElement("div");
   dots.className = "pw-dots";
   if (dots.querySelectorAll(".pw-dot").length !== slides.length) {
@@ -125,7 +131,7 @@ function setupCarouselDots(reducedMotion: boolean): (() => void) | undefined {
     b.addEventListener("click", onClick);
     return () => b.removeEventListener("click", onClick);
   });
-  if (!existingDots) document.body.appendChild(dots);
+  if (dots.parentElement !== track) track.prepend(dots);
 
   let raf = 0;
   const update = (): void => {
