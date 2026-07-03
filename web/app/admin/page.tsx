@@ -32,11 +32,11 @@ function adminFetch<T>(path: string, pwd: string, options: RequestInit = {}): Pr
 // ── Sidebar items ──────────────────────────────────────────────────────────────
 const NAV = [
   { key: "overview", icon: LayoutGrid, label: "Overview" },
+  { key: "catalog", icon: ShoppingBag, label: "Inventory" },
   { key: "requests", icon: ClipboardList, label: "Requests" },
   { key: "orders", icon: Package, label: "Orders" },
   { key: "customers", icon: Users, label: "Customers" },
   { key: "payments", icon: DollarSign, label: "Payments" },
-  { key: "catalog", icon: ShoppingBag, label: "Catalog" },
 ];
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -619,6 +619,19 @@ function OverviewTab({
           </div>
         ))}
       </div>
+
+      <button
+        onClick={() => onTab("catalog")}
+        className="flex w-full items-center justify-between rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-4 text-left transition hover:border-emerald-500/40"
+      >
+        <div>
+          <p className="font-syne text-[15px] font-bold text-white">Open Inventory</p>
+          <p className="mt-1 text-[12px] text-white/50">
+            Search all products, set price, update stock, and mark items out of stock.
+          </p>
+        </div>
+        <ShoppingBag className="h-5 w-5 shrink-0 text-emerald-400" />
+      </button>
 
       {/* Recent requests */}
       <div>
