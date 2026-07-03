@@ -4,7 +4,7 @@ from __future__ import annotations
 from collections.abc import AsyncIterator
 from typing import Annotated
 
-from fastapi import Cookie, Depends, HTTPException, status
+from fastapi import Cookie, Depends, Header, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -62,3 +62,21 @@ async def get_current_customer(
 
 OptionalCustomer = Annotated[Customer | None, Depends(get_optional_customer)]
 CurrentCustomer = Annotated[Customer, Depends(get_current_customer)]
+
+
+async def _get_current_admin(
+    db: DbSession,
+    x_admin_session: Annotated[str, Header()] = "",
+) -> "tuple[AdminUser, set[str]]":
+    from app.services.admin_web_auth import get_session_admin
+
+    result = await get_session_admin(db, x_admin_session)
+    if result is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired session.",
+        )
+    return result
+
+
+AdminSessionDep = Annotated["tuple[AdminUser, set[str]]", Depends(_get_current_admin)]
