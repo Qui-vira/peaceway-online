@@ -6,11 +6,12 @@ import {
   LayoutGrid, ClipboardList, Package, Users, DollarSign, ShoppingBag,
   LogOut, ChevronRight,
 } from "lucide-react";
+import { getApiBase } from "@/lib/api";
 const ADMIN_KEY = "pw_admin_session";
 const ADMIN_PWD_KEY = "pw_admin_pwd";
 
 function adminFetch<T>(path: string, pwd: string, options: RequestInit = {}): Promise<T> {
-  const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
+  const API_BASE = getApiBase();
   return fetch(`${API_BASE}${path}`, {
     ...options,
     credentials: "include",

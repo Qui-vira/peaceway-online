@@ -45,6 +45,16 @@ export default function Page(): JSX.Element {
 
       <main id="lmain">
         <div id="spbar"><div id="spfill" /></div>
+        <div className="pw-dots" aria-label="Landing sections">
+          {Array.from({ length: 10 }).map((_, index) => (
+            <button
+              key={index}
+              type="button"
+              className={`pw-dot${index === 0 ? " is-active" : ""}`}
+              aria-label={`Go to section ${index + 1}`}
+            />
+          ))}
+        </div>
 
         <div className="scene" id="s1" style={{ height: "190vh" }}>
           <div className="sticky" data-screen-label="Hero">

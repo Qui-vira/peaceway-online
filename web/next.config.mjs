@@ -8,10 +8,12 @@ const nextConfig = {
     // cookies even with SameSite=None, which caused the post-registration loop.
     const internal = process.env.INTERNAL_API_URL;
     if (!internal) return [];
+    const base = internal.replace(/\/$/, "");
+    const apiBase = base.endsWith("/api/v1") ? base : `${base}/api/v1`;
     return [
       {
         source: "/api/v1/:path*",
-        destination: `${internal}/:path*`,
+        destination: `${apiBase}/:path*`,
       },
     ];
   },

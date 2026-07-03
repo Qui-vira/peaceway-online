@@ -3,9 +3,36 @@ import { apiFetch } from "@/lib/api";
 export type Zone = {
   id: string;
   name: string;
-  fee: number;
+  fee: number | null;
   eta_minutes: number | null;
 };
+
+export const FALLBACK_ZONES: Zone[] = [
+  "Igando",
+  "Agodo",
+  "Ikotun",
+  "Egbeda",
+  "Isheri",
+  "Idimu",
+  "Iyana Ipaja",
+  "Egbe",
+  "Ejigbo",
+  "Ijegun",
+  "Other Lagos Mainland",
+].map((name) => ({
+  id: `fallback-${name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
+  name,
+  fee: null,
+  eta_minutes: null,
+}));
+
+export function formatZoneOption(zone: Zone): string {
+  const fee = typeof zone.fee === "number" && zone.fee > 0
+    ? ` · ₦${zone.fee.toLocaleString()}`
+    : "";
+  const eta = zone.eta_minutes ? ` · ~${zone.eta_minutes}min` : "";
+  return `${zone.name}${fee}${eta}`;
+}
 
 export type CustomerProfile = {
   id: string;
@@ -51,7 +78,12 @@ export async function updateProfile(
 }
 
 export async function listZones(): Promise<Zone[]> {
-  return apiFetch<Zone[]>("/zones");
+  try {
+    const zones = await apiFetch<Zone[]>("/zones");
+    return zones.length ? zones : FALLBACK_ZONES;
+  } catch {
+    return FALLBACK_ZONES;
+  }
 }
 
 export async function logout(): Promise<void> {

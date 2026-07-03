@@ -87,7 +87,7 @@ export default function OrderDetailPage() {
             <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-400" />
             <div>
               <p className="text-[13px] font-semibold text-emerald-400">Order placed!</p>
-              <p className="text-[11px] text-white/50">We'll send you a Telegram message with next steps.</p>
+              <p className="text-[11px] text-white/50">We&apos;ll send you a Telegram message with next steps.</p>
             </div>
           </div>
         )}

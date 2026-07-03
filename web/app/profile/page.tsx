@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { CheckCircle, Loader2, LogOut, Mail, MapPin, Phone, User } from "lucide-react";
 import {
   getMe,
+  formatZoneOption,
   listZones,
   logout,
   updateProfile,
@@ -23,7 +24,7 @@ function FieldShell({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/4 px-4 py-3.5 backdrop-blur-sm transition-colors focus-within:border-emerald-500/50">
+    <div className="flex min-w-0 items-center gap-3 rounded-xl border border-white/10 bg-white/4 px-4 py-3.5 backdrop-blur-sm transition-colors focus-within:border-emerald-500/50">
       <span className="shrink-0 text-white/30">{icon}</span>
       {children}
     </div>
@@ -176,7 +177,7 @@ export default function ProfilePage() {
                     <select
                       value={form.delivery_area}
                       onChange={(e) => setForm((f) => ({ ...f, delivery_area: e.target.value }))}
-                      className="flex-1 appearance-none bg-transparent text-sm text-white outline-none [&>option]:bg-[#0b0c09]"
+                      className="min-w-0 flex-1 appearance-none bg-transparent pr-2 text-sm text-white outline-none [&>option]:bg-[#0b0c09] [&>option]:text-white"
                     >
                       <option value="">Select your area…</option>
                       {form.delivery_area &&
@@ -185,7 +186,7 @@ export default function ProfilePage() {
                         )}
                       {zones.map((z) => (
                         <option key={z.id} value={z.name}>
-                          {z.name} · ₦{z.fee.toLocaleString()}
+                          {formatZoneOption(z)}
                         </option>
                       ))}
                     </select>

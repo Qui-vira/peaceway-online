@@ -93,28 +93,39 @@ function setupCarouselDots(reducedMotion: boolean): (() => void) | undefined {
   const track = document.getElementById("lmain");
   if (!track || !document.getElementById("s1")) return undefined;
 
-  const slides = Array.from(
-    track.querySelectorAll<HTMLElement>(":scope > .scene, :scope > footer.ft")
+  const slides = Array.from(track.children).filter(
+    (child): child is HTMLElement =>
+      child instanceof HTMLElement &&
+      (child.classList.contains("scene") || child.matches("footer.ft"))
   );
   if (slides.length < 2) return undefined;
 
-  const dots = document.createElement("div");
+  const existingDots = document.querySelector<HTMLElement>(".pw-dots");
+  const dots = existingDots ?? document.createElement("div");
   dots.className = "pw-dots";
-  const buttons = slides.map((_, i) => {
-    const b = document.createElement("button");
-    b.type = "button";
-    b.className = "pw-dot" + (i === 0 ? " is-active" : "");
-    b.setAttribute("aria-label", `Go to section ${i + 1}`);
-    b.addEventListener("click", () => {
+  if (dots.querySelectorAll(".pw-dot").length !== slides.length) {
+    dots.textContent = "";
+    slides.forEach((_, i) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "pw-dot" + (i === 0 ? " is-active" : "");
+      b.setAttribute("aria-label", `Go to section ${i + 1}`);
+      dots.appendChild(b);
+    });
+  }
+
+  const buttons = Array.from(dots.querySelectorAll<HTMLButtonElement>(".pw-dot"));
+  const removeClickListeners = buttons.map((b, i) => {
+    const onClick = (): void => {
       track.scrollTo({
         left: i * track.clientWidth,
         behavior: reducedMotion ? "auto" : "smooth",
       });
-    });
-    dots.appendChild(b);
-    return b;
+    };
+    b.addEventListener("click", onClick);
+    return () => b.removeEventListener("click", onClick);
   });
-  document.body.appendChild(dots);
+  if (!existingDots) document.body.appendChild(dots);
 
   let raf = 0;
   const update = (): void => {
@@ -129,8 +140,9 @@ function setupCarouselDots(reducedMotion: boolean): (() => void) | undefined {
 
   return () => {
     track.removeEventListener("scroll", onScroll);
+    removeClickListeners.forEach((remove) => remove());
     if (raf) window.cancelAnimationFrame(raf);
-    dots.remove();
+    if (!existingDots) dots.remove();
   };
 }
 
@@ -291,7 +303,7 @@ export function MotionEffects(): JSX.Element | null {
       if (revealCleanup) cleanups.push(revealCleanup);
 
       // Custom cursor only makes sense with a mouse
-      if (finePointerQuery.matches) {
+      if (finePointerQuery.matches && !carouselMq.matches) {
         const cursorCleanup = setupCursor();
         if (cursorCleanup) cleanups.push(cursorCleanup);
       }

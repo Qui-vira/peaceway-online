@@ -1,13 +1,21 @@
 /**
  * Base API client for the Peaceway web frontend.
  *
- * All requests go to the Railway backend via NEXT_PUBLIC_API_URL.
- * credentials: "include" is set on every request so that cookie-based
- * customer sessions (Phase 1+) work across the Vercel → Railway boundary.
+ * Browser requests use the first-party Next.js /api/v1 proxy. That keeps
+ * cookies same-origin and avoids CORS failures when the backend lives on
+ * Railway and the site lives on Vercel.
  */
 
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
+export function getApiBase(): string {
+  if (typeof window !== "undefined") {
+    const host = window.location.hostname;
+    if (host === "localhost" || host === "127.0.0.1" || host === "::1") {
+      return "http://localhost:8000/api/v1";
+    }
+    return "/api/v1";
+  }
+  return process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
+}
 
 export type ApiError = {
   status: number;
@@ -18,7 +26,7 @@ export async function apiFetch<T>(
   path: string,
   options: RequestInit = {}
 ): Promise<T> {
-  const url = `${API_BASE}${path}`;
+  const url = `${getApiBase()}${path}`;
 
   const res = await fetch(url, {
     ...options,

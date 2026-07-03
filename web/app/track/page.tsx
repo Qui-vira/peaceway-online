@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Search, CheckCircle2, Clock } from "lucide-react";
+import { Search, CheckCircle2 } from "lucide-react";
 import { trackOrder } from "@/lib/api/orders";
 
 type TrackResult = {
@@ -27,7 +27,7 @@ const STATUS_LABEL: Record<string, string> = {
   REJECTED: "Rejected",
 };
 
-export default function TrackPage() {
+function TrackPageContent() {
   const searchParams = useSearchParams();
   const [code, setCode] = useState(searchParams?.get("code") ?? "");
   const [phone, setPhone] = useState("");
@@ -169,5 +169,13 @@ export default function TrackPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function TrackPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#0b0c09]" />}>
+      <TrackPageContent />
+    </Suspense>
   );
 }

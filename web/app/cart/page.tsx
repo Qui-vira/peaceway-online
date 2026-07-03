@@ -56,37 +56,52 @@ export default function CartPage() {
               {cart.map((item) => (
                 <div
                   key={item.product_id}
-                  className="flex items-center gap-3 rounded-2xl border border-white/8 bg-white/4 p-4"
+                  className="rounded-2xl border border-white/8 bg-white/4 p-3.5"
                 >
-                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-emerald-500/20 bg-emerald-500/10">
-                    <DrugIcon size={28} />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-[14px] font-semibold text-white">{item.product_name}</p>
-                    <p className="text-[12px] text-emerald-400">{fmt(item.selling_price)}</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => handleQty(item.product_id, item.quantity - 1)}
-                      className="flex h-7 w-7 items-center justify-center rounded-lg border border-white/15 text-white/70 hover:border-white/30"
-                    >
-                      −
-                    </button>
-                    <span className="w-6 text-center text-[13px] font-semibold text-white">
-                      {item.quantity}
+                  <div className="flex min-w-0 items-start gap-3">
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-emerald-500/20 bg-emerald-500/10">
+                      <DrugIcon size={26} />
                     </span>
-                    <button
-                      onClick={() => handleQty(item.product_id, item.quantity + 1)}
-                      className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-500 text-[13px] font-bold text-black"
-                    >
-                      +
-                    </button>
+                    <div className="min-w-0 flex-1">
+                      <p className="break-words text-[13px] font-semibold leading-snug text-white">
+                        {item.product_name}
+                      </p>
+                      <p className="mt-0.5 text-[11px] text-white/40">
+                        Unit price
+                      </p>
+                    </div>
+                    <p className="shrink-0 text-right text-[12px] font-bold text-emerald-400">
+                      {fmt(item.selling_price)}
+                    </p>
+                  </div>
+
+                  <div className="mt-3 flex items-center justify-between border-t border-white/6 pt-3">
                     <button
                       onClick={() => handleRemove(item.product_id)}
-                      className="ml-1 flex h-7 w-7 items-center justify-center rounded-lg border border-red-500/20 text-red-400/60 hover:text-red-400"
+                      className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-red-500/20 px-3 text-[11px] font-semibold text-red-400/70 hover:text-red-400"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
+                      Remove
                     </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleQty(item.product_id, item.quantity - 1)}
+                        className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/15 text-white/70 hover:border-white/30"
+                        aria-label={`Reduce ${item.product_name} quantity`}
+                      >
+                        −
+                      </button>
+                      <span className="w-7 text-center text-[13px] font-semibold text-white">
+                        {item.quantity}
+                      </span>
+                      <button
+                        onClick={() => handleQty(item.product_id, item.quantity + 1)}
+                        className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500 text-[13px] font-bold text-black"
+                        aria-label={`Increase ${item.product_name} quantity`}
+                      >
+                        +
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}

@@ -10,7 +10,7 @@ import secrets
 import re
 from datetime import datetime, timedelta, timezone
 
-from sqlalchemy import select
+from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import Customer, CustomerPreferences
@@ -21,6 +21,18 @@ PHONE_RE = re.compile(r"^\+?[\d\s\-().]{7,20}$")
 # Web sessions live this long; enforced server-side (web_session_expires_at)
 # and mirrored in the cookie max-age.
 SESSION_TTL_DAYS = 30
+
+
+async def ensure_web_customer_columns(session: AsyncSession) -> None:
+    """Backfill web-session columns that older databases may be missing."""
+    await session.execute(
+        text(
+            """
+            ALTER TABLE customers
+            ADD COLUMN IF NOT EXISTS web_session_expires_at TIMESTAMPTZ
+            """
+        )
+    )
 
 
 def is_valid_phone(value: str) -> bool:

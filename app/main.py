@@ -12,6 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.v1.router import router as api_v1_router
 from app.bot.dispatcher import build_bot, build_dispatcher, set_bot_commands
+from app.core.db import async_session
 from app.core.config import get_settings
 from app.core.logging import configure_logging, get_logger
 from app.webhooks import flutterwave as flutterwave_webhook
@@ -32,8 +33,17 @@ async def lifespan(app: FastAPI):
 
     from app.scheduler.jobs import start_scheduler
     from app.services.rbac_service import seed_roles_and_permissions
+    from app.services.web_customers import ensure_web_customer_columns
 
     start_scheduler()
+    # Keep older databases compatible with the current web auth schema.
+    try:
+        async with async_session() as session:
+            await ensure_web_customer_columns(session)
+            await session.commit()
+    except Exception as exc:  # noqa: BLE001
+        log.error("web_customer_schema_patch_failed", error=str(exc))
+
     # Keep the roles/permissions catalog in sync with the code matrix.
     try:
         await seed_roles_and_permissions()

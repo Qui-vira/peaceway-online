@@ -12,7 +12,13 @@ import {
   Phone,
   User,
 } from "lucide-react";
-import { getMe, listZones, registerCustomer, type Zone } from "@/lib/api/customers";
+import {
+  formatZoneOption,
+  getMe,
+  listZones,
+  registerCustomer,
+  type Zone,
+} from "@/lib/api/customers";
 import type { ApiError } from "@/lib/api";
 
 type Field = "full_name" | "phone" | "email" | "delivery_area";
@@ -53,7 +59,7 @@ function FieldGroup({
       </label>
       <div
         className={[
-          "flex items-center gap-3 rounded-xl border px-4 py-3.5 transition-colors",
+        "flex min-w-0 items-center gap-3 rounded-xl border px-4 py-3.5 transition-colors",
           "bg-white/4 backdrop-blur-sm",
           error
             ? "border-red-500/50 focus-within:border-red-400"
@@ -82,6 +88,14 @@ export default function StartPage() {
   const [done, setDone] = useState(false);
   const [customerName, setCustomerName] = useState("");
   const [checkingAuth, setCheckingAuth] = useState(true);
+
+  function updateField(field: keyof typeof form, value: string): void {
+    setForm((current) => ({ ...current, [field]: value }));
+    setErrors((current) => {
+      const { form: _form, [field]: _field, ...rest } = current;
+      return rest;
+    });
+  }
 
   useEffect(() => {
     getMe()
@@ -121,7 +135,12 @@ export default function StartPage() {
       setDone(true);
     } catch (err) {
       const apiErr = err as ApiError;
-      setErrors({ form: apiErr?.detail ?? "Something went wrong. Please try again." });
+      const detail = (apiErr?.detail ?? "").trim().toLowerCase();
+      const friendly =
+        apiErr?.status === 404 || detail === "not found"
+          ? "We could not reach registration right now. Please try again in a moment."
+          : apiErr?.detail ?? "Something went wrong. Please try again.";
+      setErrors({ form: friendly });
     } finally {
       setLoading(false);
     }
@@ -175,11 +194,11 @@ export default function StartPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-start justify-center bg-[#0b0c09] px-5 py-12">
-      <div className="w-full max-w-md space-y-8">
+    <main className="flex min-h-screen items-start justify-center bg-[#0b0c09] px-5 py-8 sm:py-12">
+      <div className="w-full max-w-md space-y-6 sm:space-y-8">
 
         {/* Brand mark */}
-        <div className="flex flex-col items-center gap-3 pt-4 text-center">
+        <div className="flex flex-col items-center gap-3 pt-2 text-center sm:pt-4">
           <PeacewayMark />
           <div>
             <p className="font-syne text-lg font-bold text-white">Peaceway Online</p>
@@ -188,7 +207,7 @@ export default function StartPage() {
         </div>
 
         {/* Form card */}
-        <div className="rounded-2xl border border-white/8 bg-white/[0.03] px-6 py-7 space-y-6">
+        <div className="rounded-2xl border border-white/8 bg-white/[0.04] px-5 py-6 shadow-2xl shadow-black/30 space-y-5 sm:px-6 sm:py-7 sm:space-y-6">
           <div className="space-y-1.5">
             <p className="text-[10px] font-semibold uppercase tracking-widest text-emerald-400">
               Get Started
@@ -204,7 +223,7 @@ export default function StartPage() {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} noValidate className="space-y-4">
+          <form onSubmit={handleSubmit} noValidate className="space-y-3.5 sm:space-y-4">
             <FieldGroup
               label="Full Name"
               icon={<User className="h-4 w-4" />}
@@ -214,7 +233,7 @@ export default function StartPage() {
                 type="text"
                 placeholder="e.g. Amaka Johnson"
                 value={form.full_name}
-                onChange={(e) => setForm((f) => ({ ...f, full_name: e.target.value }))}
+                onChange={(e) => updateField("full_name", e.target.value)}
                 className="flex-1 bg-transparent text-sm text-white placeholder-white/25 outline-none"
                 autoComplete="name"
               />
@@ -229,7 +248,7 @@ export default function StartPage() {
                 type="tel"
                 placeholder="e.g. 08012345678"
                 value={form.phone}
-                onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
+                onChange={(e) => updateField("phone", e.target.value)}
                 className="flex-1 bg-transparent text-sm text-white placeholder-white/25 outline-none"
                 autoComplete="tel"
               />
@@ -245,7 +264,7 @@ export default function StartPage() {
                 type="email"
                 placeholder="For receipts and updates"
                 value={form.email}
-                onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+                onChange={(e) => updateField("email", e.target.value)}
                 className="flex-1 bg-transparent text-sm text-white placeholder-white/25 outline-none"
                 autoComplete="email"
               />
@@ -259,14 +278,13 @@ export default function StartPage() {
             >
               <select
                 value={form.delivery_area}
-                onChange={(e) => setForm((f) => ({ ...f, delivery_area: e.target.value }))}
-                className="flex-1 bg-transparent text-sm text-white outline-none appearance-none [&>option]:bg-[#0b0c09]"
+                onChange={(e) => updateField("delivery_area", e.target.value)}
+                className="min-w-0 flex-1 appearance-none bg-transparent pr-2 text-sm text-white outline-none [&>option]:bg-[#0b0c09] [&>option]:text-white"
               >
                 <option value="">Select your area…</option>
                 {zones.map((z) => (
                   <option key={z.id} value={z.name}>
-                    {z.name} · ₦{z.fee.toLocaleString()}
-                    {z.eta_minutes ? ` · ~${z.eta_minutes}min` : ""}
+                    {formatZoneOption(z)}
                   </option>
                 ))}
               </select>

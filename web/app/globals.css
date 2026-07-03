@@ -833,6 +833,10 @@ footer {
   background: rgba(15, 103, 60, 0.08);
 }
 
+.pw-dots {
+  display: none;
+}
+
 /* s5 (How It Works) holds 10 steps + CTA — taller than 100vh on most
    viewports, so the pinned 100vh/overflow-hidden pattern clipped the
    "Start Your Order" button. This section flows at natural height instead. */
@@ -926,6 +930,19 @@ footer {
     padding-top: calc(88px + env(safe-area-inset-top));
   }
   #spbar { display: none; }
+  html.has-custom-cursor,
+  html.has-custom-cursor body,
+  html.has-custom-cursor a,
+  html.has-custom-cursor button,
+  html.has-custom-cursor [role="button"],
+  html.has-custom-cursor input,
+  html.has-custom-cursor textarea,
+  html.has-custom-cursor select {
+    cursor: auto;
+  }
+  .pw-cursor {
+    display: none !important;
+  }
   .con { padding-bottom: 96px; }
 
   /* Slide dots (built by motion-effects.tsx) */
@@ -933,28 +950,31 @@ footer {
     position: fixed;
     left: 50%;
     transform: translateX(-50%);
-    bottom: calc(14px + env(safe-area-inset-bottom));
+    bottom: calc(22px + env(safe-area-inset-bottom));
     display: flex;
     gap: 7px;
-    z-index: 500;
-    padding: 7px 11px;
+    z-index: 9999;
+    padding: 8px 12px;
     border-radius: 999px;
-    background: rgba(7, 8, 6, 0.55);
+    background: rgba(7, 8, 6, 0.72);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.08);
   }
   .pw-dot {
-    width: 7px;
-    height: 7px;
+    width: 9px;
+    height: 9px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.28);
+    background: rgba(255, 255, 255, 0.46);
     border: none;
     padding: 0;
-    transition: background 0.25s ease, transform 0.25s ease;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.2);
+    transition: background 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
   }
   .pw-dot.is-active {
-    background: #2eb576;
-    transform: scale(1.25);
+    background: #34d98a;
+    box-shadow: 0 0 12px rgba(52, 217, 138, 0.8);
+    transform: scale(1.28);
   }
 
   .nlinks { display: none; }
@@ -965,16 +985,70 @@ footer {
   .sgrid { grid-template-columns: 1fr; }
   .fg { grid-template-columns: 1fr 1fr; }
   /* 11vw clipped "PHARMACY" past the right edge on phone widths */
-  .hh { font-size: clamp(30px, 9.2vw, 64px); }
-  .ctg { flex-direction: column; }
+  .hh {
+    font-size: clamp(30px, 9.2vw, 64px);
+    background: linear-gradient(180deg, #ffffff 0%, #c7f8d8 100%);
+    -webkit-background-clip: text;
+    filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 0.75));
+  }
+  .htag {
+    max-width: 68vw;
+    font-size: 9.5px;
+    line-height: 1.55;
+    color: #86efac;
+    text-shadow: 0 2px 14px rgba(0, 0, 0, 0.85);
+  }
+  .hs {
+    max-width: 86vw;
+    color: rgba(255, 255, 255, 0.86);
+    text-shadow: 0 2px 14px rgba(0, 0, 0, 0.9);
+  }
+  .ctg { flex-direction: column; gap: 11px; width: min(100%, 340px); }
+  .bp,
+  .bg2,
+  .ncta {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+  .bp,
+  .bg2 {
+    width: 100%;
+    padding: 13px 18px;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+  }
+  .bg2 {
+    background: rgba(7, 8, 6, 0.64);
+    border-color: rgba(255, 255, 255, 0.32);
+    color: rgba(255, 255, 255, 0.92);
+  }
   .phimg { height: 240px; }
   .tgcard { flex-direction: column; text-align: center; }
   .ctcard { padding: 24px 20px; }
   /* Fixed header floats over the slides — keep content clear of it and of
      the phone's status bar. */
   .con { padding-top: calc(84px + env(safe-area-inset-top)); }
+  #s1 .sv {
+    filter: brightness(0.62) saturate(0.95);
+    object-position: center top;
+  }
+  #s1 .ov {
+    background: rgba(7, 8, 6, 0.5);
+  }
+  #s1 .ovg {
+    background: linear-gradient(
+      to bottom,
+      rgba(7, 8, 6, 0.88) 0%,
+      rgba(7, 8, 6, 0.42) 34%,
+      rgba(7, 8, 6, 0.72) 72%,
+      rgba(7, 8, 6, 0.94) 100%
+    );
+  }
   .hcon {
-    padding: calc(80px + env(safe-area-inset-top)) 20px 0;
+    padding: calc(112px + env(safe-area-inset-top)) 20px 88px;
     justify-content: flex-start;
   }
 }
