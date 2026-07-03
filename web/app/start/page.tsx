@@ -200,7 +200,7 @@ export default function StartPage() {
     try {
       const customer = await verifyOtp({
         phone: form.phone.trim(),
-        code: otp.trim(),
+        code: otp.replace(/\s/g, ""),
       });
       if (tab === "signup") {
         setCustomerName(customer.full_name ?? form.full_name.trim());
@@ -488,6 +488,7 @@ export default function StartPage() {
                   setStep(1);
                   setOtp("      ");
                   setOtpError("");
+                  setResendCooldown(0);
                 }}
                 className="flex w-full items-center justify-center text-xs text-white/40 transition hover:text-white/70"
               >

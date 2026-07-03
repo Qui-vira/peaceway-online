@@ -114,7 +114,6 @@ async def send_otp(body: SendOtpRequest, db: DbSession) -> SendOtpResponse:
         phone=body.phone,
         email=email,
         full_name=full_name,
-        mode=body.mode,
     )
     await send_otp_email(email, code, settings.pharmacy_name)
 

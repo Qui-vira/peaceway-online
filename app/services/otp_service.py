@@ -95,7 +95,6 @@ async def create_otp_request(
     phone: str,
     email: str,
     full_name: str | None,
-    mode: str,
 ) -> str:
     """Enforce rate limit, create an OTP row, and return the plaintext code."""
     # Rate limit: max OTP_RATE_LIMIT requests per phone in the last OTP_RATE_WINDOW_MINUTES
