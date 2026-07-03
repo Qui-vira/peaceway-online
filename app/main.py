@@ -55,6 +55,12 @@ async def lifespan(app: FastAPI):
     except Exception as exc:  # noqa: BLE001
         log.error("set_commands_failed", error=str(exc))
 
+    log.info(
+        "resend_status",
+        enabled=settings.resend_enabled,
+        from_email=settings.resend_from_email or "(not set)",
+    )
+
     if settings.webhook_base_url:
         url = settings.webhook_base_url.rstrip("/") + "/webhook/telegram"
         await bot.set_webhook(url, drop_pending_updates=True)

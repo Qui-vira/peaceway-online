@@ -71,6 +71,7 @@ async def send_otp_email(to_email: str, code: str, pharmacy_name: str) -> None:
         "html": html_body,
     }
 
+    logger.info("Sending OTP email to %s via Resend (from=%s)", to_email, settings.resend_from_email)
     async with httpx.AsyncClient(timeout=10.0) as client:
         resp = await client.post(
             "https://api.resend.com/emails",
@@ -85,6 +86,7 @@ async def send_otp_email(to_email: str, code: str, pharmacy_name: str) -> None:
                 "Resend API error %s: %s", resp.status_code, resp.text
             )
             raise HTTPException(502, "Failed to send verification email. Please try again.")
+        logger.info("Resend accepted email to %s — id=%s", to_email, resp.json().get("id"))
 
 
 # ── DB operations ─────────────────────────────────────────────────────────────
