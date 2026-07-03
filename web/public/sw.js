@@ -1,4 +1,4 @@
-const CACHE_NAME = "peaceway-online-pwa-v5";
+const CACHE_NAME = "peaceway-online-pwa-v6";
 
 // Only these never change — content-hashed by Next.js build
 const IMMUTABLE_PREFIX = "/_next/static/";
