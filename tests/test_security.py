@@ -21,7 +21,9 @@ def test_sales_support_cannot_approve_payment_or_rx():
     assert has(s, "message_customer") is True
     assert has(s, "approve_payment") is False
     assert has(s, "approve_prescription") is False
-    assert has(s, "edit_pricing") is False
+    # Sales manage the shop inventory (add/edit products, prices, stock).
+    assert has(s, "edit_pricing") is True
+    assert has(s, "view_all_products") is True
 
 
 def test_finance_payment_permissions():

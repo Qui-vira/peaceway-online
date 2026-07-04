@@ -1,7 +1,8 @@
 """Admin Products management: search, view, edit price/stock/category/flags, history.
 
-Gated on `edit_pricing` (System Owner via wildcard, Lead Pharmacist). Every change
-is written to price_history + admin_activity_logs by services.products_admin.
+Gated on `edit_pricing` (System Owner via wildcard, Lead Pharmacist, Sales Support).
+Every change is written to price_history + admin_activity_logs by
+services.products_admin.
 """
 from __future__ import annotations
 

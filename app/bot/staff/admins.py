@@ -95,19 +95,12 @@ async def do_search(message: Message, state: FSMContext) -> None:
     await message.answer("Results:", reply_markup=_admins_kb(results, True))
 
 
-@router.callback_query(F.data.startswith("adm:view:"))
-async def view_admin(call: CallbackQuery) -> None:
-    role_keys = await _viewer(call)
-    if role_keys is None:
-        await call.answer("Not authorised.", show_alert=True)
-        return
-    can_manage = has(role_keys, "manage_admins")
-    tid = int(call.data.split("adm:view:", 1)[1])
+async def _admin_detail(tid: int, viewer_id: int, can_manage: bool):
+    """Render the admin detail view. Returns (text, markup) or None if not found."""
     async with get_session() as session:
         admin = (await session.execute(select(AdminUser).where(AdminUser.telegram_id == tid))).scalar_one_or_none()
         if admin is None:
-            await call.answer("Not found.", show_alert=True)
-            return
+            return None
         roles = [x.role_key for x in admin.assignments]
         last = admin.last_activity_at.strftime("%Y-%m-%d %H:%M") if admin.last_activity_at else "never"
         text = (
@@ -123,7 +116,7 @@ async def view_admin(call: CallbackQuery) -> None:
 
     kb = InlineKeyboardBuilder()
     if can_manage:
-        is_self_owner = tid == call.from_user.id and rbac.SYSTEM_OWNER in roles
+        is_self_owner = tid == viewer_id and rbac.SYSTEM_OWNER in roles
         if status == AdminStatus.PENDING:
             kb.button(text="✅ Activate", callback_data=f"adm:activate:{tid}")
         elif status == AdminStatus.ACTIVE:
@@ -142,7 +135,31 @@ async def view_admin(call: CallbackQuery) -> None:
             kb.button(text="➕ Add another role", callback_data=f"adm:addrole:{tid}")
     kb.button(text="⬅️ Back", callback_data="staff:admins")
     kb.adjust(1)
-    await call.message.edit_text(text, reply_markup=kb.as_markup())
+    return text, kb.as_markup()
+
+
+async def _show_admin(call: CallbackQuery, tid: int, can_manage: bool) -> None:
+    """Edit the current message to the admin detail view (post-action refresh)."""
+    rendered = await _admin_detail(tid, call.from_user.id, can_manage)
+    if rendered is None:
+        return
+    text, markup = rendered
+    await call.message.edit_text(text, reply_markup=markup)
+
+
+@router.callback_query(F.data.startswith("adm:view:"))
+async def view_admin(call: CallbackQuery) -> None:
+    role_keys = await _viewer(call)
+    if role_keys is None:
+        await call.answer("Not authorised.", show_alert=True)
+        return
+    tid = int(call.data.split("adm:view:", 1)[1])
+    rendered = await _admin_detail(tid, call.from_user.id, has(role_keys, "manage_admins"))
+    if rendered is None:
+        await call.answer("Not found.", show_alert=True)
+        return
+    text, markup = rendered
+    await call.message.edit_text(text, reply_markup=markup)
     await call.answer()
 
 
@@ -155,9 +172,8 @@ async def activate(call: CallbackQuery) -> None:
     tid = int(call.data.split("adm:activate:", 1)[1])
     await rbac_service.activate_admin(tid)
     await log_activity(call.from_user.id, role_keys, "activate_admin", "admin_user", str(tid))
+    await _show_admin(call, tid, can_manage=True)
     await call.answer("Admin activated ✅")
-    call.data = f"adm:view:{tid}"
-    await view_admin(call)
 
 
 @router.callback_query(F.data.startswith("adm:disable:"))
@@ -172,9 +188,8 @@ async def disable(call: CallbackQuery) -> None:
         return
     await rbac_service.disable_admin(tid)
     await log_activity(call.from_user.id, role_keys, "disable_admin", "admin_user", str(tid))
+    await _show_admin(call, tid, can_manage=True)
     await call.answer("Admin access disabled successfully.")
-    call.data = f"adm:view:{tid}"
-    await view_admin(call)
 
 
 @router.callback_query(F.data.startswith("adm:remove:"))
@@ -189,9 +204,8 @@ async def remove(call: CallbackQuery) -> None:
         return
     await rbac_service.remove_admin(tid)
     await log_activity(call.from_user.id, role_keys, "remove_admin", "admin_user", str(tid))
+    await _show_admin(call, tid, can_manage=True)
     await call.answer("Admin removed.")
-    call.data = f"adm:view:{tid}"
-    await view_admin(call)
 
 
 @router.callback_query(F.data.startswith("adm:rmrole:"))
@@ -204,9 +218,8 @@ async def remove_role(call: CallbackQuery) -> None:
     tid = int(tid_s)
     await rbac_service.remove_admin_role(tid, role_key)
     await log_activity(call.from_user.id, role_keys, "remove_admin_role", "admin_user", str(tid), {"role": role_key})
+    await _show_admin(call, tid, can_manage=True)
     await call.answer("Role removed ✅")
-    call.data = f"adm:view:{tid}"
-    await view_admin(call)
 
 
 # ── Add-admin flow ───────────────────────────────────────────────────────────
@@ -272,8 +285,9 @@ async def add_got_details(message: Message, state: FSMContext) -> None:
     kb.adjust(1)
     await message.answer(
         f"✅ Added <b>{full_name or tid}</b> as <b>{rbac.role_label(role_key)}</b> — status: 🟡 PENDING.\n\n"
-        "They must open the bot and send /start, and you must Activate them before "
-        "they can access /admin or receive alerts.",
+        "Tap <b>Activate now</b> to grant them access to /admin and the web panel.\n"
+        "<i>If they have never messaged this bot, ask them to send /start once so "
+        "they can receive alerts.</i>",
         reply_markup=kb.as_markup(),
     )
 

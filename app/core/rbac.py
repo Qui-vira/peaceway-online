@@ -132,6 +132,7 @@ ROLE_PERMISSIONS: dict[str, set[str]] = {
         "view_payment_status", "escalate_to_pharmacist", "escalate_to_owner",
         "message_customer", "receive_support_alerts", "view_product_requests",
         "view_customers",
+        "view_all_products", "edit_pricing",
     },
     COMMUNITY_MANAGER: {
         "send_announcements", "reply_general_messages", "view_support_tickets",
@@ -193,6 +194,7 @@ ROLE_MENUS: dict[str, list[tuple[str, str]]] = {
         ("💬 Customer Messages", "staff:messages"),
         ("🧾 Orders", "staff:orders"),
         ("👤 Customers", "staff:customers"),
+        ("💊 Products", "staff:products"),
         ("💵 Payment Status", "staff:paystatus"),
         ("📝 Product Requests", "staff:requests"),
         ("➡️ Escalate to Pharmacist", "staff:esc_pharm"),

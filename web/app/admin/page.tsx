@@ -14,6 +14,7 @@ interface AdminMe {
   telegram_id: number;
   full_name: string | null;
   roles: string[];
+  role_labels?: string[];
   permissions: string[];
 }
 
@@ -267,7 +268,12 @@ function Dashboard({ admin }: { admin: AdminMe }) {
       <aside className="hidden w-[200px] shrink-0 flex-col gap-2 border-r border-white/8 bg-[#0a0b08] px-3 py-6 lg:flex">
         <div className="mb-4 px-3">
           <p className="font-syne text-[13px] font-bold text-white">Peaceway</p>
-          <p className="text-[10px] text-white/30">{admin.full_name ?? "Admin panel"}</p>
+          <p className="text-[10px] text-white/50">{admin.full_name ?? "Staff"}</p>
+          {(admin.role_labels?.length ?? 0) > 0 && (
+            <p className="mt-0.5 text-[10px] font-medium text-emerald-400/80">
+              {admin.role_labels!.join(" · ")}
+            </p>
+          )}
         </div>
         {nav.map((item) => (
           <button

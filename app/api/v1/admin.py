@@ -5,12 +5,15 @@ from decimal import Decimal
 from typing import Literal
 from uuid import UUID
 
+import httpx
 from fastapi import APIRouter, HTTPException, Request, status
 from pydantic import BaseModel
 from sqlalchemy import func, or_, select
 
 from app.api.deps import AdminSessionDep, DbSession
 from app.core import rbac
+from app.core.config import get_settings
+from app.core.logging import get_logger
 from app.models.admin import AdminUser
 from app.models.catalog import Product, ProductPricing
 from app.models.ops import ProductRequest
@@ -18,6 +21,7 @@ from app.models.orders import Customer, Order
 from app.services.products_admin import apply_change, parse_int, parse_money
 
 router = APIRouter(tags=["admin"])
+log = get_logger("admin-api")
 
 
 # ── Auth endpoints ─────────────────────────────────────────────────────────────
@@ -35,6 +39,7 @@ class AdminMeResponse(BaseModel):
     telegram_id: int
     full_name: str | None
     roles: list[str]
+    role_labels: list[str]
     permissions: list[str]
 
 
@@ -50,17 +55,39 @@ async def admin_request_otp(body: RequestOtpBody, request: Request, db: DbSessio
     if result is not None:
         code, telegram_id = result
         bot = request.app.state.bot
+        message = (
+            f"🔐 <b>Peaceway web login code:</b> <code>{code}</code>\n\n"
+            f"Expires in 5 minutes. Do not share this code."
+        )
         try:
             await bot.send_message(
                 chat_id=telegram_id,
-                text=(
-                    f"🔐 <b>Peaceway web login code:</b> <code>{code}</code>\n\n"
-                    f"Expires in 5 minutes. Do not share this code."
-                ),
+                text=message,
                 parse_mode="HTML",
             )
-        except Exception:
-            pass
+            log.info("admin_otp_sent", telegram_id=telegram_id, transport="aiogram")
+        except Exception as exc:  # noqa: BLE001
+            log.error("admin_otp_send_failed", telegram_id=telegram_id, error=str(exc))
+            token = get_settings().telegram_bot_token
+            if token:
+                try:
+                    async with httpx.AsyncClient(timeout=10) as client:
+                        resp = await client.post(
+                            f"https://api.telegram.org/bot{token}/sendMessage",
+                            data={
+                                "chat_id": str(telegram_id),
+                                "text": message,
+                                "parse_mode": "HTML",
+                            },
+                        )
+                        resp.raise_for_status()
+                    log.info("admin_otp_sent", telegram_id=telegram_id, transport="http_fallback")
+                except Exception as fallback_exc:  # noqa: BLE001
+                    log.error(
+                        "admin_otp_send_fallback_failed",
+                        telegram_id=telegram_id,
+                        error=str(fallback_exc),
+                    )
     return {"ok": True}
 
 
@@ -91,6 +118,7 @@ async def admin_me(auth: AdminSessionDep) -> AdminMeResponse:
         telegram_id=admin.telegram_id,
         full_name=admin.full_name,
         roles=sorted(role_keys),
+        role_labels=[rbac.role_label(rk) for rk in sorted(role_keys)],
         permissions=sorted(permissions),
     )
 
