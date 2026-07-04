@@ -49,6 +49,8 @@ export type CustomerProfile = {
   phone: string | null;
   email: string | null;
   delivery_area: string | null;
+  telegram_username?: string | null;
+  telegram_linked?: boolean;
 };
 
 export type RegisterPayload = {
@@ -90,6 +92,28 @@ export async function updateProfile(
     method: "PATCH",
     body: JSON.stringify(data),
   });
+}
+
+/** Raw payload the Telegram Login Widget hands to the onauth callback. */
+export type TelegramAuthPayload = {
+  id: number;
+  first_name?: string;
+  last_name?: string;
+  username?: string;
+  photo_url?: string;
+  auth_date: number;
+  hash: string;
+};
+
+export async function linkTelegram(
+  payload: TelegramAuthPayload
+): Promise<CustomerProfile> {
+  const profile = await apiFetch<CustomerProfile>("/me/telegram-link", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+  _meCache = { profile, expiresAt: Date.now() + AUTH_TTL_MS };
+  return profile;
 }
 
 export async function listZones(): Promise<Zone[]> {

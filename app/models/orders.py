@@ -69,6 +69,9 @@ class Customer(Base, TimestampMixin):
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     # Nullable: web-only customers have no Telegram account.
     telegram_id: Mapped[int | None] = mapped_column(BigInteger, unique=True, index=True, nullable=True)
+    # Set when a web customer links their Telegram via the Login Widget.
+    telegram_username: Mapped[str | None] = mapped_column(String(64))
+    telegram_linked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     full_name: Mapped[str | None] = mapped_column(String(255))
     phone: Mapped[str | None] = mapped_column(String(50))
     # Set as httpOnly cookie after web registration; used by /api/v1/me.

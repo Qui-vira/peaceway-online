@@ -2,11 +2,15 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Response, status
+from fastapi import APIRouter, HTTPException, Response, status
 from pydantic import BaseModel, field_validator
+from sqlalchemy import select
 
 from app.api.deps import CurrentCustomer, DbSession, OptionalCustomer
+from app.core.config import get_settings
+from app.models import Customer
 from app.services.customers import is_valid_email
+from app.services.telegram_link import verify_telegram_login
 from app.services.web_customers import (
     SESSION_TTL_DAYS,
     clear_web_session,
@@ -85,6 +89,8 @@ class CustomerOut(BaseModel):
     phone: str | None
     email: str | None
     delivery_area: str | None = None
+    telegram_username: str | None = None
+    telegram_linked: bool = False
 
     model_config = {"from_attributes": True}
 
@@ -96,6 +102,8 @@ def _customer_out(customer) -> CustomerOut:
         phone=customer.phone,
         email=customer.email,
         delivery_area=get_delivery_area(customer),
+        telegram_username=customer.telegram_username,
+        telegram_linked=customer.telegram_id is not None,
     )
 
 
@@ -177,5 +185,69 @@ async def update_me(
     if body.delivery_area is not None and body.delivery_area.strip():
         set_delivery_area(customer, body.delivery_area.strip())
 
+    db.add(customer)
+    return _customer_out(customer)
+
+
+class TelegramLinkRequest(BaseModel):
+    """Raw Telegram Login Widget payload — verified server-side before use."""
+
+    id: int
+    auth_date: int
+    hash: str
+    first_name: str | None = None
+    last_name: str | None = None
+    username: str | None = None
+    photo_url: str | None = None
+
+
+@router.post("/me/telegram-link")
+async def link_telegram(
+    body: TelegramLinkRequest,
+    customer: CurrentCustomer,
+    db: DbSession,
+) -> CustomerOut:
+    """Connect the customer's Telegram account to their web profile.
+
+    Verifies the Login Widget signature (HMAC keyed on the bot token) and
+    freshness before trusting any field. One Telegram account per profile —
+    enforced here and by the unique constraint on customers.telegram_id.
+    """
+    bot_token = get_settings().telegram_bot_token
+    if not bot_token:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Telegram linking is not available right now.",
+        )
+    if not verify_telegram_login(body.model_dump(exclude_none=True), bot_token):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Telegram verification failed. Please try again.",
+        )
+
+    if customer.telegram_id is not None and customer.telegram_id != body.id:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="This profile is already connected to a different Telegram account.",
+        )
+    other = (
+        await db.execute(
+            select(Customer).where(
+                Customer.telegram_id == body.id, Customer.id != customer.id
+            )
+        )
+    ).scalar_one_or_none()
+    if other is not None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=(
+                "This Telegram account is already connected to another profile. "
+                "Contact support if this is yours."
+            ),
+        )
+
+    customer.telegram_id = body.id
+    customer.telegram_username = body.username
+    customer.telegram_linked_at = datetime.now(timezone.utc)
     db.add(customer)
     return _customer_out(customer)

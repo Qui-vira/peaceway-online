@@ -7,7 +7,9 @@ the bot (order updates, request updates, pharmacist replies, reminders later).
 **Method:** Official Telegram Login Widget on the normal website. Telegram Mini
 App `initData` validation is planned for later, not built now.
 
-**Status:** PLANNED — build after `/request` and `/ask-pharmacist` are stable.
+**Status:** IMPLEMENTED 2026-07-04 (endpoint is `POST /api/v1/me/telegram-link`,
+matching the existing `/me` convention). Remaining: BotFather `/setdomain` and
+the later disconnect endpoint + Mini App `initData` support.
 
 ---
 

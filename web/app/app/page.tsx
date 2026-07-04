@@ -6,6 +6,7 @@ import { Bell, ChevronRight, User } from "lucide-react";
 import { getMe, type CustomerProfile } from "@/lib/api/customers";
 import { listTodayReminders, type MedicationReminder } from "@/lib/api/reminders";
 import { AppShell } from "@/components/app/app-shell";
+import { ConnectTelegramCard } from "@/components/app/connect-telegram";
 import {
   FeatureCard,
   MedCard,
@@ -203,6 +204,13 @@ export default function AppDashboard() {
               />
             </div>
           </div>
+
+          {/* Connect Telegram — authenticated only */}
+          {me && (
+            <div className="px-5">
+              <ConnectTelegramCard profile={me} onLinked={setMe} />
+            </div>
+          )}
 
           {/* Telegram CTA */}
           <div className="px-5">
