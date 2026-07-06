@@ -149,32 +149,38 @@ export default function AppDashboard() {
                 <ChevronRight className="h-4 w-4 shrink-0 text-emerald-400/60" />
               </Link>
             )}
-            <Link
-              href="/admin"
-              className="mt-3 flex items-center gap-3 rounded-2xl border border-white/10 bg-white/4 px-4 py-3.5 transition hover:border-white/20"
-            >
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/8">
-                <ShieldCheck className="h-5 w-5 text-emerald-400" />
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block text-sm font-semibold text-white">Staff sign in</span>
-                <span className="block text-xs text-white/50">Peaceway admins and internal staff only</span>
-              </span>
-              <ChevronRight className="h-4 w-4 shrink-0 text-emerald-400/60" />
-            </Link>
-            <Link
-              href="/partners"
-              className="mt-3 flex items-center gap-3 rounded-2xl border border-white/10 bg-white/4 px-4 py-3.5 transition hover:border-white/20"
-            >
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/8">
-                <Building2 className="h-5 w-5 text-emerald-400" />
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block text-sm font-semibold text-white">Partner portal</span>
-                <span className="block text-xs text-white/50">Wholesalers and suppliers only</span>
-              </span>
-              <ChevronRight className="h-4 w-4 shrink-0 text-emerald-400/60" />
-            </Link>
+            {/* Staff / partner entry points are for signed-out visitors only —
+                a signed-in customer never sees these on their dashboard. */}
+            {!me && (
+              <>
+                <Link
+                  href="/admin"
+                  className="mt-3 flex items-center gap-3 rounded-2xl border border-white/10 bg-white/4 px-4 py-3.5 transition hover:border-white/20"
+                >
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/8">
+                    <ShieldCheck className="h-5 w-5 text-emerald-400" />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-sm font-semibold text-white">Staff sign in</span>
+                    <span className="block text-xs text-white/50">Peaceway admins and internal staff only</span>
+                  </span>
+                  <ChevronRight className="h-4 w-4 shrink-0 text-emerald-400/60" />
+                </Link>
+                <Link
+                  href="/partners"
+                  className="mt-3 flex items-center gap-3 rounded-2xl border border-white/10 bg-white/4 px-4 py-3.5 transition hover:border-white/20"
+                >
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/8">
+                    <Building2 className="h-5 w-5 text-emerald-400" />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-sm font-semibold text-white">Partner portal</span>
+                    <span className="block text-xs text-white/50">Wholesalers and suppliers only</span>
+                  </span>
+                  <ChevronRight className="h-4 w-4 shrink-0 text-emerald-400/60" />
+                </Link>
+              </>
+            )}
             <div className="mt-4 h-px bg-white/6" />
           </div>
 
