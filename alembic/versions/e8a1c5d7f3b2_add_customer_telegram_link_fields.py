@@ -16,10 +16,20 @@ depends_on = None
 
 
 def upgrade() -> None:
-    op.add_column("customers", sa.Column("telegram_username", sa.String(64), nullable=True))
-    op.add_column("customers", sa.Column("telegram_linked_at", sa.DateTime(timezone=True), nullable=True))
+    bind = op.get_bind()
+    inspector = sa.inspect(bind)
+    columns = {col["name"] for col in inspector.get_columns("customers")}
+    if "telegram_username" not in columns:
+        op.add_column("customers", sa.Column("telegram_username", sa.String(64), nullable=True))
+    if "telegram_linked_at" not in columns:
+        op.add_column("customers", sa.Column("telegram_linked_at", sa.DateTime(timezone=True), nullable=True))
 
 
 def downgrade() -> None:
-    op.drop_column("customers", "telegram_linked_at")
-    op.drop_column("customers", "telegram_username")
+    bind = op.get_bind()
+    inspector = sa.inspect(bind)
+    columns = {col["name"] for col in inspector.get_columns("customers")}
+    if "telegram_linked_at" in columns:
+        op.drop_column("customers", "telegram_linked_at")
+    if "telegram_username" in columns:
+        op.drop_column("customers", "telegram_username")

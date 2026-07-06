@@ -24,6 +24,19 @@ const STATUS_LABEL: Record<string, string> = {
   REJECTED: "Rejected",
 };
 
+const FULFILLMENT_LABEL: Record<string, string> = {
+  in_stock: "In stock now",
+  source_from_network: "Sourcing from network",
+  sourcing_requested: "Sourcing requested",
+  partner_confirmed: "Partner confirmed",
+  partner_rejected: "Partner unavailable",
+  pack_ready: "Pack ready",
+  dispatch_assigned: "Dispatch assigned",
+  picked_up: "Picked up",
+  delivered: "Delivered",
+  failed: "Issue under review",
+};
+
 const STATUS_COLOR: Record<string, string> = {
   DELIVERED: "bg-emerald-500/15 text-emerald-400 border-emerald-500/25",
   PAYMENT_APPROVED: "bg-emerald-500/15 text-emerald-400 border-emerald-500/25",
@@ -47,8 +60,8 @@ export default function OrdersPage() {
   }, []);
 
   return (
-    <AppShell>
-      <div className="space-y-6 px-5 pt-10 pb-8">
+    <AppShell back={{ title: "My Orders", fallbackHref: "/app" }}>
+      <div className="space-y-6 px-5 pt-6 pb-8">
         <h1 className="font-syne text-[22px] font-bold text-white">My Orders</h1>
 
         {state.kind === "loading" && (
@@ -87,6 +100,11 @@ export default function OrdersPage() {
                   <p className="truncate text-[11px] text-white/40">
                     {order.items.map((i) => i.product_name).join(", ")}
                   </p>
+                  {order.customer_facing_status && (
+                    <p className="truncate text-[11px] text-emerald-300/80">
+                      {order.customer_facing_status}
+                    </p>
+                  )}
                   <p className="mt-0.5 text-[11px] text-white/30">
                     {new Date(order.created_at).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })}
                   </p>
@@ -95,6 +113,11 @@ export default function OrdersPage() {
                   <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold ${STATUS_COLOR[order.status] ?? "bg-white/8 text-white/50 border-white/12"}`}>
                     {STATUS_LABEL[order.status] ?? order.status}
                   </span>
+                  {order.fulfillment_status && (
+                    <p className="text-[10px] text-white/35">
+                      {FULFILLMENT_LABEL[order.fulfillment_status] ?? order.fulfillment_status}
+                    </p>
+                  )}
                   <p className="text-[12px] font-semibold text-emerald-400">
                     ₦{Number(order.total).toLocaleString()}
                   </p>

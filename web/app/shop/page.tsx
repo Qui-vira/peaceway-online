@@ -70,10 +70,10 @@ export default function ShopPage() {
   const cartCount = cart.reduce((s, c) => s + c.quantity, 0);
 
   return (
-    <AppShell>
+    <AppShell back={{ title: "Shop", fallbackHref: "/app" }}>
       <div className="pb-8">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 pt-10 pb-4">
+        <div className="flex items-center justify-between px-5 pt-6 pb-4">
           <h1 className="font-syne text-[22px] font-bold text-white">Shop</h1>
           {cartCount > 0 && (
             <Link

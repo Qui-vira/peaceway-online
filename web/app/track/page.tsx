@@ -9,6 +9,9 @@ import { trackOrder } from "@/lib/api/orders";
 type TrackResult = {
   code: string;
   status: string;
+  fulfillment_status?: string | null;
+  customer_facing_status?: string | null;
+  pickup_code?: string | null;
   delivery_status: string;
   items: { product_name: string; quantity: number; unit_price: string; line_total: string }[];
   history: { field: string; to_value: string; note: string | null; created_at: string }[];
@@ -27,6 +30,19 @@ const STATUS_LABEL: Record<string, string> = {
   REJECTED: "Rejected",
 };
 
+const FULFILLMENT_LABEL: Record<string, string> = {
+  in_stock: "In stock now",
+  source_from_network: "Sourcing from approved network",
+  sourcing_requested: "Approved partner request sent",
+  partner_confirmed: "Partner confirmed",
+  partner_rejected: "Partner unavailable",
+  pack_ready: "Pack ready for pickup",
+  dispatch_assigned: "Dispatch assigned",
+  picked_up: "Picked up",
+  delivered: "Delivered",
+  failed: "Issue under review",
+};
+
 function TrackPageContent() {
   const searchParams = useSearchParams();
   const [code, setCode] = useState(searchParams?.get("code") ?? "");
@@ -42,8 +58,13 @@ function TrackPageContent() {
     try {
       const data = await trackOrder(code.trim(), phone.trim());
       setResult(data);
-    } catch {
-      setError("Order not found. Check the code and phone number and try again.");
+    } catch (err) {
+      const status = (err as { status?: number })?.status;
+      if (status === 404) {
+        setError("Order not found. Check the code and phone number and try again.");
+      } else {
+        setError("Something went wrong on our end. Please try again in a moment.");
+      }
       setResult(null);
     } finally {
       setLoading(false);
@@ -113,10 +134,27 @@ function TrackPageContent() {
               <p className="text-[18px] font-bold text-white">
                 {STATUS_LABEL[result.status] ?? result.status}
               </p>
+              {result.customer_facing_status && (
+                <p className="mt-1 text-[12px] text-emerald-200/80">
+                  {result.customer_facing_status}
+                </p>
+              )}
               <p className="text-[12px] text-white/40 mt-0.5">
                 Placed {new Date(result.created_at).toLocaleDateString("en-NG", { day: "numeric", month: "long" })}
               </p>
             </div>
+
+            {result.fulfillment_status && (
+              <div className="rounded-2xl border border-white/8 bg-white/4 px-4 py-4">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/40 mb-2">Fulfilment</p>
+                <p className="text-[14px] font-semibold text-white">
+                  {FULFILLMENT_LABEL[result.fulfillment_status] ?? result.fulfillment_status}
+                </p>
+                {result.pickup_code && (
+                  <p className="mt-1 text-[12px] text-white/50">Pickup code: <span className="font-semibold text-white">{result.pickup_code}</span></p>
+                )}
+              </div>
+            )}
 
             {/* Items */}
             <div className="rounded-2xl border border-white/8 bg-white/4 px-4 py-4 space-y-2">

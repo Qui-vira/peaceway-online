@@ -21,6 +21,9 @@ class TrackingHistoryItem(BaseModel):
 class TrackingOut(BaseModel):
     code: str
     status: str
+    fulfillment_status: str | None = None
+    customer_facing_status: str | None = None
+    pickup_code: str | None = None
     delivery_status: str
     items: list[dict]
     history: list[TrackingHistoryItem]
@@ -90,6 +93,9 @@ async def track_order(
     return TrackingOut(
         code=order.code,
         status=order.status.value,
+        fulfillment_status=order.sourcing.fulfillment_status.value if order.sourcing else None,
+        customer_facing_status=order.sourcing.customer_facing_status if order.sourcing else None,
+        pickup_code=order.sourcing.pickup_code if order.sourcing else None,
         delivery_status=order.delivery_status.value,
         items=items,
         history=history,

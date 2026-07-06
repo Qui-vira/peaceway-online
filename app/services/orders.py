@@ -14,6 +14,7 @@ from app.models import (
     OrderStatusHistory,
     RxStatus,
 )
+from app.services.sourcing import ensure_order_sourcing, evaluate_cart_stock
 from app.services.pricing import Quote
 
 
@@ -34,6 +35,8 @@ async def create_order(
 ) -> Order:
     """Persist an order, its items, and the opening status-history row."""
     has_rx = any(i.get("requires_prescription") for i in cart)
+    shortages = await evaluate_cart_stock(session, cart)
+    sourcing_required = bool(shortages)
 
     order_items = []
     for item in cart:
@@ -77,9 +80,11 @@ async def create_order(
     # Opening state: Rx orders await pharmacist review; OTC awaits payment.
     if has_rx:
         await _record(session, order.id, "rx_status", None, RxStatus.PRESCRIPTION_REQUIRED.value, "system")
-    else:
+    elif not sourcing_required:
         order.status = OrderStatus.AWAITING_PAYMENT
         await _record(session, order.id, "status", OrderStatus.NEW.value, OrderStatus.AWAITING_PAYMENT.value, "system")
+
+    await ensure_order_sourcing(session, order=order, cart=cart, shortages=shortages)
 
     await session.flush()
     return order

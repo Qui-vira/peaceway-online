@@ -24,6 +24,14 @@ export function clearAdminToken(): void {
   sessionStorage.removeItem(TOKEN_KEY);
 }
 
+export class AdminFetchError extends Error {
+  status: number;
+  constructor(status: number, detail: string) {
+    super(detail);
+    this.status = status;
+  }
+}
+
 let _reloading = false;
 
 export function adminFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
@@ -44,11 +52,11 @@ export function adminFetch<T>(path: string, options: RequestInit = {}): Promise<
         clearAdminToken();
         window.location.reload();
       }
-      throw new Error("Session expired.");
+      throw new AdminFetchError(401, "Session expired.");
     }
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
-      throw new Error((body as { detail?: string })?.detail ?? res.statusText);
+      throw new AdminFetchError(res.status, (body as { detail?: string })?.detail ?? res.statusText);
     }
     if (res.status === 204) return undefined as unknown as T;
     return res.json() as Promise<T>;

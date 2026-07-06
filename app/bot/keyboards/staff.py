@@ -5,7 +5,7 @@ from aiogram.types import InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from app.core.security import has
-from app.models import Order, OrderStatus, PaymentMethod, RxStatus
+from app.models import FulfillmentStatus, Order, OrderStatus, PaymentMethod, RxStatus
 
 
 def order_actions(order: Order, role_keys: set[str]) -> InlineKeyboardMarkup:
@@ -39,6 +39,24 @@ def order_actions(order: Order, role_keys: set[str]) -> InlineKeyboardMarkup:
             kb.button(text="📦 Start Packaging", callback_data=f"act:packaging:{code}")
         if has(role_keys, "ready_for_dispatch"):
             kb.button(text="🚚 Ready for Dispatch", callback_data=f"act:ready:{code}")
+
+    if order.sourcing and order.sourcing.sourcing_required:
+        if order.sourcing.fulfillment_status in (
+            FulfillmentStatus.SOURCE_FROM_NETWORK,
+            FulfillmentStatus.SOURCING_REQUESTED,
+            FulfillmentStatus.PARTNER_REJECTED,
+        ) and has(role_keys, "view_all_orders"):
+            kb.button(text="🤝 Partner Confirmed", callback_data=f"act:partner_confirmed:{code}")
+            kb.button(text="❌ Partner Rejected", callback_data=f"act:partner_rejected:{code}")
+        if order.sourcing.fulfillment_status == FulfillmentStatus.PARTNER_CONFIRMED and has(role_keys, "ready_for_dispatch"):
+            kb.button(text="📷 Mark Pack Ready", callback_data=f"act:pack_ready:{code}")
+        if order.sourcing.fulfillment_status in (
+            FulfillmentStatus.PACK_READY,
+            FulfillmentStatus.DISPATCH_ASSIGNED,
+        ) and has(role_keys, "assign_rider"):
+            kb.button(text="🛵 Dispatch Assigned", callback_data=f"act:dispatch_assigned:{code}")
+        if order.sourcing.fulfillment_status == FulfillmentStatus.DISPATCH_ASSIGNED and has(role_keys, "mark_dispatched"):
+            kb.button(text="📦 Mark Picked Up", callback_data=f"act:picked_up:{code}")
 
     if order.status in (OrderStatus.PROCESSING, OrderStatus.DISPATCHED):
         if has(role_keys, "assign_rider"):

@@ -65,7 +65,9 @@ async def got_file(message: Message, state: FSMContext) -> None:
         doc = message.document
         name_ok = (doc.file_name or "").lower().endswith(_VALID_DOC_EXT)
         mime_ok = doc.mime_type in ("application/pdf", "image/jpeg", "image/png")
-        if not (name_ok or mime_ok):
+        # Require a trustworthy signal: a valid mime type, or (for clients that
+        # omit mime) a valid extension that is NOT contradicted by a wrong mime.
+        if not (mime_ok or (name_ok and not doc.mime_type)):
             await message.answer("Please send the prescription as an image or PDF file.")
             return
         file_id = doc.file_id

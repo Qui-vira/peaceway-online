@@ -103,7 +103,8 @@ async def recipients_for_roles(
             )
         ).scalars().unique().all()
     for a in rows:
-        telegram_ids.add(a.telegram_id)
+        if a.telegram_id is not None:
+            telegram_ids.add(a.telegram_id)
         if a.email:
             emails.add(a.email)
 
@@ -141,7 +142,7 @@ async def seed_roles_and_permissions() -> None:
 
 
 async def add_admin(
-    telegram_id: int, role_key: str, full_name: str | None = None, email: str | None = None,
+    telegram_id: int | None, role_key: str, full_name: str | None = None, email: str | None = None,
     session: AsyncSession | None = None,
 ) -> AdminUser:
     """Add a role to a (possibly new) admin.
@@ -151,9 +152,15 @@ async def add_admin(
     already PENDING/ACTIVE/DISABLED admin leaves their status untouched.
     """
     async with _scope(session) as s:
-        admin = (
-            await s.execute(select(AdminUser).where(AdminUser.telegram_id == telegram_id))
-        ).scalar_one_or_none()
+        if telegram_id is None and not email:
+            raise ValueError("telegram_id or email is required.")
+
+        stmt = select(AdminUser)
+        if telegram_id is not None:
+            stmt = stmt.where(AdminUser.telegram_id == telegram_id)
+        else:
+            stmt = stmt.where(func.lower(AdminUser.email) == email.strip().lower())
+        admin = (await s.execute(stmt)).scalar_one_or_none()
         if admin is None:
             admin = AdminUser(
                 telegram_id=telegram_id, full_name=full_name, email=email,
@@ -240,6 +247,8 @@ async def search_admins(query: str, limit: int = 10, session: AsyncSession | Non
     async with _scope(session) as s:
         if q.isdigit():
             stmt = select(AdminUser).where(AdminUser.telegram_id == int(q))
+        elif "@" in q:
+            stmt = select(AdminUser).where(AdminUser.email.ilike(f"%{q}%")).limit(limit)
         else:
             stmt = select(AdminUser).where(AdminUser.full_name.ilike(f"%{q}%")).limit(limit)
         return list((await s.execute(stmt)).scalars().unique().all())

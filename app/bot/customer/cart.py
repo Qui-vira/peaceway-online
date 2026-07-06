@@ -63,7 +63,11 @@ async def noop(call: CallbackQuery) -> None:
 
 @router.callback_query(F.data.startswith("cqty:"))
 async def change_qty(call: CallbackQuery, state: FSMContext) -> None:
-    _, pid, op = call.data.split(":")
+    parts = call.data.split(":")
+    if len(parts) != 3:
+        await call.answer()
+        return
+    _, pid, op = parts
     cart = await cart_store.get_cart(state)
     current = next((i["qty"] for i in cart if i["product_id"] == pid), 0)
     new_qty = current + 1 if op == "inc" else current - 1

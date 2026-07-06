@@ -4,6 +4,7 @@ from __future__ import annotations
 from aiogram import Bot, F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
+from aiogram.utils.text_decorations import html_decoration
 from sqlalchemy import select
 
 from app.bot.staff.states import StaffFlow
@@ -14,6 +15,7 @@ from app.models import (
     AuditLog,
     Customer,
     DeliveryStatus,
+    FulfillmentStatus,
     Order,
     OrderStatus,
     RiderAssignment,
@@ -21,6 +23,7 @@ from app.models import (
 )
 from app.services import orders as orders_svc
 from app.services import payments_admin as payments_admin_svc
+from app.services import sourcing as sourcing_svc
 
 router = Router(name="staff-orders")
 log = get_logger("staff-orders")
@@ -36,19 +39,32 @@ _ACTION_PERM = {
     "delivered": "mark_delivered",
     "cancel": "cancel_order",
     "msg": "message_customer",
+    "partner_confirmed": "view_all_orders",
+    "partner_rejected": "view_all_orders",
+    "pack_ready": "ready_for_dispatch",
+    "dispatch_assigned": "assign_rider",
+    "picked_up": "mark_dispatched",
     "rx_approve": "approve_prescription",
     "rx_reject": "approve_prescription",
 }
 
 
-async def _notify_customer(bot: Bot, order: Order, text: str) -> None:
+async def _notify_customer(bot: Bot, order: Order, text: str) -> bool:
+    """Send a message to the order's customer. Returns True only if delivered.
+
+    A None telegram_id (web-only customer) or a Telegram send failure (blocked
+    bot, bad parse) both return False so callers can tell staff it did not send.
+    """
     async with get_session() as session:
         customer = await session.get(Customer, order.customer_id)
-    if customer:
-        try:
-            await bot.send_message(customer.telegram_id, text)
-        except Exception as exc:  # noqa: BLE001
-            log.error("notify_customer_failed", order=order.code, error=str(exc))
+    if not customer or customer.telegram_id is None:
+        return False
+    try:
+        await bot.send_message(customer.telegram_id, text)
+        return True
+    except Exception as exc:  # noqa: BLE001
+        log.error("notify_customer_failed", order=order.code, error=str(exc))
+        return False
 
 
 async def _audit(session, call: CallbackQuery, role_keys: set[str], action: str, code: str) -> None:
@@ -131,6 +147,69 @@ async def handle_action(call: CallbackQuery, state: FSMContext) -> None:
             await orders_svc.transition_delivery(session, order, DeliveryStatus.READY_FOR_DISPATCH, by)
             downstream = ("dispatch", order.id)
 
+        elif action == "partner_confirmed":
+            total_qty = sum(item.quantity for item in order.items)
+            await sourcing_svc.confirm_partner(
+                session,
+                order=order,
+                confirmed_quantity=total_qty,
+                confirmed_price=order.total,
+                expiry_or_batch_confirmation="Pending detailed batch verification",
+                ready_for_pickup_at=None,
+                confirmed_items=[
+                    {
+                        "product_name": item.product_name,
+                        "quantity": item.quantity,
+                    }
+                    for item in order.items
+                ],
+                by=by,
+                note="Staff confirmed approved-network fulfilment.",
+            )
+            customer_msg = (
+                f"✅ Your order {code} has been confirmed by Peaceway's approved fulfilment network. "
+                "We will update you again once the package is ready for pickup."
+            )
+
+        elif action == "partner_rejected":
+            await sourcing_svc.reject_partner(
+                session,
+                order=order,
+                reason="Approved partner could not confirm this request yet.",
+                by=by,
+            )
+            customer_msg = (
+                f"⚠️ Your order {code} is still under Peaceway review. "
+                "We have not confirmed a sourcing partner yet, so we are not promising a delivery ETA."
+            )
+
+        elif action == "pack_ready":
+            sourcing = await sourcing_svc.mark_pack_ready(
+                session,
+                order=order,
+                pack_verification_photo="staff-confirmed",
+                pickup_code=None,
+                by=by,
+            )
+            customer_msg = (
+                f"📦 Your order {code} has been packed by an approved partner and verified by Peaceway. "
+                f"Pickup code: {sourcing.pickup_code}."
+            )
+
+        elif action == "dispatch_assigned":
+            await sourcing_svc.mark_dispatch_assigned(session, order=order, by=by)
+            customer_msg = f"🛵 Dispatch has been assigned for your order {code}."
+
+        elif action == "picked_up":
+            await sourcing_svc.mark_picked_up(
+                session,
+                order=order,
+                pickup_proof="staff-confirmed",
+                by=by,
+            )
+            await orders_svc.transition_delivery(session, order, DeliveryStatus.PICKED_UP, by)
+            customer_msg = f"📦 Your order {code} has been picked up and is now under Peaceway tracking."
+
         elif action == "dispatched":
             await orders_svc.transition_status(session, order, OrderStatus.DISPATCHED, by)
             await orders_svc.transition_delivery(session, order, DeliveryStatus.IN_TRANSIT, by)
@@ -139,6 +218,18 @@ async def handle_action(call: CallbackQuery, state: FSMContext) -> None:
         elif action == "delivered":
             await orders_svc.transition_status(session, order, OrderStatus.DELIVERED, by)
             await orders_svc.transition_delivery(session, order, DeliveryStatus.DELIVERED, by)
+            if order.sourcing and order.sourcing.fulfillment_status in (
+                FulfillmentStatus.PICKED_UP,
+                FulfillmentStatus.DISPATCH_ASSIGNED,
+                FulfillmentStatus.PACK_READY,
+                FulfillmentStatus.PARTNER_CONFIRMED,
+            ):
+                await sourcing_svc.mark_delivered(
+                    session,
+                    order=order,
+                    delivery_proof="staff-confirmed",
+                    by=by,
+                )
             customer_msg = f"🏁 Your order {code} has been delivered. Thank you for choosing us!"
             downstream = ("followup", order.id)
 
@@ -203,6 +294,8 @@ async def capture_rider(message: Message, state: FSMContext) -> None:
             RiderAssignment(order_id=order.id, rider_name=rider_name, rider_phone=rider_phone, is_manual=True)
         )
         await orders_svc.transition_delivery(session, order, DeliveryStatus.RIDER_ASSIGNED, f"manual:{message.from_user.id}")
+        if order.sourcing and order.sourcing.sourcing_required:
+            await sourcing_svc.mark_dispatch_assigned(session, order=order, by=f"manual:{message.from_user.id}")
         order_snapshot = order
     await _notify_customer(
         message.bot, order_snapshot, f"🛵 A rider has been assigned to your order {code}."
@@ -221,10 +314,17 @@ async def capture_message(message: Message, state: FSMContext) -> None:
             await message.answer("Order not found.")
             return
         order_snapshot = order
-    await _notify_customer(
-        message.bot, order_snapshot, f"💬 Message from {get_pharmacy_name()} about {code}:\n\n{message.text}"
+    safe_text = html_decoration.quote(message.text)
+    sent = await _notify_customer(
+        message.bot, order_snapshot, f"💬 Message from {get_pharmacy_name()} about {code}:\n\n{safe_text}"
     )
-    await message.answer("✅ Message sent to customer.")
+    if sent:
+        await message.answer("✅ Message sent to customer.")
+    else:
+        await message.answer(
+            "⚠️ Could not deliver the message — the customer may have no Telegram "
+            "account linked or has blocked the bot. Try another channel."
+        )
 
 
 def get_pharmacy_name() -> str:

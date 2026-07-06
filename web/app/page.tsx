@@ -37,9 +37,13 @@ export default function Page(): JSX.Element {
             <a className="nl" href="#s7">Delivery</a>
             <a className="nl" href="#s9">Contact</a>
           </div>
-          <a className="ncta" href="/app">
-            Use Web App
-          </a>
+          <div className="flex items-center gap-3">
+            <a className="nl" href="/admin">Staff Sign In</a>
+            <a className="nl" href="/partners">Partner Portal</a>
+            <a className="ncta" href="/app">
+              Use Web App
+            </a>
+          </div>
         </div>
       </header>
 

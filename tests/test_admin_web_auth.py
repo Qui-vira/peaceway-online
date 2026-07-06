@@ -5,11 +5,13 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from app.models.admin import AdminRoleAssignment, AdminStatus, AdminUser, WebAdminOtp, WebAdminSession
+from app.models.admin import AdminRoleAssignment, AdminStatus, AdminUser, WebAdminEmailOtp, WebAdminOtp, WebAdminSession
 from app.services.admin_web_auth import (
+    create_web_email_otp,
     create_web_otp,
     delete_session,
     get_session_admin,
+    verify_web_email_otp_and_create_session,
     verify_web_otp_and_create_session,
 )
 
@@ -19,6 +21,24 @@ async def test_web_admin_otp_model_exists(session):
     """WebAdminOtp can be created and queried."""
     otp = WebAdminOtp(
         telegram_id=123456789,
+        code_hash="abc123",
+        expires_at=datetime.now(timezone.utc) + timedelta(minutes=5),
+        used=False,
+    )
+    session.add(otp)
+    await session.flush()
+    assert otp.id is not None
+
+
+@pytest.mark.asyncio
+async def test_web_admin_email_otp_model_exists(session):
+    admin = AdminUser(email="ops@peaceway.test", status=AdminStatus.ACTIVE, is_active=True)
+    session.add(admin)
+    await session.flush()
+
+    otp = WebAdminEmailOtp(
+        admin_id=admin.id,
+        email="ops@peaceway.test",
         code_hash="abc123",
         expires_at=datetime.now(timezone.utc) + timedelta(minutes=5),
         used=False,
@@ -49,6 +69,38 @@ async def _make_active_admin(session, telegram_id: int = 999888777) -> AdminUser
     session.add(admin)
     await session.flush()
     return admin
+
+
+@pytest.mark.asyncio
+async def test_create_email_otp_for_active_admin(session):
+    admin = AdminUser(email="ops@example.com", status=AdminStatus.ACTIVE, is_active=True)
+    session.add(admin)
+    await session.flush()
+
+    result = await create_web_email_otp(session, "OPS@example.com")
+    assert result is not None
+    code, email = result
+    assert len(code) == 6
+    assert email == "ops@example.com"
+
+
+@pytest.mark.asyncio
+async def test_verify_email_otp_creates_session(session):
+    admin = AdminUser(email="supplier@example.com", status=AdminStatus.ACTIVE, is_active=True)
+    session.add(admin)
+    await session.flush()
+
+    result = await create_web_email_otp(session, admin.email)
+    assert result is not None
+    code, _ = result
+
+    token = await verify_web_email_otp_and_create_session(session, admin.email, code)
+    assert token is not None
+
+    fetched = await get_session_admin(session, token)
+    assert fetched is not None
+    fetched_admin, _ = fetched
+    assert fetched_admin.email == admin.email
 
 
 @pytest.mark.asyncio

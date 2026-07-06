@@ -20,6 +20,19 @@ const STATUS_LABEL: Record<string, string> = {
   REJECTED: "Rejected",
 };
 
+const FULFILLMENT_LABEL: Record<string, string> = {
+  in_stock: "In stock now",
+  source_from_network: "Sourcing from approved network",
+  sourcing_requested: "Approved partner request sent",
+  partner_confirmed: "Partner confirmed",
+  partner_rejected: "Partner unavailable",
+  pack_ready: "Packed and ready for pickup",
+  dispatch_assigned: "Dispatch assigned",
+  picked_up: "Picked up",
+  delivered: "Delivered",
+  failed: "Issue under review",
+};
+
 const PROGRESS_STEPS = [
   { key: "NEW", label: "Order received" },
   { key: "AWAITING_PAYMENT", label: "Awaiting payment" },
@@ -98,10 +111,22 @@ export default function OrderDetailPage() {
           <h1 className="font-syne text-[22px] font-bold text-white">
             {STATUS_LABEL[order.status] ?? order.status}
           </h1>
+          {order.customer_facing_status && (
+            <p className="text-[12px] text-emerald-300/80 mt-1">{order.customer_facing_status}</p>
+          )}
           <p className="text-[12px] text-white/40 mt-0.5">
             Placed {new Date(order.created_at).toLocaleDateString("en-NG", { day: "numeric", month: "long", year: "numeric" })}
           </p>
         </div>
+
+        {order.fulfillment_status && (
+          <div className="mx-5 rounded-2xl border border-white/8 bg-white/4 px-4 py-4">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/40 mb-2">Fulfilment</p>
+            <p className="text-[14px] font-semibold text-white">
+              {FULFILLMENT_LABEL[order.fulfillment_status] ?? order.fulfillment_status}
+            </p>
+          </div>
+        )}
 
         {/* Progress */}
         <div className="mx-5 rounded-2xl border border-white/8 bg-white/4 px-4 py-4 space-y-3">

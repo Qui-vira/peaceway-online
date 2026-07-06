@@ -210,6 +210,9 @@ class Order(Base, TimestampMixin):
     history: Mapped[list["OrderStatusHistory"]] = relationship(
         back_populates="order", cascade="all, delete-orphan", lazy="selectin"
     )
+    sourcing: Mapped["OrderSourcing | None"] = relationship(
+        back_populates="order", cascade="all, delete-orphan", uselist=False, lazy="selectin"
+    )
 
 
 class OrderItem(Base, TimestampMixin):

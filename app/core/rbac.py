@@ -21,6 +21,10 @@ PACKAGING = "packaging"
 DISPATCHER = "dispatcher"
 FINANCE = "finance"
 
+# NOTE: Wholesalers/suppliers are NOT staff roles. They authenticate against
+# `network_partners` via the separate partner portal (`/api/v1/partner/*`,
+# `app/services/partner_auth.py`) and never appear in this staff RBAC matrix.
+
 ROLES: dict[str, str] = {
     SYSTEM_OWNER: "System Owner / Developer Admin",
     LEAD_PHARMACIST: "Lead Pharmacist",
@@ -107,6 +111,10 @@ PERMISSIONS: dict[str, str] = {
     "view_order_totals": "View order totals",
     "view_settlement_records": "View settlement records",
     "export_payment_reports": "Export payment reports",
+    # Sourcing oversight (staff-side; partners use the separate partner portal)
+    "view_sourcing_requests": "View out-of-stock sourcing requests",
+    "view_partner_directory": "View the approved-partner directory",
+    "view_dispatch_queue": "View pickup-ready sourcing orders under Peaceway dispatch tracking",
 }
 
 WILDCARD = "*"  # System Owner: full access (except the prescription safety override)

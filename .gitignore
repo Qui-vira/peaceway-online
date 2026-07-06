@@ -15,6 +15,11 @@ venv/
 web/node_modules/
 web/.next/
 web/.vercel/
+web/*.tsbuildinfo
+
+# Local agent / tooling scratch (not part of the app)
+.claude/
+.playwright-mcp/
 
 # Import exports (may contain catalog data)
 scripts/exports/
@@ -22,3 +27,6 @@ scripts/exports/
 # OS / editor
 .DS_Store
 Thumbs.db
+
+.vercel
+.env*.local

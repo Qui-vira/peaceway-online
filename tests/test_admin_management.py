@@ -62,6 +62,17 @@ async def test_search_by_telegram_id_and_name(session):
     assert {a.telegram_id for a in by_name} == {666}
 
 
+async def test_email_only_admin_can_be_created_and_found(session):
+    # Email-only staff admins (e.g. web-first finance/ops users) are still valid.
+    # Partners are NOT admins any more — they live in the separate partner portal.
+    admin = await r.add_admin(None, rbac.FINANCE, full_name="Fin Ops", email="finance@example.com", session=session)
+    assert admin.telegram_id is None
+    assert admin.email == "finance@example.com"
+
+    by_email = await r.search_admins("finance@example.com", session=session)
+    assert [a.email for a in by_email] == ["finance@example.com"]
+
+
 async def test_disabled_admin_excluded_from_alert_recipients(session):
     """Regression: recipients_for_roles must keep filtering on is_active."""
     await r.add_admin(777, rbac.LEAD_PHARMACIST, session=session)

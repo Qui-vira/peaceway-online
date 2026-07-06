@@ -6,6 +6,7 @@ from app.models.admin import (
     Permission,
     Role,
     RolePermission,
+    WebAdminEmailOtp,
     WebAdminOtp,
     WebAdminSession,
 )
@@ -44,6 +45,8 @@ from app.models.reminders import (
     ReminderSource,
     ReminderStatus,
 )
+from app.models.partner_auth import PartnerPortalOtp, PartnerPortalSession
+from app.models.sourcing import FulfillmentStatus, NetworkPartner, OrderSourcing, PartnerChannel, PartnerType
 from app.models.orders import (
     Customer,
     CustomerContactEvent,
@@ -69,6 +72,7 @@ __all__ = [
     "ReminderEventStatus",
     "ReminderSource",
     "ReminderStatus",
+    "FulfillmentStatus",
     "Product",
     "ProductAlias",
     "ProductIdentifier",
@@ -112,12 +116,19 @@ __all__ = [
     "TrackingLink",
     "DeliveryTrackingEvent",
     "DeliveryWebhookEvent",
+    "NetworkPartner",
+    "PartnerChannel",
+    "PartnerType",
+    "PartnerPortalOtp",
+    "PartnerPortalSession",
+    "OrderSourcing",
     "AdminUser",
     "AdminRoleAssignment",
     "AdminActivityLog",
     "Role",
     "Permission",
     "RolePermission",
+    "WebAdminEmailOtp",
     "WebAdminOtp",
     "WebAdminSession",
 ]

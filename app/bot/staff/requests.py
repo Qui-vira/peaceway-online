@@ -13,6 +13,7 @@ from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 from aiogram.utils.keyboard import InlineKeyboardBuilder
+from aiogram.utils.text_decorations import html_decoration
 from sqlalchemy import select
 
 from app.bot.staff.states import RequestAdminFlow
@@ -124,7 +125,7 @@ async def _show_request(call: CallbackQuery, rid: UUID) -> None:
         for m in thread[-5:]:
             who = "🧑" if m.sender_type == "customer" else "👨‍⚕️ Admin"
             when = m.created_at.strftime("%m-%d %H:%M")
-            lines.append(f"<i>{when}</i> {who}: {m.message_text[:80]}")
+            lines.append(f"<i>{when}</i> {who}: {html_decoration.quote(m.message_text[:80])}")
 
     text = "\n".join(lines)
     kb = InlineKeyboardBuilder()
@@ -279,13 +280,22 @@ async def send_message(message: Message, state: FSMContext) -> None:
         customer = await session.get(Customer, req.customer_id)
         chat_id = customer.telegram_id if customer else None
 
+    sent = False
     if chat_id:
         try:
-            await message.bot.send_message(chat_id, f"📩 Message from Peaceway:\n\n{body}")
+            await message.bot.send_message(
+                chat_id, f"📩 Message from Peaceway:\n\n{html_decoration.quote(body)}"
+            )
+            sent = True
         except Exception as exc:  # noqa: BLE001
             log.error("admin_message_failed", error=str(exc))
     await log_activity(message.from_user.id, role_keys, f"request_{action}", "product_request", str(rid))
-    await message.answer("✅ Message sent and saved.")
+    if sent:
+        await message.answer("✅ Message sent and saved.")
+    else:
+        await message.answer(
+            "⚠️ Saved, but could not deliver to the customer (no linked Telegram or bot blocked)."
+        )
 
 
 @router.message(RequestAdminFlow.price, F.text)

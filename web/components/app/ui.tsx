@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronRight, Loader2, UserPlus } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ArrowLeft, ChevronRight, Loader2, UserPlus } from "lucide-react";
 import { DrugIcon } from "@/components/app/drug-icons";
 import type { MedicationReminder } from "@/lib/api/reminders";
 
@@ -268,6 +269,128 @@ export function MedCard({
       </span>
     </button>
   );
+}
+
+// ── Universal back navigation ──────────────────────────────────────────────────
+
+/**
+ * Sticky page header with a guaranteed "back" affordance.
+ *
+ * `back()` uses browser history when possible, but falls back to `fallbackHref`
+ * when the page was deep-linked (history has no in-app entry) so the button
+ * never dead-ends. Give every screen except the section homes a PageHeader.
+ */
+export function PageHeader({
+  title,
+  fallbackHref = "/app",
+  right,
+}: {
+  title?: string;
+  fallbackHref?: string;
+  right?: React.ReactNode;
+}) {
+  const router = useRouter();
+
+  function goBack() {
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.back();
+    } else {
+      router.push(fallbackHref);
+    }
+  }
+
+  return (
+    <div className="sticky top-0 z-40 -mx-5 mb-2 flex items-center gap-3 border-b border-white/8 bg-[#0b0c09]/85 px-5 py-3 backdrop-blur-md">
+      <button
+        onClick={goBack}
+        aria-label="Go back"
+        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/70 transition hover:border-white/20 hover:text-white active:bg-white/10"
+      >
+        <ArrowLeft className="h-4 w-4" />
+      </button>
+      {title && (
+        <p className="min-w-0 flex-1 truncate text-[15px] font-semibold text-white">{title}</p>
+      )}
+      {right && <div className="ml-auto shrink-0">{right}</div>}
+    </div>
+  );
+}
+
+// ── Buttons ────────────────────────────────────────────────────────────────────
+
+type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
+
+const BUTTON_VARIANTS: Record<ButtonVariant, string> = {
+  primary: "bg-emerald-500 text-black hover:bg-emerald-400",
+  secondary: "border border-white/12 text-white/80 hover:border-white/25 hover:text-white",
+  ghost: "text-white/60 hover:text-white",
+  danger: "border border-red-500/30 text-red-300 hover:bg-red-500/10",
+};
+
+export function Button({
+  variant = "primary",
+  className = "",
+  children,
+  ...props
+}: React.ButtonHTMLAttributes<HTMLButtonElement> & { variant?: ButtonVariant }) {
+  return (
+    <button
+      {...props}
+      className={[
+        "inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition",
+        "disabled:cursor-not-allowed disabled:opacity-50",
+        BUTTON_VARIANTS[variant],
+        className,
+      ].join(" ")}
+    >
+      {children}
+    </button>
+  );
+}
+
+// ── Order / fulfilment status badges ────────────────────────────────────────────
+
+const ORDER_STATUS: Record<string, { label: string; tone: string }> = {
+  NEW: { label: "Received", tone: "bg-white/8 text-white/60 border-white/10" },
+  AWAITING_PAYMENT: { label: "Awaiting payment", tone: "bg-amber-500/15 text-amber-400 border-amber-500/25" },
+  PAYMENT_SUBMITTED: { label: "Payment submitted", tone: "bg-amber-500/15 text-amber-400 border-amber-500/25" },
+  PAYMENT_APPROVED: { label: "Payment confirmed", tone: "bg-emerald-500/15 text-emerald-400 border-emerald-500/25" },
+  PROCESSING: { label: "Being prepared", tone: "bg-emerald-500/15 text-emerald-400 border-emerald-500/25" },
+  DISPATCHED: { label: "On the way", tone: "bg-sky-500/15 text-sky-300 border-sky-500/25" },
+  DELIVERED: { label: "Delivered", tone: "bg-emerald-500/15 text-emerald-400 border-emerald-500/25" },
+  CANCELLED: { label: "Cancelled", tone: "bg-red-500/15 text-red-400 border-red-500/25" },
+  REJECTED: { label: "Rejected", tone: "bg-red-500/15 text-red-400 border-red-500/25" },
+};
+
+const FULFILLMENT_STATUS: Record<string, { label: string; tone: string }> = {
+  in_stock: { label: "In stock", tone: "bg-emerald-500/15 text-emerald-400 border-emerald-500/25" },
+  source_from_network: { label: "Sourcing from network", tone: "bg-white/8 text-white/60 border-white/10" },
+  sourcing_requested: { label: "Partner request sent", tone: "bg-amber-500/15 text-amber-400 border-amber-500/25" },
+  partner_confirmed: { label: "Partner confirmed", tone: "bg-emerald-500/15 text-emerald-400 border-emerald-500/25" },
+  partner_rejected: { label: "Partner unavailable", tone: "bg-red-500/15 text-red-400 border-red-500/25" },
+  pack_ready: { label: "Pack ready", tone: "bg-emerald-500/15 text-emerald-400 border-emerald-500/25" },
+  dispatch_assigned: { label: "Dispatch assigned", tone: "bg-sky-500/15 text-sky-300 border-sky-500/25" },
+  picked_up: { label: "Picked up", tone: "bg-sky-500/15 text-sky-300 border-sky-500/25" },
+  delivered: { label: "Delivered", tone: "bg-emerald-500/15 text-emerald-400 border-emerald-500/25" },
+  failed: { label: "Issue under review", tone: "bg-red-500/15 text-red-400 border-red-500/25" },
+};
+
+function Badge({ label, tone }: { label: string; tone: string }) {
+  return (
+    <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${tone}`}>
+      {label}
+    </span>
+  );
+}
+
+export function OrderStatusBadge({ status }: { status: string }) {
+  const cfg = ORDER_STATUS[status] ?? { label: status, tone: "bg-white/8 text-white/60 border-white/10" };
+  return <Badge label={cfg.label} tone={cfg.tone} />;
+}
+
+export function FulfillmentBadge({ status }: { status: string }) {
+  const cfg = FULFILLMENT_STATUS[status] ?? { label: status, tone: "bg-white/8 text-white/60 border-white/10" };
+  return <Badge label={cfg.label} tone={cfg.tone} />;
 }
 
 export function SkeletonCard({ lines = 2 }: { lines?: 2 | 3 }) {
