@@ -66,8 +66,8 @@ export default function ReferralPage() {
   }
 
   return (
-    <AppShell>
-      <div className="space-y-6 px-5 pt-10 pb-8">
+    <AppShell back={{ title: "Refer a Friend", fallbackHref: "/app" }}>
+      <div className="space-y-6 px-5 pt-6 pb-8">
         <h1 className="font-syne text-[22px] font-bold text-white">Refer a Friend</h1>
 
         {/* Referral card */}

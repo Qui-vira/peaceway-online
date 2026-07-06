@@ -204,6 +204,20 @@ async def confirm(call: CallbackQuery, state: FSMContext) -> None:
     items = [QuoteItem(name=i["name"], quantity=i["qty"], selling_price=Decimal(i["unit_price"])) for i in cart]
     quote = quote_order(items, delivery_fee, fees, PaymentMethod.BANK_TRANSFER)
 
+    # Honour the total the customer saw on the summary screen. If a fee or zone
+    # changed between summary and this tap, the recomputed total will differ —
+    # re-show the summary rather than silently charging a new amount.
+    locked_total = data.get("quote_total")
+    if locked_total is not None and Decimal(locked_total) != quote.total:
+        await state.update_data(quote_total=str(quote.total))
+        await call.message.edit_text(
+            _summary_text(data, quote)
+            + "\n\n⚠️ Pricing was just updated — please review the new total and confirm again.",
+            reply_markup=call.message.reply_markup,
+        )
+        await call.answer("Total updated — please confirm again.", show_alert=True)
+        return
+
     from app.models import Customer
 
     async with get_session() as session:
@@ -211,7 +225,11 @@ async def confirm(call: CallbackQuery, state: FSMContext) -> None:
             await session.execute(select(Customer).where(Customer.telegram_id == call.from_user.id))
         ).scalar_one_or_none()
         if customer is None:
-            customer = Customer(telegram_id=call.from_user.id, full_name=data.get("full_name"))
+            customer = Customer(
+                telegram_id=call.from_user.id,
+                full_name=data.get("full_name"),
+                phone=data.get("phone"),
+            )
             session.add(customer)
             await session.flush()
         order = await create_order(
@@ -224,6 +242,7 @@ async def confirm(call: CallbackQuery, state: FSMContext) -> None:
         )
         order_code = order.code
         has_rx = any(i.get("requires_prescription") for i in cart)
+        sourcing_required = bool(order.sourcing and order.sourcing.sourcing_required)
 
     await cart_store.clear_cart(state)
     await state.clear()
@@ -234,6 +253,23 @@ async def confirm(call: CallbackQuery, state: FSMContext) -> None:
         await call.message.edit_text(
             f"🧾 Order <b>{order_code}</b> received.\n\n💊 Your order contains a medicine that "
             "requires pharmacist review before payment. Our pharmacist will review it shortly.",
+            reply_markup=back_to_menu(),
+        )
+    elif sourcing_required:
+        from app.bot.keyboards.customer import back_to_menu
+        from app.services.alerts import alert_sourcing_requested
+
+        try:
+            await alert_sourcing_requested(call.bot, order.id)
+        except Exception:
+            pass
+
+        await call.message.edit_text(
+            f"🧾 Order <b>{order_code}</b> received.\n\n"
+            "One or more items are not currently in Peaceway stock, so we have moved the order into "
+            "our approved sourcing workflow.\n\n"
+            "We will confirm availability, price, expiry or batch standard, and pickup readiness before "
+            "we show you a real ETA or request payment.",
             reply_markup=back_to_menu(),
         )
     else:

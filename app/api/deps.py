@@ -80,3 +80,26 @@ async def _get_current_admin(
 
 
 AdminSessionDep = Annotated["tuple[AdminUser, set[str]]", Depends(_get_current_admin)]
+
+
+async def _get_current_partner(
+    db: DbSession,
+    x_partner_session: Annotated[str, Header()] = "",
+) -> "NetworkPartner":
+    """Resolve the partner portal session token to a NetworkPartner.
+
+    Separate auth domain from staff: this looks up `partner_portal_sessions`
+    only, so an admin token can never authenticate here (and vice versa).
+    """
+    from app.services.partner_auth import get_session_partner
+
+    partner = await get_session_partner(db, x_partner_session)
+    if partner is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired partner session.",
+        )
+    return partner
+
+
+PartnerSessionDep = Annotated["NetworkPartner", Depends(_get_current_partner)]

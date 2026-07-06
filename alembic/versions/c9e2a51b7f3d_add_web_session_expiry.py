@@ -21,11 +21,19 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    op.add_column(
-        "customers",
-        sa.Column("web_session_expires_at", sa.DateTime(timezone=True), nullable=True),
-    )
+    bind = op.get_bind()
+    inspector = sa.inspect(bind)
+    columns = {col["name"] for col in inspector.get_columns("customers")}
+    if "web_session_expires_at" not in columns:
+        op.add_column(
+            "customers",
+            sa.Column("web_session_expires_at", sa.DateTime(timezone=True), nullable=True),
+        )
 
 
 def downgrade() -> None:
-    op.drop_column("customers", "web_session_expires_at")
+    bind = op.get_bind()
+    inspector = sa.inspect(bind)
+    columns = {col["name"] for col in inspector.get_columns("customers")}
+    if "web_session_expires_at" in columns:
+        op.drop_column("customers", "web_session_expires_at")

@@ -12,6 +12,8 @@ export interface Order {
   id: string;
   code: string;
   status: string;
+  fulfillment_status?: string | null;
+  customer_facing_status?: string | null;
   delivery_status: string;
   subtotal: string;
   delivery_fee: string;
@@ -48,6 +50,9 @@ export async function getOrder(id: string): Promise<Order> {
 export async function trackOrder(code: string, phone: string): Promise<{
   code: string;
   status: string;
+  fulfillment_status?: string | null;
+  customer_facing_status?: string | null;
+  pickup_code?: string | null;
   delivery_status: string;
   items: { product_name: string; quantity: number; unit_price: string; line_total: string }[];
   history: { field: string; to_value: string; note: string | null; created_at: string }[];

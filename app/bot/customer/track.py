@@ -13,6 +13,7 @@ from app.core.db import get_session
 from app.models import (
     Customer,
     DeliveryStatus,
+    FulfillmentStatus,
     Order,
     OrderStatus,
     RiderAssignment,
@@ -22,12 +23,26 @@ from app.models import (
 router = Router(name="customer-track")
 
 _ACTIVE = [
+    OrderStatus.NEW,
     OrderStatus.AWAITING_PAYMENT,
     OrderStatus.PAYMENT_SUBMITTED,
     OrderStatus.PAYMENT_APPROVED,
     OrderStatus.PROCESSING,
     OrderStatus.DISPATCHED,
 ]
+
+_FULFILLMENT_LABEL = {
+    FulfillmentStatus.IN_STOCK: "In stock now",
+    FulfillmentStatus.SOURCE_FROM_NETWORK: "Sourcing from approved network",
+    FulfillmentStatus.SOURCING_REQUESTED: "Approved partner request sent",
+    FulfillmentStatus.PARTNER_CONFIRMED: "Partner confirmed",
+    FulfillmentStatus.PARTNER_REJECTED: "Partner unavailable",
+    FulfillmentStatus.PACK_READY: "Pack ready for pickup",
+    FulfillmentStatus.DISPATCH_ASSIGNED: "Dispatch assigned",
+    FulfillmentStatus.PICKED_UP: "Picked up",
+    FulfillmentStatus.DELIVERED: "Delivered",
+    FulfillmentStatus.FAILED: "Fulfilment issue under review",
+}
 
 _DELIVERY_LABEL = {
     DeliveryStatus.NONE: "Awaiting processing",
@@ -63,7 +78,8 @@ async def _active_orders(telegram_id: int):
 def _tracking_kb(orders):
     kb = InlineKeyboardBuilder()
     for o in orders:
-        kb.button(text=f"{o.code} · {o.status.value}", callback_data=f"track:{o.code}")
+        fulfillment = o.sourcing.fulfillment_status.value if o.sourcing else o.status.value
+        kb.button(text=f"{o.code} · {fulfillment}", callback_data=f"track:{o.code}")
     kb.button(text="⬅️ Main Menu", callback_data="menu:home")
     kb.adjust(1)
     return kb.as_markup()
@@ -116,7 +132,19 @@ async def track_command(message: Message, state: FSMContext) -> None:
 async def track_order(call: CallbackQuery) -> None:
     code = call.data.split("track:", 1)[1]
     async with get_session() as session:
-        order = (await session.execute(select(Order).where(Order.code == code))).scalar_one_or_none()
+        # Ownership check: only reveal an order to the customer who placed it.
+        # Order codes are sequential, so looking up by code alone would leak
+        # another customer's status, area, rider, and pickup code.
+        customer = (
+            await session.execute(select(Customer).where(Customer.telegram_id == call.from_user.id))
+        ).scalar_one_or_none()
+        order = None
+        if customer is not None:
+            order = (
+                await session.execute(
+                    select(Order).where(Order.code == code, Order.customer_id == customer.id)
+                )
+            ).scalar_one_or_none()
         if order is None:
             await call.answer("Order not found.", show_alert=True)
             return
@@ -135,16 +163,29 @@ async def track_order(call: CallbackQuery) -> None:
         area = order.delivery_area
         tracking_url = link.url if link else None
         rider_name = rider.rider_name if rider else None
+        fulfillment_status = order.sourcing.fulfillment_status if order.sourcing else None
+        customer_status = order.sourcing.customer_facing_status if order.sourcing else None
+        pickup_code = order.sourcing.pickup_code if order.sourcing else None
 
     lines = [
         f"📦 <b>Order {code}</b>",
         f"Status: <b>{order_status}</b>",
         f"Delivery: {delivery_label}",
     ]
+    if fulfillment_status:
+        lines.append(f"Fulfilment: {_FULFILLMENT_LABEL.get(fulfillment_status, fulfillment_status.value)}")
+    if customer_status:
+        lines.append(customer_status)
     if area:
         lines.append(f"Area: {area}")
     if rider_name:
         lines.append(f"Rider: {rider_name}")
+    if pickup_code and fulfillment_status in (
+        FulfillmentStatus.PACK_READY,
+        FulfillmentStatus.DISPATCH_ASSIGNED,
+        FulfillmentStatus.PICKED_UP,
+    ):
+        lines.append(f"Pickup code: <code>{pickup_code}</code>")
     lines.append("\nWe'll message you as your order progresses.")
 
     kb = InlineKeyboardBuilder()

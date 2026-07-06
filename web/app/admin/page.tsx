@@ -1,9 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import {
   LayoutGrid, ClipboardList, Package, Users, DollarSign, ShoppingBag,
-  LogOut, Search, Save, RefreshCcw,
+  LogOut, Mail, Search, Save, RefreshCcw, ShieldCheck, Truck, Workflow, Building2,
 } from "lucide-react";
 import {
   adminFetch, setAdminToken, clearAdminToken, getAdminToken, anyPermission,
@@ -11,7 +12,7 @@ import {
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 interface AdminMe {
-  telegram_id: number;
+  telegram_id: number | null;
   full_name: string | null;
   roles: string[];
   role_labels?: string[];
@@ -30,6 +31,8 @@ interface AdminOrder {
   id: string;
   code: string;
   status: string;
+  fulfillment_status?: string | null;
+  customer_facing_status?: string | null;
   total: string;
   created_at: string;
 }
@@ -77,6 +80,8 @@ type ProductDraft = {
 const ALL_NAV = [
   { key: "overview",  icon: LayoutGrid,    label: "Overview",   permissions: [] as string[] },
   { key: "catalog",   icon: ShoppingBag,   label: "Inventory",  permissions: ["edit_pricing", "view_all_products"] },
+  { key: "sourcing",  icon: Workflow,      label: "Sourcing",   permissions: ["view_sourcing_requests", "view_partner_directory", "view_all_orders", "edit_pricing"] },
+  { key: "dispatch",  icon: Truck,         label: "Dispatch",   permissions: ["view_dispatch_queue", "assign_rider", "mark_picked_up"] },
   { key: "requests",  icon: ClipboardList, label: "Requests",   permissions: ["view_product_requests"] },
   { key: "orders",    icon: Package,       label: "Orders",     permissions: ["view_all_orders", "view_customer_orders"] },
   { key: "customers", icon: Users,         label: "Customers",  permissions: ["view_customers"] },
@@ -107,26 +112,51 @@ const REQ_STATUS_LABEL: Record<string, string> = {
   CLOSED: "Closed",
 };
 
-// ── Telegram OTP login gate ───────────────────────────────────────────────────
-function TelegramOtpGate({ onLogin }: { onLogin: (admin: AdminMe) => void }) {
-  const [step, setStep] = useState<"id" | "code">("id");
+// ── Staff OTP login gate ──────────────────────────────────────────────────────
+function StaffOtpGate({ onLogin }: { onLogin: (admin: AdminMe) => void }) {
+  const [channel, setChannel] = useState<"email" | "telegram">("email");
+  const [step, setStep] = useState<"identifier" | "code">("identifier");
   const [telegramId, setTelegramId] = useState("");
+  const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   async function handleSendCode() {
-    const tid = telegramId.trim();
-    if (!tid || !/^\d+$/.test(tid)) {
-      setError("Enter your numeric Telegram ID.");
+    if (channel === "telegram") {
+      const tid = telegramId.trim();
+      if (!tid || !/^\d+$/.test(tid)) {
+        setError("Enter your numeric Telegram ID.");
+        return;
+      }
+      setLoading(true);
+      setError("");
+      try {
+        await adminFetch<{ ok: boolean }>("/admin/request-otp", {
+          method: "POST",
+          body: JSON.stringify({ telegram_id: Number(tid) }),
+        });
+        setStep("code");
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Could not send code.");
+      } finally {
+        setLoading(false);
+      }
       return;
     }
+
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail || !normalizedEmail.includes("@")) {
+      setError("Enter the email assigned to your operations account.");
+      return;
+    }
+
     setLoading(true);
     setError("");
     try {
-      await adminFetch<{ ok: boolean }>("/admin/request-otp", {
+      await adminFetch<{ ok: boolean }>("/admin/request-email-otp", {
         method: "POST",
-        body: JSON.stringify({ telegram_id: Number(tid) }),
+        body: JSON.stringify({ email: normalizedEmail }),
       });
       setStep("code");
     } catch (e) {
@@ -139,16 +169,21 @@ function TelegramOtpGate({ onLogin }: { onLogin: (admin: AdminMe) => void }) {
   async function handleVerify() {
     const c = code.trim();
     if (!c || c.length !== 6) {
-      setError("Enter the 6-digit code from Telegram.");
+      setError("Enter the 6-digit verification code.");
       return;
     }
     setLoading(true);
     setError("");
     try {
-      const { token } = await adminFetch<{ token: string }>("/admin/verify-otp", {
-        method: "POST",
-        body: JSON.stringify({ telegram_id: Number(telegramId.trim()), code: c }),
-      });
+      const { token } = channel === "telegram"
+        ? await adminFetch<{ token: string }>("/admin/verify-otp", {
+            method: "POST",
+            body: JSON.stringify({ telegram_id: Number(telegramId.trim()), code: c }),
+          })
+        : await adminFetch<{ token: string }>("/admin/verify-email-otp", {
+            method: "POST",
+            body: JSON.stringify({ email: email.trim().toLowerCase(), code: c }),
+          });
       setAdminToken(token);
       const me = await adminFetch<AdminMe>("/admin/me");
       onLogin(me);
@@ -161,36 +196,95 @@ function TelegramOtpGate({ onLogin }: { onLogin: (admin: AdminMe) => void }) {
 
   return (
     <div className="flex min-h-screen items-center justify-center px-5">
-      <div className="w-full max-w-sm space-y-6">
+      <div className="w-full max-w-md space-y-6">
         <div className="text-center">
-          <p className="font-syne text-[20px] font-bold text-white">Peaceway Admin</p>
-          <p className="mt-1 text-[13px] text-white/40">Staff access only</p>
+          <p className="font-syne text-[20px] font-bold text-white">Peaceway Staff</p>
+          <p className="mt-1 text-[13px] text-white/40">Internal team access for Peaceway staff and admins</p>
         </div>
         <div className="rounded-2xl border border-white/8 bg-white/4 p-6 space-y-4">
-          {step === "id" ? (
+          <div className="rounded-2xl border border-amber-500/20 bg-amber-500/8 px-4 py-3 text-[12px] text-amber-100/85">
+            Wholesalers and suppliers should not sign in here.
+            {" "}
+            <Link href="/partners" className="font-semibold text-amber-300 underline-offset-2 hover:underline">
+              Use the partner portal instead
+            </Link>
+            .
+          </div>
+          <div className="grid grid-cols-2 gap-2 rounded-2xl border border-white/8 bg-black/20 p-1">
+            <button
+              onClick={() => {
+                setChannel("email");
+                setStep("identifier");
+                setCode("");
+                setError("");
+              }}
+              className={[
+                "inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm transition",
+                channel === "email" ? "bg-emerald-500 text-black font-semibold" : "text-white/55 hover:text-white",
+              ].join(" ")}
+            >
+              <Mail className="h-4 w-4" />
+              Email sign-in
+            </button>
+            <button
+              onClick={() => {
+                setChannel("telegram");
+                setStep("identifier");
+                setCode("");
+                setError("");
+              }}
+              className={[
+                "inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm transition",
+                channel === "telegram" ? "bg-emerald-500 text-black font-semibold" : "text-white/55 hover:text-white",
+              ].join(" ")}
+            >
+              <ShieldCheck className="h-4 w-4" />
+              Telegram sign-in
+            </button>
+          </div>
+
+          {step === "identifier" ? (
             <>
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-medium text-white/50">Your Telegram ID</label>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  value={telegramId}
-                  onChange={(e) => setTelegramId(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleSendCode()}
-                  placeholder="e.g. 123456789"
-                  className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-white/30 outline-none focus:border-emerald-500/50"
-                />
-                <p className="text-[11px] text-white/30">
-                  Send <code>/myid</code> to the Peaceway bot to find your ID.
-                </p>
-              </div>
+              {channel === "telegram" ? (
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-medium text-white/50">Your Telegram ID</label>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={telegramId}
+                    onChange={(e) => setTelegramId(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleSendCode()}
+                    placeholder="e.g. 123456789"
+                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-white/30 outline-none focus:border-emerald-500/50"
+                  />
+                  <p className="text-[11px] text-white/30">
+                    Send <code>/myid</code> to the Peaceway bot to find your ID.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-medium text-white/50">Work email</label>
+                  <input
+                    type="email"
+                    autoComplete="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleSendCode()}
+                    placeholder="operations@company.com"
+                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-white/30 outline-none focus:border-emerald-500/50"
+                  />
+                  <p className="text-[11px] text-white/30">
+                    Use the email assigned to your Peaceway operations account.
+                  </p>
+                </div>
+              )}
               {error && <p className="text-[13px] text-red-400">{error}</p>}
               <button
                 onClick={handleSendCode}
-                disabled={loading || !telegramId.trim()}
+                disabled={loading || (channel === "telegram" ? !telegramId.trim() : !email.trim())}
                 className="w-full rounded-xl bg-emerald-500 py-3.5 text-sm font-semibold text-black disabled:opacity-50"
               >
-                {loading ? "Sending…" : "Send Code via Telegram"}
+                {loading ? "Sending…" : channel === "telegram" ? "Send Code via Telegram" : "Send Code via Email"}
               </button>
             </>
           ) : (
@@ -208,7 +302,11 @@ function TelegramOtpGate({ onLogin }: { onLogin: (admin: AdminMe) => void }) {
                   className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-white/30 outline-none focus:border-emerald-500/50 tracking-[0.3em]"
                   autoFocus
                 />
-                <p className="text-[11px] text-white/30">Check your Telegram — the code expires in 5 minutes.</p>
+                <p className="text-[11px] text-white/30">
+                  {channel === "telegram"
+                    ? "Check your Telegram — the code expires in 5 minutes."
+                    : "Check your email inbox — the code expires in 5 minutes."}
+                </p>
               </div>
               {error && <p className="text-[13px] text-red-400">{error}</p>}
               <button
@@ -219,10 +317,10 @@ function TelegramOtpGate({ onLogin }: { onLogin: (admin: AdminMe) => void }) {
                 {loading ? "Verifying…" : "Verify & Sign In"}
               </button>
               <button
-                onClick={() => { setStep("id"); setCode(""); setError(""); }}
+                onClick={() => { setStep("identifier"); setCode(""); setError(""); }}
                 className="w-full text-center text-[12px] text-white/30 hover:text-white/60"
               >
-                ← Resend / use different ID
+                ← Resend / use a different sign-in method
               </button>
             </>
           )}
@@ -337,6 +435,32 @@ function Dashboard({ admin }: { admin: AdminMe }) {
         )}
         {tab === "catalog" && (
           <CatalogTab />
+        )}
+        {tab === "sourcing" && (
+          <div className="space-y-4">
+            <h2 className="font-syne text-[18px] font-bold text-white">Partner Sourcing</h2>
+            <div className="rounded-2xl border border-white/8 bg-white/4 p-5 text-sm text-white/60">
+              Track out-of-stock rescue workflows, confirm partner stock, and keep the customer under Peaceway tracking.
+              <div className="mt-4">
+                <Link href="/admin/sourcing" className="inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-2 font-semibold text-black">
+                  Open Sourcing Control
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
+        {tab === "dispatch" && (
+          <div className="space-y-4">
+            <h2 className="font-syne text-[18px] font-bold text-white">Dispatch Readiness</h2>
+            <div className="rounded-2xl border border-white/8 bg-white/4 p-5 text-sm text-white/60">
+              View pickup-ready partner orders and keep last-mile delivery under Peaceway verification.
+              <div className="mt-4">
+                <Link href="/admin/dispatch" className="inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-2 font-semibold text-black">
+                  Open Dispatch Queue
+                </Link>
+              </div>
+            </div>
+          </div>
         )}
       </main>
     </div>
@@ -664,6 +788,8 @@ function OverviewTab({
     return d.getDate() === now.getDate() && d.getMonth() === now.getMonth();
   });
   const todayRevenue = todayOrders.reduce((s, o) => s + Number(o.total), 0);
+  const sourcingOrders = orders.filter((o) => !!o.fulfillment_status && o.fulfillment_status !== "in_stock").length;
+  const dispatchReady = orders.filter((o) => ["pack_ready", "dispatch_assigned", "picked_up"].includes(o.fulfillment_status ?? "")).length;
 
   return (
     <div className="space-y-6">
@@ -678,7 +804,7 @@ function OverviewTab({
           { label: "Pending requests", value: String(pending), note: "Need attention" },
           { label: "Today's orders", value: String(todayOrders.length), note: "New orders" },
           { label: "Today's revenue", value: `₦${todayRevenue.toLocaleString()}`, note: "From orders" },
-          { label: "Total requests", value: String(requests.length), note: "All time" },
+          { label: "Sourcing orders", value: String(sourcingOrders), note: "Network workflow" },
         ].map((s) => (
           <div key={s.label} className="rounded-2xl border border-white/8 bg-white/4 p-4">
             <p className="text-[22px] font-bold text-white">{s.value}</p>
@@ -701,6 +827,44 @@ function OverviewTab({
         </div>
         <ShoppingBag className="h-5 w-5 shrink-0 text-emerald-400" />
       </button>
+      <div className="grid gap-3 md:grid-cols-2">
+        <Link
+          href="/admin/sourcing"
+          className="flex items-center justify-between rounded-2xl border border-white/8 bg-white/4 p-4 transition hover:border-emerald-500/30"
+        >
+          <div>
+            <p className="font-syne text-[15px] font-bold text-white">Sourcing Control</p>
+            <p className="mt-1 text-[12px] text-white/50">
+              Review out-of-stock orders, partner confirmations, and customer-facing sourcing status.
+            </p>
+          </div>
+          <Workflow className="h-5 w-5 shrink-0 text-emerald-400" />
+        </Link>
+        <Link
+          href="/admin/dispatch"
+          className="flex items-center justify-between rounded-2xl border border-white/8 bg-white/4 p-4 transition hover:border-emerald-500/30"
+        >
+          <div>
+            <p className="font-syne text-[15px] font-bold text-white">Dispatch Readiness</p>
+            <p className="mt-1 text-[12px] text-white/50">
+              {dispatchReady} sourcing order{dispatchReady === 1 ? "" : "s"} are currently at pack-ready or later.
+            </p>
+          </div>
+          <Truck className="h-5 w-5 shrink-0 text-emerald-400" />
+        </Link>
+        <Link
+          href="/admin/partners"
+          className="flex items-center justify-between rounded-2xl border border-white/8 bg-white/4 p-4 transition hover:border-emerald-500/30 md:col-span-2"
+        >
+          <div>
+            <p className="font-syne text-[15px] font-bold text-white">Partner Directory</p>
+            <p className="mt-1 text-[12px] text-white/50">
+              Onboard approved wholesalers and suppliers and manage their portal access.
+            </p>
+          </div>
+          <Building2 className="h-5 w-5 shrink-0 text-emerald-400" />
+        </Link>
+      </div>
       <div>
         <div className="flex items-center justify-between mb-3">
           <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/40">Recent Requests</p>
@@ -771,6 +935,18 @@ function OrdersTab({ orders, loading }: { orders: AdminOrder[]; loading: boolean
     CANCELLED: "bg-red-500/15 text-red-400 border-red-500/25",
     NEW: "bg-white/8 text-white/50 border-white/12",
   };
+  const FULFILLMENT_LABEL: Record<string, string> = {
+    in_stock: "In stock now",
+    source_from_network: "Source from network",
+    sourcing_requested: "Sourcing requested",
+    partner_confirmed: "Partner confirmed",
+    partner_rejected: "Partner rejected",
+    pack_ready: "Pack ready",
+    dispatch_assigned: "Dispatch assigned",
+    picked_up: "Picked up",
+    delivered: "Delivered",
+    failed: "Failed",
+  };
   return (
     <div className="space-y-4">
       <h2 className="font-syne text-[18px] font-bold text-white">All Orders</h2>
@@ -787,10 +963,20 @@ function OrdersTab({ orders, loading }: { orders: AdminOrder[]; loading: boolean
                 <p className="text-[11px] text-white/40 mt-0.5">
                   ₦{Number(o.total).toLocaleString()} · {new Date(o.created_at).toLocaleDateString("en-NG")}
                 </p>
+                {o.customer_facing_status && (
+                  <p className="text-[11px] text-emerald-300/75 mt-1">{o.customer_facing_status}</p>
+                )}
               </div>
-              <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[10px] font-semibold ${ORDER_STATUS_COLOR[o.status] ?? "bg-white/8 text-white/50 border-white/12"}`}>
-                {o.status}
-              </span>
+              <div className="text-right">
+                <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[10px] font-semibold ${ORDER_STATUS_COLOR[o.status] ?? "bg-white/8 text-white/50 border-white/12"}`}>
+                  {o.status}
+                </span>
+                {o.fulfillment_status && (
+                  <p className="mt-1 text-[10px] text-white/40">
+                    {FULFILLMENT_LABEL[o.fulfillment_status] ?? o.fulfillment_status}
+                  </p>
+                )}
+              </div>
             </div>
           ))
         )}
@@ -817,6 +1003,8 @@ export default function AdminPage() {
   }, []);
 
   if (!checked) return null;
-  if (admin) return <Dashboard admin={admin} />;
-  return <TelegramOtpGate onLogin={(me) => setAdmin(me)} />;
+  if (admin) {
+    return <Dashboard admin={admin} />;
+  }
+  return <StaffOtpGate onLogin={(me) => setAdmin(me)} />;
 }

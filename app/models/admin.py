@@ -55,7 +55,7 @@ class AdminUser(Base, TimestampMixin):
     __tablename__ = "admin_users"
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
-    telegram_id: Mapped[int] = mapped_column(BigInteger, unique=True, index=True, nullable=False)
+    telegram_id: Mapped[int | None] = mapped_column(BigInteger, unique=True, index=True, nullable=True)
     full_name: Mapped[str | None] = mapped_column(String(255))
     email: Mapped[str | None] = mapped_column(String(255))
     # is_active stays the literal access gate used by every existing query
@@ -120,5 +120,21 @@ class WebAdminSession(Base):
     )
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     last_used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+    admin: Mapped["AdminUser"] = relationship(lazy="selectin")
+
+
+class WebAdminEmailOtp(Base, TimestampMixin):
+    """Short-lived OTP for web-first operations login."""
+    __tablename__ = "web_admin_email_otps"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    admin_id: Mapped[UUID] = mapped_column(
+        ForeignKey("admin_users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    email: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
+    code_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    used: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     admin: Mapped["AdminUser"] = relationship(lazy="selectin")

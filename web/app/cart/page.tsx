@@ -36,8 +36,8 @@ export default function CartPage() {
   const total = subtotal + DELIVERY_FEE;
 
   return (
-    <AppShell>
-      <div className="space-y-6 px-5 pt-10 pb-8">
+    <AppShell back={{ title: "Your Cart", fallbackHref: "/shop" }}>
+      <div className="space-y-6 px-5 pt-6 pb-8">
         <h1 className="font-syne text-[22px] font-bold text-white">Your Cart</h1>
 
         {cart.length === 0 && (

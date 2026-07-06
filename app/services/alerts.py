@@ -36,6 +36,13 @@ def order_summary(order: Order, include_contact: bool = True) -> str:
         # Privacy: hide personal contact details from roles that don't need them.
         lines.append(f"📍 Area: {order.delivery_area or '-'}")
     lines.append("")
+    if order.sourcing:
+        lines.append(f"Fulfilment: <b>{order.sourcing.fulfillment_status.value}</b>")
+        if order.sourcing.customer_facing_status:
+            lines.append(order.sourcing.customer_facing_status)
+        if order.sourcing.pickup_code:
+            lines.append(f"Pickup code: <code>{order.sourcing.pickup_code}</code>")
+        lines.append("")
     for it in order.items:
         rx = " 💊Rx" if it.requires_prescription else ""
         lines.append(f"• {it.product_name} ×{it.quantity} · ₦{it.line_total:,.0f}{rx}")
@@ -102,3 +109,14 @@ async def alert_rx_review(bot: Bot, order_id: UUID) -> None:
     order = await _load_order(order_id)
     if order:
         await notify_roles(bot, order, {rbac.LEAD_PHARMACIST, rbac.PHARMACIST_ADMIN}, "💊 Prescription order needs review")
+
+
+async def alert_sourcing_requested(bot: Bot, order_id: UUID) -> None:
+    order = await _load_order(order_id)
+    if order:
+        await notify_roles(
+            bot,
+            order,
+            {rbac.SYSTEM_OWNER, rbac.SALES_SUPPORT},
+            "📡 Out-of-stock order needs approved-network sourcing",
+        )

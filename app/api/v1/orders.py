@@ -6,18 +6,13 @@ from uuid import UUID, uuid4
 
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
-from sqlalchemy import select, func
+from sqlalchemy import select
 
 from app.api.deps import CurrentCustomer, DbSession
-from app.models.catalog import Product, ProductPricing
-from app.models.orders import (
-    Customer,
-    Order,
-    OrderItem,
-    OrderStatus,
-    DeliveryStatus,
-    RxStatus,
-)
+from app.models.catalog import Product
+from app.models.orders import Order, PaymentMethod
+from app.services.orders import create_order as create_order_record
+from app.services.pricing import FeeConfig, QuoteItem, quote_order
 
 router = APIRouter(tags=["orders"])
 
@@ -49,6 +44,8 @@ class OrderOut(BaseModel):
     id: str
     code: str
     status: str
+    fulfillment_status: str | None = None
+    customer_facing_status: str | None = None
     delivery_status: str
     subtotal: str
     delivery_fee: str
@@ -64,17 +61,13 @@ class OrderOut(BaseModel):
 DELIVERY_FEE = Decimal("500")  # flat ₦500 for now
 
 
-def _generate_code(seq: int) -> str:
-    from datetime import date
-    y = date.today().year
-    return f"PW-{y}-{seq:04d}"
-
-
 def _order_out(order: Order) -> OrderOut:
     return OrderOut(
         id=str(order.id),
         code=order.code,
         status=order.status.value,
+        fulfillment_status=order.sourcing.fulfillment_status.value if order.sourcing else None,
+        customer_facing_status=order.sourcing.customer_facing_status if order.sourcing else None,
         delivery_status=order.delivery_status.value,
         subtotal=str(order.subtotal),
         delivery_fee=str(order.delivery_fee),
@@ -107,6 +100,13 @@ async def create_order(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="Cart is empty.",
         )
+    try:
+        payment_method = PaymentMethod(body.payment_method)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Unsupported payment method.",
+        ) from exc
 
     # Resolve products + prices
     product_ids = [UUID(item.product_id) for item in body.items]
@@ -124,12 +124,9 @@ async def create_order(
 
     product_map = {p.id: p for p in products}
 
-    # Build order code — use current order count as sequence
-    count = (await db.execute(select(func.count()).select_from(Order))).scalar_one()
-    code = _generate_code(count + 1)
-
     subtotal = Decimal("0")
-    order_items: list[OrderItem] = []
+    quote_items: list[QuoteItem] = []
+    service_cart: list[dict] = []
 
     for ci in body.items:
         pid = UUID(ci.product_id)
@@ -142,37 +139,40 @@ async def create_order(
         unit_price = p.pricing.selling_price
         line_total = unit_price * ci.quantity
         subtotal += line_total
-        order_items.append(
-            OrderItem(
-                product_id=pid,
-                product_name=p.name,
-                quantity=ci.quantity,
-                unit_price=unit_price,
-                line_total=line_total,
-                requires_prescription=p.requires_prescription,
-            )
+        quote_items.append(
+            QuoteItem(name=p.name, quantity=ci.quantity, selling_price=unit_price)
+        )
+        service_cart.append(
+            {
+                "product_id": str(pid),
+                "name": p.name,
+                "unit_price": str(unit_price),
+                "qty": ci.quantity,
+                "requires_prescription": p.requires_prescription,
+            }
         )
 
-    total = subtotal + DELIVERY_FEE
-
-    order = Order(
-        code=code,
-        customer_id=customer.id,
-        status=OrderStatus.NEW,
-        rx_status=RxStatus.NOT_REQUIRED,
-        delivery_status=DeliveryStatus.NONE,
-        subtotal=subtotal,
-        delivery_fee=DELIVERY_FEE,
-        total=total,
-        delivery_address=body.delivery_address,
-        delivery_area=body.delivery_area or customer.delivery_area,
-        delivery_note=body.delivery_note,
-        delivery_name=customer.full_name,
-        delivery_phone=customer.phone,
-        items=order_items,
+    quote = quote_order(
+        quote_items,
+        DELIVERY_FEE,
+        FeeConfig(),
+        payment_method,
     )
-    db.add(order)
-    await db.flush()
+
+    order = await create_order_record(
+        db,
+        customer_id=customer.id,
+        cart=service_cart,
+        quote=quote,
+        delivery={
+            "full_name": customer.full_name,
+            "phone": customer.phone,
+            "address": body.delivery_address,
+            "area": body.delivery_area or customer.delivery_area,
+            "note": body.delivery_note,
+        },
+        payment_method=payment_method,
+    )
 
     return _order_out(order)
 

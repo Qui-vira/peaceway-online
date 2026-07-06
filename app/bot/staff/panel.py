@@ -80,10 +80,18 @@ async def render_panel(role_keys: set[str]) -> tuple[str, InlineKeyboardMarkup]:
 
 @router.message(Command("myid"))
 async def my_id(message: Message) -> None:
-    await message.answer(
-        f"Your Telegram numeric ID is:\n<code>{message.from_user.id}</code>\n\n"
-        "Send this to the System Owner to be added as staff."
-    )
+    role_keys = await get_role_keys(message.from_user.id)
+    text = f"Your Telegram numeric ID is:\n<code>{message.from_user.id}</code>"
+    if role_keys:
+        role_names = ", ".join(rbac.role_label(r) for r in sorted(role_keys))
+        text += (
+            f"\n\n✅ You are recognised as staff.\n"
+            f"Roles: <b>{role_names}</b>\n"
+            "Use /admin to open the staff panel."
+        )
+    else:
+        text += "\n\nSend this to the System Owner to be added as staff."
+    await message.answer(text)
 
 
 async def _no_access_message(telegram_id: int) -> str:
