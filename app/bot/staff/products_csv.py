@@ -1,8 +1,10 @@
 """Admin CSV bulk price/stock import.
 
 Matches rows to EXISTING products by normalized name and updates pricing, stock,
-category, Rx status, availability, and description. Never creates new products;
-unmatched rows are reported for review. Dry-run first, then confirm to commit.
+category, Rx status, availability, dosage, and description. Rows that match no
+existing product are CREATED as new catalog entries. New products start as
+review-required (not sellable) unless the row marks them OTC with price + stock.
+Dry-run first, then confirm to commit.
 
 Expected columns (header row, case-insensitive):
   product_name, category, cost_price, selling_price, stock, dosage,
@@ -23,13 +25,10 @@ from app.bot.staff.states import ProductAdminFlow
 from app.core.db import get_session
 from app.core.security import get_role_keys, has
 from app.models import Product
-from app.services.products_admin import apply_change, parse_int, parse_money
+from app.services.products_admin import apply_csv_row, create_product_from_name
 from scripts.import_pharmaos import normalize_name  # reuse name normalization
 
 router = Router(name="staff-products-csv")
-
-_TRUE = {"rx", "prescription", "prescription-required", "true", "yes", "1", "required"}
-_AVAIL_TRUE = {"yes", "true", "1", "available", "in stock", "in_stock"}
 
 
 async def _guard(event) -> bool:
@@ -48,7 +47,9 @@ async def ask_csv(call: CallbackQuery, state: FSMContext) -> None:
         "Send a .csv file with a header row including:\n"
         "<code>product_name, category, cost_price, selling_price, stock, dosage, "
         "prescription, availability, description</code>\n\n"
-        "Products are matched by name. Unmatched rows are reported, not created."
+        "Existing products are updated by name; new names are added to the catalog.\n"
+        "New items go live only when the row is marked OTC (prescription) with a "
+        "selling price and stock — otherwise they wait for pharmacist review."
     )
     await call.answer()
 
@@ -90,26 +91,34 @@ async def got_csv(message: Message, state: FSMContext) -> None:
         products = (await session.execute(select(Product))).scalars().all()
         by_name = {_norm_key(p.name): p.id for p in products}
 
-    matched, unmatched = [], []
+    matched, to_create = [], []
+    seen_new: set[str] = set()  # dedupe brand-new names within this file
     for r in rows:
-        pid = by_name.get(_norm_key(r["product_name"]))
-        (matched if pid else unmatched).append((str(pid) if pid else None, r))
+        key = _norm_key(r["product_name"])
+        pid = by_name.get(key)
+        if pid:
+            matched.append((str(pid), r))
+        elif key not in seen_new:
+            seen_new.add(key)
+            to_create.append((None, r))
+        # duplicate new name in the same file → skip the extra row
 
-    await state.update_data(csv_rows=[(pid, r) for pid, r in matched])
+    # Persist both sets so commit can update matches and create the rest.
+    await state.update_data(csv_rows=matched + to_create)
     await state.set_state(ProductAdminFlow.csv_confirm)
 
-    sample_unmatched = "\n".join(f"• {u[1]['product_name']}" for u in unmatched[:8])
+    sample_new = "\n".join(f"• {u[1]['product_name']}" for u in to_create[:8])
     text = (
         f"📋 <b>CSV dry run</b>\n\n"
         f"Rows: {len(rows)}\n"
-        f"✅ Matched (will update): <b>{len(matched)}</b>\n"
-        f"❓ Unmatched (skipped): <b>{len(unmatched)}</b>\n"
+        f"✅ Existing (will update): <b>{len(matched)}</b>\n"
+        f"🆕 New (will be added): <b>{len(to_create)}</b>\n"
     )
-    if sample_unmatched:
-        text += f"\nUnmatched examples:\n{sample_unmatched}\n"
-    text += "\nApply the matched updates?"
+    if sample_new:
+        text += f"\nNew products:\n{sample_new}\n"
+    text += "\nApply these changes?"
     kb = InlineKeyboardBuilder()
-    kb.button(text=f"✅ Apply {len(matched)} updates", callback_data="padmin:csvcommit")
+    kb.button(text=f"✅ Update {len(matched)} · Add {len(to_create)}", callback_data="padmin:csvcommit")
     kb.button(text="❌ Cancel", callback_data="staff:products")
     kb.adjust(1)
     await message.answer(text, reply_markup=kb.as_markup())
@@ -124,34 +133,26 @@ async def commit_csv(call: CallbackQuery, state: FSMContext) -> None:
     rows = data.get("csv_rows", [])
     await state.clear()
     admin_id = call.from_user.id
-    updated = 0
+    updated = created = 0
 
     async with get_session() as session:
         for pid, r in rows:
-            p = (await session.execute(select(Product).where(Product.id == pid))).scalar_one_or_none()
-            if p is None:
-                continue
-            if r.get("cost_price") and parse_money(r["cost_price"]) is not None:
-                await apply_change(session, p, "cost_price", r["cost_price"], admin_id, reason="CSV import")
-            if r.get("selling_price") and parse_money(r["selling_price"]) is not None:
-                await apply_change(session, p, "selling_price", r["selling_price"], admin_id, reason="CSV import")
-            if r.get("stock") and parse_int(r["stock"]) is not None:
-                await apply_change(session, p, "stock", r["stock"], admin_id, reason="CSV import")
-            if r.get("category"):
-                cat = r["category"].strip().title()
-                try:
-                    await apply_change(session, p, "category", cat, admin_id, reason="CSV import")
-                except ValueError:
-                    pass  # unknown category, skip silently
-            if r.get("prescription"):
-                await apply_change(session, p, "rx", r["prescription"].lower() in _TRUE, admin_id, reason="CSV import")
-            if r.get("availability"):
-                await apply_change(session, p, "available", r["availability"].lower() in _AVAIL_TRUE, admin_id, reason="CSV import")
-            if r.get("description"):
-                p.description = r["description"][:1000]
-            updated += 1
+            if pid is None:
+                p = await create_product_from_name(
+                    session, r["product_name"], admin_id, strength=r.get("dosage") or None
+                )
+                created += 1
+            else:
+                p = (await session.execute(select(Product).where(Product.id == pid))).scalar_one_or_none()
+                if p is None:
+                    continue
+                updated += 1
+            await apply_csv_row(session, p, r, admin_id)
 
     kb = InlineKeyboardBuilder()
     kb.button(text="🏠 Staff Menu", callback_data="staff:home")
-    await call.message.edit_text(f"✅ CSV import complete. Updated <b>{updated}</b> products.", reply_markup=kb.as_markup())
+    await call.message.edit_text(
+        f"✅ CSV import complete.\nUpdated <b>{updated}</b> · Added <b>{created}</b> products.",
+        reply_markup=kb.as_markup(),
+    )
     await call.answer("Imported ✅")

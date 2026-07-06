@@ -14,6 +14,10 @@ from app.models import AdminActivityLog, PriceHistory, Product, ProductPricing
 
 VALID_CATEGORIES = ["Medicines", "Medical Devices", "Vaccines", "Supplements", "Veterinary", "Other"]
 
+# CSV cell vocabularies shared by the bulk importer.
+RX_TRUE = {"rx", "prescription", "prescription-required", "true", "yes", "1", "required"}
+AVAIL_TRUE = {"yes", "true", "1", "available", "in stock", "in_stock"}
+
 
 def parse_money(raw: str) -> Decimal | None:
     try:
@@ -132,3 +136,47 @@ async def apply_change(
         return f"Prescription required: {bool(new_value)}"
 
     raise ValueError(f"Unknown field: {field}")
+
+
+async def create_product_from_name(
+    session: AsyncSession, name: str, admin_id: int, *, strength: str | None = None
+) -> Product:
+    """Create a bare product for a CSV row that matched no existing catalog entry.
+
+    `generic_name` is required by the model; we seed it from the given name (staff
+    can refine later). The product starts with `requires_review=True` (model
+    default) so it is NOT sellable until a row marks it OTC or a pharmacist clears
+    it — consistent with the catalog safety rule.
+    """
+    name = name.strip()
+    product = Product(name=name, generic_name=name)
+    if strength:
+        product.strength = strength.strip()[:100]
+    session.add(product)
+    await session.flush()  # assign product.id before pricing/history writes
+    _record(session, product.id, "created", None, name, admin_id, reason="CSV import (new)")
+    return product
+
+
+async def apply_csv_row(session: AsyncSession, product: Product, row: dict, admin_id: int) -> None:
+    """Apply one CSV row's columns to a product (used for both updates and creates)."""
+    reason = "CSV import"
+    if row.get("cost_price") and parse_money(row["cost_price"]) is not None:
+        await apply_change(session, product, "cost_price", row["cost_price"], admin_id, reason=reason)
+    if row.get("selling_price") and parse_money(row["selling_price"]) is not None:
+        await apply_change(session, product, "selling_price", row["selling_price"], admin_id, reason=reason)
+    if row.get("stock") and parse_int(row["stock"]) is not None:
+        await apply_change(session, product, "stock", row["stock"], admin_id, reason=reason)
+    if row.get("category"):
+        try:
+            await apply_change(session, product, "category", row["category"].strip().title(), admin_id, reason=reason)
+        except ValueError:
+            pass  # unknown category — skip silently
+    if row.get("prescription"):
+        await apply_change(session, product, "rx", row["prescription"].lower() in RX_TRUE, admin_id, reason=reason)
+    if row.get("availability"):
+        await apply_change(session, product, "available", row["availability"].lower() in AVAIL_TRUE, admin_id, reason=reason)
+    if row.get("dosage"):
+        product.strength = row["dosage"].strip()[:100]
+    if row.get("description"):
+        product.description = row["description"][:1000]
