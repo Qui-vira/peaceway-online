@@ -40,11 +40,14 @@ async def _guard(call: CallbackQuery) -> set[str] | None:
 
 @router.callback_query(F.data == "staff:products")
 async def products_home(call: CallbackQuery) -> None:
-    if await _guard(call) is None:
+    role_keys = await _guard(call)
+    if role_keys is None:
         return
     kb = InlineKeyboardBuilder()
     kb.button(text="🔎 Search Product", callback_data="padmin:search")
     kb.button(text="📷 Scan Product", callback_data="padmin:scan")
+    if has(role_keys, "scan_inventory"):
+        kb.button(text="🤖 Scan Stock From Photos", callback_data="invscan:start")
     kb.button(text="📤 Import Products (CSV)", callback_data="padmin:csv")
     kb.button(text="🏠 Staff Menu", callback_data="staff:home")
     kb.adjust(1)

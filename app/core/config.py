@@ -102,6 +102,14 @@ class Settings(BaseSettings):
     # Ships OFF so the feature can deploy dormant and be enabled per env.
     reminders_enabled: bool = False
 
+    # AI inventory photo scanning (staff "Scan Stock From Photos" workflow).
+    # The feature stays dormant until ANTHROPIC_API_KEY is set.
+    anthropic_api_key: str = ""
+    inventory_vision_provider: str = "anthropic"
+    inventory_vision_model: str = "claude-opus-4-8"
+    # Hard cap on photos per scan session (request-size / cost guard).
+    inventory_scan_max_images: int = 20
+
     # Runtime
     env: str = "development"
     log_level: str = "INFO"
@@ -152,6 +160,10 @@ class Settings(BaseSettings):
     @property
     def resend_enabled(self) -> bool:
         return bool(self.resend_api_key and self.resend_from_email)
+
+    @property
+    def inventory_scan_enabled(self) -> bool:
+        return bool(self.anthropic_api_key)
 
     @property
     def bank_account_list(self) -> list[dict]:

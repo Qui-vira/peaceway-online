@@ -139,9 +139,10 @@ async def apply_change(
 
 
 async def create_product_from_name(
-    session: AsyncSession, name: str, admin_id: int, *, strength: str | None = None
+    session: AsyncSession, name: str, admin_id: int, *, strength: str | None = None,
+    reason: str = "CSV import (new)",
 ) -> Product:
-    """Create a bare product for a CSV row that matched no existing catalog entry.
+    """Create a bare product for an import row that matched no existing catalog entry.
 
     `generic_name` is required by the model; we seed it from the given name (staff
     can refine later). The product starts with `requires_review=True` (model
@@ -154,7 +155,7 @@ async def create_product_from_name(
         product.strength = strength.strip()[:100]
     session.add(product)
     await session.flush()  # assign product.id before pricing/history writes
-    _record(session, product.id, "created", None, name, admin_id, reason="CSV import (new)")
+    _record(session, product.id, "created", None, name, admin_id, reason=reason)
     return product
 
 

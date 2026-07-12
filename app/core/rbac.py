@@ -52,6 +52,7 @@ PERMISSIONS: dict[str, str] = {
     "view_all_orders": "View all orders",
     "view_all_products": "View all products",
     "edit_pricing": "Edit product prices and pricing",
+    "scan_inventory": "Run AI photo stock scans and commit inventory updates",
     "edit_product_safety": "Edit sensitive product safety fields",
     "cancel_order": "Cancel any order",
     # Pharmacist
@@ -127,7 +128,7 @@ ROLE_PERMISSIONS: dict[str, set[str]] = {
         "view_medicine_orders", "view_customer_questions", "escalate_serious_cases",
         "override_safety", "receive_pharmacist_alerts", "view_product_requests",
         "edit_pricing", "view_all_products", "view_staff_directory",
-        "view_customers",
+        "view_customers", "scan_inventory",
     },
     PHARMACIST_ADMIN: {
         "approve_prescription", "reply_pharmacist_tickets", "review_prescriptions",

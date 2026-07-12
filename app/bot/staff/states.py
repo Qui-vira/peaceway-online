@@ -23,6 +23,12 @@ class ProductAdminFlow(StatesGroup):
     csv_confirm = State()       # awaiting confirm to commit a parsed CSV
 
 
+class InventoryScanFlow(StatesGroup):
+    collecting = State()        # receiving product/shelf photos for an AI scan
+    edit_value = State()        # capture a corrected field value for a scan item
+    match_search = State()      # capture a product search query for re-matching
+
+
 class PharmacistFlow(StatesGroup):
     reply = State()             # capture reply to a customer question
 

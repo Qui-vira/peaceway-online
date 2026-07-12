@@ -13,6 +13,11 @@ from app.models.admin import (
 from app.models.base import Base, TimestampMixin
 from app.models.catalog import PriceHistory, Product, ProductAlias, ProductIdentifier, ProductPricing, ProductScanAttempt
 from app.models.crypto import CryptoPayment, CryptoStatus
+from app.models.inventory_scan import (
+    InventoryScanImage,
+    InventoryScanItem,
+    InventoryScanSession,
+)
 from app.models.logistics import (
     DeliveryOrder,
     DeliveryQuote,
@@ -79,6 +84,9 @@ __all__ = [
     "ProductPricing",
     "ProductScanAttempt",
     "PriceHistory",
+    "InventoryScanSession",
+    "InventoryScanImage",
+    "InventoryScanItem",
     "CryptoPayment",
     "CryptoStatus",
     "Customer",
