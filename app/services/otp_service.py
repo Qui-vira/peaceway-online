@@ -43,7 +43,7 @@ async def send_otp_email(to_email: str, code: str, pharmacy_name: str) -> None:
 
     if not settings.resend_enabled:
         logger.info(
-            "Resend not configured — OTP code for %s: %s (expires in %d min)",
+            "Resend not configured - OTP code for %s: %s (expires in %d min)",
             to_email,
             code,
             OTP_EXPIRY_MINUTES,
@@ -86,7 +86,7 @@ async def send_otp_email(to_email: str, code: str, pharmacy_name: str) -> None:
                 "Resend API error %s: %s", resp.status_code, resp.text
             )
             raise HTTPException(502, "Failed to send verification email. Please try again.")
-        logger.info("Resend accepted email to %s — id=%s", to_email, resp.json().get("id"))
+        logger.info("Resend accepted email to %s - id=%s", to_email, resp.json().get("id"))
 
 
 # ── DB operations ─────────────────────────────────────────────────────────────
@@ -169,7 +169,7 @@ async def verify_otp_request(
         raise HTTPException(400, "Invalid or expired code.")
 
     if hash_code(code) != row["code_hash"]:
-        # Invalidate on first wrong guess — prevents brute-force; resend flow is frictionless
+        # Invalidate on first wrong guess - prevents brute-force; resend flow is frictionless
         await session.execute(
             text("UPDATE otp_requests SET used = TRUE WHERE id = :id"),
             {"id": row["id"]},

@@ -1,4 +1,4 @@
-"""Tesseract OCR provider — free, local, requires system tesseract-ocr package."""
+"""Tesseract OCR provider - free, local, requires system tesseract-ocr package."""
 from __future__ import annotations
 
 import asyncio

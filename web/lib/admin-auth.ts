@@ -2,7 +2,7 @@
  * Web admin auth helpers.
  *
  * Session token is stored in sessionStorage (cleared when tab closes).
- * Every admin API call goes through adminFetch — it injects the session
+ * Every admin API call goes through adminFetch - it injects the session
  * header and redirects to login on 401.
  */
 import { getApiBase } from "./api";

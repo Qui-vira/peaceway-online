@@ -14,7 +14,7 @@ type State =
   | { kind: "ready"; products: Product[] };
 
 function fmt(price: string | null) {
-  if (!price) return "—";
+  if (!price) return "-";
   return `₦${Number(price).toLocaleString("en-NG")}`;
 }
 

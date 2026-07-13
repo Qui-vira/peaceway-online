@@ -1,4 +1,4 @@
-"""Public catalog API — lists products marked is_listed=True with pricing."""
+"""Public catalog API - lists products marked is_listed=True with pricing."""
 from __future__ import annotations
 
 from uuid import UUID

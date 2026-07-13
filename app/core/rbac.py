@@ -6,8 +6,8 @@ Who holds each role lives in the DB (`admin_users` + `admin_role_assignments`),
 managed by the System Owner from Telegram.
 
 SAFETY OVERRIDE: prescription approval (`approve_prescription`) is granted ONLY to
-Lead Pharmacist and Pharmacist Admin — never to any other role, including the
-System Owner — per the pharmacy safety rule.
+Lead Pharmacist and Pharmacist Admin - never to any other role, including the
+System Owner - per the pharmacy safety rule.
 """
 from __future__ import annotations
 

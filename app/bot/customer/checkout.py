@@ -205,17 +205,17 @@ async def confirm(call: CallbackQuery, state: FSMContext) -> None:
     quote = quote_order(items, delivery_fee, fees, PaymentMethod.BANK_TRANSFER)
 
     # Honour the total the customer saw on the summary screen. If a fee or zone
-    # changed between summary and this tap, the recomputed total will differ —
+    # changed between summary and this tap, the recomputed total will differ -
     # re-show the summary rather than silently charging a new amount.
     locked_total = data.get("quote_total")
     if locked_total is not None and Decimal(locked_total) != quote.total:
         await state.update_data(quote_total=str(quote.total))
         await call.message.edit_text(
             _summary_text(data, quote)
-            + "\n\n⚠️ Pricing was just updated — please review the new total and confirm again.",
+            + "\n\n⚠️ Pricing was just updated - please review the new total and confirm again.",
             reply_markup=call.message.reply_markup,
         )
-        await call.answer("Total updated — please confirm again.", show_alert=True)
+        await call.answer("Total updated - please confirm again.", show_alert=True)
         return
 
     from app.models import Customer

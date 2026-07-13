@@ -13,7 +13,7 @@ def order_actions(order: Order, role_keys: set[str]) -> InlineKeyboardMarkup:
     kb = InlineKeyboardBuilder()
     code = order.code
 
-    # Prescription review — pharmacist roles only (safety override in rbac).
+    # Prescription review - pharmacist roles only (safety override in rbac).
     if order.rx_status in (RxStatus.PRESCRIPTION_REQUIRED, RxStatus.PRESCRIPTION_UPLOADED, RxStatus.PHARMACIST_REVIEW):
         if has(role_keys, "approve_prescription"):
             kb.button(text="✅ Approve Rx", callback_data=f"act:rx_approve:{code}")

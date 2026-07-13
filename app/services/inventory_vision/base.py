@@ -35,7 +35,7 @@ class InventoryVisionProvider(ABC):
     """Analyses a batch of shelf/product photos into a validated structured result.
 
     Implementations must treat the whole batch as one scene (products can span
-    overlapping photos) and must return only schema-valid data — the pipeline
+    overlapping photos) and must return only schema-valid data - the pipeline
     calls ``parse_scan_result`` regardless, and rejects anything invalid.
     """
 

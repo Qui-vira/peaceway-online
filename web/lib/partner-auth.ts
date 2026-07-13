@@ -1,5 +1,5 @@
 /**
- * Partner portal auth helpers — a SEPARATE domain from staff (`admin-auth.ts`).
+ * Partner portal auth helpers - a SEPARATE domain from staff (`admin-auth.ts`).
  *
  * Partners (wholesalers/suppliers) authenticate against `network_partners` via
  * email OTP and get a partner session token, stored under its own key and sent

@@ -1,7 +1,7 @@
 """Web-specific customer operations.
 
 Bot customers are identified by telegram_id.
-Web customers are identified by phone number — looked up first,
+Web customers are identified by phone number - looked up first,
 then created if not found.
 """
 from __future__ import annotations
@@ -51,7 +51,7 @@ def clear_web_session(customer: Customer) -> None:
 
 def is_session_expired(customer: Customer, now: datetime | None = None) -> bool:
     """True when the session must be rejected. Legacy sessions with no expiry
-    (created before c9e2a51b7f3d) count as expired — one re-login fixes them."""
+    (created before c9e2a51b7f3d) count as expired - one re-login fixes them."""
     expires = customer.web_session_expires_at
     if expires is None:
         return True

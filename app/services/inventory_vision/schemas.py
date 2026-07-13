@@ -41,7 +41,7 @@ class DetectedProduct(BaseModel):
     @field_validator("category")
     @classmethod
     def _valid_category(cls, v: str) -> str:
-        # Only the fixed Peaceway categories are allowed — never invent one.
+        # Only the fixed Peaceway categories are allowed - never invent one.
         for cat in VALID_CATEGORIES:
             if v.strip().lower() == cat.lower():
                 return cat

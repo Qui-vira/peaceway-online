@@ -1,4 +1,4 @@
-"""Product catalog models — imported/normalized from PharmaOS, priced by Peaceway."""
+"""Product catalog models - imported/normalized from PharmaOS, priced by Peaceway."""
 from __future__ import annotations
 
 from decimal import Decimal
@@ -82,7 +82,7 @@ class ProductPricing(Base, TimestampMixin):
     )
     cost_price: Mapped[Decimal] = mapped_column(Numeric(12, 2), default=Decimal("0"))
     selling_price: Mapped[Decimal] = mapped_column(Numeric(12, 2), default=Decimal("0"))
-    # Optional pricing controls — admin sets one of these to derive selling_price.
+    # Optional pricing controls - admin sets one of these to derive selling_price.
     markup_pct: Mapped[Decimal | None] = mapped_column(Numeric(6, 2))
     fixed_profit: Mapped[Decimal | None] = mapped_column(Numeric(12, 2))
     stock_qty: Mapped[int] = mapped_column(Integer, default=0, nullable=False)

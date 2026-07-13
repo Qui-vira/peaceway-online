@@ -82,7 +82,7 @@ export function ConnectTelegramCard({
           </span>
           <span className="block text-xs text-white/45">
             {profile.telegram_username
-              ? `@${profile.telegram_username} — order updates & reminders in your chat`
+              ? `@${profile.telegram_username} - order updates & reminders in your chat`
               : "Order updates & reminders now reach your Telegram chat"}
           </span>
         </span>

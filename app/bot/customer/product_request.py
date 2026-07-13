@@ -65,7 +65,7 @@ async def start(call: CallbackQuery, state: FSMContext) -> None:
 async def use_prefill(call: CallbackQuery, state: FSMContext) -> None:
     await state.set_state(ProductRequestFlow.strength)
     await call.message.edit_text(
-        "💊 Strength? (e.g. 500mg) — or type <i>skip</i>", reply_markup=back_cancel("menu:order")
+        "💊 Strength? (e.g. 500mg) - or type <i>skip</i>", reply_markup=back_cancel("menu:order")
     )
     await call.answer()
 
@@ -83,7 +83,7 @@ async def got_name(message: Message, state: FSMContext) -> None:
     await state.update_data(req_name=message.text.strip())
     await state.set_state(ProductRequestFlow.strength)
     await message.answer(
-        "💊 Strength? (e.g. 500mg) — or type <i>skip</i>", reply_markup=back_cancel("menu:order")
+        "💊 Strength? (e.g. 500mg) - or type <i>skip</i>", reply_markup=back_cancel("menu:order")
     )
 
 
@@ -93,7 +93,7 @@ async def got_strength(message: Message, state: FSMContext) -> None:
     await state.update_data(req_strength=None if val.lower() == "skip" else val)
     await state.set_state(ProductRequestFlow.form)
     await message.answer(
-        "💊 Form? (tablet, syrup, injection...) — or type <i>skip</i>", reply_markup=back_cancel("menu:order")
+        "💊 Form? (tablet, syrup, injection...) - or type <i>skip</i>", reply_markup=back_cancel("menu:order")
     )
 
 
@@ -161,7 +161,7 @@ async def _ask_email_step(target, state: FSMContext) -> None:
         return
 
     await state.set_state(ProductRequestFlow.email)
-    text = "📧 Your email? (so we can notify you when it's available) — or type <i>skip</i>"
+    text = "📧 Your email? (so we can notify you when it's available) - or type <i>skip</i>"
     if hasattr(target, "edit_text"):
         await target.edit_text(text, reply_markup=back_cancel("menu:order"))
     else:
@@ -207,7 +207,7 @@ async def got_urgency(call: CallbackQuery, state: FSMContext) -> None:
     urgency = call.data.split("prequrg:", 1)[1]
     await state.update_data(req_urgency=urgency)
     await state.set_state(ProductRequestFlow.note)
-    await call.message.edit_text("🗒 Any extra note? — or type <i>skip</i>", reply_markup=back_cancel("menu:order"))
+    await call.message.edit_text("🗒 Any extra note? - or type <i>skip</i>", reply_markup=back_cancel("menu:order"))
     await call.answer()
 
 

@@ -221,7 +221,7 @@ async def handle_action(call: CallbackQuery, state: FSMContext) -> None:
         await call.answer("Notification sent ✅")
         return
 
-    # Available transition — requires pharmacist clearance for medicine.
+    # Available transition - requires pharmacist clearance for medicine.
     if action == "available":
         async with get_session() as session:
             req = await session.get(ProductRequest, rid)
@@ -229,7 +229,7 @@ async def handle_action(call: CallbackQuery, state: FSMContext) -> None:
             await call.answer("Only a pharmacist can mark a medicine request as Available.", show_alert=True)
             return
 
-    # Convert to order — safety gate.
+    # Convert to order - safety gate.
     if action == "convert":
         async with get_session() as session:
             req = await session.get(ProductRequest, rid)

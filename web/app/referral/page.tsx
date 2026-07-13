@@ -45,7 +45,7 @@ export default function ReferralPage() {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      // fallback — silent
+      // fallback - silent
     }
   }
 
@@ -54,7 +54,7 @@ export default function ReferralPage() {
       try {
         await navigator.share({
           title: "Peaceway Online",
-          text: `Order medicines online with Peaceway Online — use my code ${code} and get ₦200 off your first order!`,
+          text: `Order medicines online with Peaceway Online - use my code ${code} and get ₦200 off your first order!`,
           url: referralLink,
         });
       } catch {

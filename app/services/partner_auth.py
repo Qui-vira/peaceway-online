@@ -45,7 +45,7 @@ async def _active_partner_by_email(db: AsyncSession, email: str) -> NetworkPartn
             )
         )
     ).scalars().all()
-    # Refuse ambiguous identity — exactly one active partner may own an email.
+    # Refuse ambiguous identity - exactly one active partner may own an email.
     if len(partners) != 1:
         return None
     return partners[0]
@@ -55,7 +55,7 @@ async def create_partner_otp(db: AsyncSession, email: str) -> tuple[str, str] | 
     """Generate a login OTP for an active partner matched by portal email.
 
     Returns (plaintext_code, normalized_email), or None if no single active
-    partner owns the email (caller returns 200 either way — never reveal
+    partner owns the email (caller returns 200 either way - never reveal
     whether an email exists).
     """
     partner = await _active_partner_by_email(db, email)
@@ -87,7 +87,7 @@ async def verify_partner_otp_and_create_session(
 ) -> str | None:
     """Verify OTP, create a session row, return the session token (UUID string).
 
-    Marks the OTP used before checking the hash — one guess per issuance.
+    Marks the OTP used before checking the hash - one guess per issuance.
     """
     normalized = _normalize_email(email)
     now = datetime.now(timezone.utc)
@@ -108,7 +108,7 @@ async def verify_partner_otp_and_create_session(
     if otp is None:
         return None
 
-    otp.used = True  # mark before hash check — prevents brute-force
+    otp.used = True  # mark before hash check - prevents brute-force
 
     if _hash_code(code) != otp.code_hash:
         return None

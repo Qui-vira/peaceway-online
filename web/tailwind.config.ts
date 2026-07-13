@@ -2,7 +2,7 @@ import type { Config } from "tailwindcss";
 
 const config: Config = {
   future: {
-    // hover: variants only apply on devices with a real pointer — prevents
+    // hover: variants only apply on devices with a real pointer - prevents
     // sticky hover states on touch screens
     hoverOnlyWhenSupported: true
   },

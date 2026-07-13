@@ -322,7 +322,7 @@ async def capture_message(message: Message, state: FSMContext) -> None:
         await message.answer("✅ Message sent to customer.")
     else:
         await message.answer(
-            "⚠️ Could not deliver the message — the customer may have no Telegram "
+            "⚠️ Could not deliver the message - the customer may have no Telegram "
             "account linked or has blocked the bot. Try another channel."
         )
 

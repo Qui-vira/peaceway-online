@@ -1,4 +1,4 @@
-"""Partner portal API — a separate auth domain from staff `/admin/*`.
+"""Partner portal API - a separate auth domain from staff `/admin/*`.
 
 Wholesalers/suppliers authenticate against `network_partners` via email OTP and
 act ONLY on sourcing rows assigned to them. No RBAC roles are involved: the
@@ -53,7 +53,7 @@ class PartnerActionBody(BaseModel):
 
 
 def _sourcing_out(sourcing: OrderSourcing) -> dict:
-    """Partner-facing serializer — only fields the portal needs."""
+    """Partner-facing serializer - only fields the portal needs."""
     return {
         "id": str(sourcing.id),
         "order_id": str(sourcing.order_id),
@@ -76,7 +76,7 @@ def _sourcing_out(sourcing: OrderSourcing) -> dict:
 async def partner_request_otp(body: PartnerRequestOtpBody, db: DbSession) -> dict:
     """Send a 6-digit OTP to a partner's portal email.
 
-    Always returns {ok: true} — never reveals whether the email exists.
+    Always returns {ok: true} - never reveals whether the email exists.
     """
     result = await create_partner_otp(db, body.email)
     if result is not None:
@@ -121,7 +121,7 @@ async def partner_logout(
 
 @router.get("/partner/sourcing")
 async def partner_list_sourcing(partner: PartnerSessionDep, db: DbSession) -> list[dict]:
-    """Sourcing requests assigned to THIS partner — hard-scoped, no role logic."""
+    """Sourcing requests assigned to THIS partner - hard-scoped, no role logic."""
     rows = (
         await db.execute(
             select(OrderSourcing)

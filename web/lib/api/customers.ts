@@ -1,6 +1,6 @@
 import { apiFetch } from "@/lib/api";
 
-// In-memory auth cache — survives SPA navigations, cleared on logout/error.
+// In-memory auth cache - survives SPA navigations, cleared on logout/error.
 // TTL keeps the cache fresh without hammering Railway on every page mount.
 const AUTH_TTL_MS = 30_000; // 30 seconds
 let _meCache: { profile: CustomerProfile; expiresAt: number } | null = null;

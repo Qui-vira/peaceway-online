@@ -193,7 +193,7 @@ function PartnerRowCard({ partner, onChanged }: { partner: PartnerRow; onChanged
           </p>
           {!editing && (
             <p className="mt-2 text-xs text-white/55">
-              {partner.portal_login_email ?? "No portal email set — partner cannot log in"}
+              {partner.portal_login_email ?? "No portal email set - partner cannot log in"}
               {partner.portal_contact ? ` · ${partner.portal_contact}` : ""}
             </p>
           )}

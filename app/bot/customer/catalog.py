@@ -44,7 +44,7 @@ def _results_kb(products: list[Product], back_cb: str = "menu:order"):
 
 
 def _not_found_kb():
-    """Action row for 'no results' / unpriced products — never a dead end."""
+    """Action row for 'no results' / unpriced products - never a dead end."""
     kb = InlineKeyboardBuilder()
     kb.button(text="💬 Ask Pharmacist", callback_data="menu:ask")
     kb.button(text="📝 Request This Product", callback_data="preq:start")

@@ -99,7 +99,7 @@ async def send_otp(body: SendOtpRequest, db: DbSession) -> SendOtpResponse:
         email = customer.email
         full_name = customer.full_name
     else:
-        # signup mode — require email and full_name
+        # signup mode - require email and full_name
         if not body.email or not body.email.strip():
             raise HTTPException(422, "email is required for signup.")
         if not is_valid_email(body.email.strip()):

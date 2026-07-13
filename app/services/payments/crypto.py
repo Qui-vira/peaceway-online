@@ -1,4 +1,4 @@
-"""Crypto off-ramp helper (Phase 3 — optional, manual settlement).
+"""Crypto off-ramp helper (Phase 3 - optional, manual settlement).
 
 Provides the configured static wallets and recomputes an order total with the
 off-ramp fee added on top (never deducted from product profit). No automated

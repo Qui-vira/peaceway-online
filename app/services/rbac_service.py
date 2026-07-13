@@ -147,7 +147,7 @@ async def add_admin(
 ) -> AdminUser:
     """Add a role to a (possibly new) admin.
 
-    Brand-new admins, and anyone previously REMOVED, start PENDING — the Owner
+    Brand-new admins, and anyone previously REMOVED, start PENDING - the Owner
     must explicitly Activate before they gain access. Adding a role to an
     already PENDING/ACTIVE/DISABLED admin leaves their status untouched.
     """

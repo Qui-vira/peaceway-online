@@ -1,4 +1,4 @@
-"""Customer crypto off-ramp flow (Phase 3 — optional, manual settlement)."""
+"""Customer crypto off-ramp flow (Phase 3 - optional, manual settlement)."""
 from __future__ import annotations
 
 from aiogram import F, Router

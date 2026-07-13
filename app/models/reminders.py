@@ -1,7 +1,7 @@
 """Medication reminder models.
 
 A reminder is created only from user-entered or pharmacist-entered
-instructions — the system never generates dosage advice. Every send attempt
+instructions - the system never generates dosage advice. Every send attempt
 is recorded in MedicationReminderEvent for audit.
 """
 from __future__ import annotations
@@ -59,7 +59,7 @@ class MedicationReminder(Base, TimestampMixin):
     customer_id: Mapped[UUID] = mapped_column(
         ForeignKey("customers.id", ondelete="CASCADE"), nullable=False, index=True
     )
-    # Exactly as entered by the customer or pharmacist — never system-generated.
+    # Exactly as entered by the customer or pharmacist - never system-generated.
     medicine_name: Mapped[str] = mapped_column(String(255), nullable=False)
     instructions_text: Mapped[str | None] = mapped_column(Text)
 

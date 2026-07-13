@@ -4,7 +4,7 @@ const nextConfig = {
   async rewrites() {
     // INTERNAL_API_URL is a server-only Vercel env var pointing at the Railway
     // backend. Proxying /api/v1/* through Next.js makes the session cookie
-    // first-party to peacewayonline.com — Safari and Chrome block cross-origin
+    // first-party to peacewayonline.com - Safari and Chrome block cross-origin
     // cookies even with SameSite=None, which caused the post-registration loop.
     const internal = process.env.INTERNAL_API_URL;
     if (!internal) return [];

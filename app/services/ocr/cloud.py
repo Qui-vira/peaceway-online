@@ -1,4 +1,4 @@
-"""Cloud OCR provider (Google Vision) — disabled until OCR_PROVIDER=cloud is set."""
+"""Cloud OCR provider (Google Vision) - disabled until OCR_PROVIDER=cloud is set."""
 from __future__ import annotations
 
 import base64

@@ -49,7 +49,7 @@ async def ask_csv(call: CallbackQuery, state: FSMContext) -> None:
         "prescription, availability, description</code>\n\n"
         "Existing products are updated by name; new names are added to the catalog.\n"
         "New items go live only when the row is marked OTC (prescription) with a "
-        "selling price and stock — otherwise they wait for pharmacist review."
+        "selling price and stock - otherwise they wait for pharmacist review."
     )
     await call.answer()
 

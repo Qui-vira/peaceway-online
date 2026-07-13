@@ -9,7 +9,7 @@ Flow (spec: agentic inventory intake):
   6. Explicit "Confirm Inventory Update" -> single-transaction commit + audit
 
 Sessions live in the DB (inventory_scan_sessions), so a bot restart loses only
-the in-memory FSM routing — the scan itself can be resumed from the menu.
+the in-memory FSM routing - the scan itself can be resumed from the menu.
 """
 from __future__ import annotations
 
@@ -146,7 +146,7 @@ async def start_scan(call: CallbackQuery, state: FSMContext) -> None:
             SCAN_STATUS_REVIEW: "waiting for your review",
         }.get(active_status, active_status)
         await call.message.edit_text(
-            f"📷 You already have a scan in progress — it is {state_txt}.\n\n"
+            f"📷 You already have a scan in progress - it is {state_txt}.\n\n"
             "Resume it, or discard it and start a new one?",
             reply_markup=kb.as_markup(),
         )
@@ -156,11 +156,11 @@ async def start_scan(call: CallbackQuery, state: FSMContext) -> None:
     await call.message.edit_text(
         "🤖 <b>Scan Stock From Photos</b>\n\n"
         "First, choose what this scan is for:\n\n"
-        "🔢 <b>Full stock count</b> — the counted quantity <i>replaces</i> the current "
+        "🔢 <b>Full stock count</b> - the counted quantity <i>replaces</i> the current "
         "stock for each confirmed product.\n"
-        "📦 <b>New stock received</b> — the counted quantity is <i>added</i> to the "
+        "📦 <b>New stock received</b> - the counted quantity is <i>added</i> to the "
         "current stock.\n"
-        "📝 <b>Photo inventory draft</b> — review + CSV only, no stock changes.",
+        "📝 <b>Photo inventory draft</b> - review + CSV only, no stock changes.",
         reply_markup=_mode_kb(),
     )
     await call.answer()
@@ -240,7 +240,7 @@ def _collect_text(mode: str, count: int) -> str:
     return (
         f"📷 <b>Scan Stock From Photos</b> · <i>{MODE_LABELS.get(mode, mode)}</i>\n\n"
         "Send clear photos of the products or shelves you want me to scan.\n\n"
-        "You can send multiple photos (albums work too). Overlapping photos are fine — "
+        "You can send multiple photos (albums work too). Overlapping photos are fine - "
         "I will not count the same items twice.\n\n"
         "When you are finished, tap <b>Analyse Photos</b>." + line
     )
@@ -328,7 +328,7 @@ async def collect_text_hint(message: Message, state: FSMContext) -> None:
     if await _guard(message) is None:
         return
     await message.answer(
-        "I'm collecting photos for this scan — no need to describe them. "
+        "I'm collecting photos for this scan - no need to describe them. "
         "Send photos, then tap <b>Analyse Photos</b>.", reply_markup=_collect_kb(),
     )
 
@@ -365,7 +365,7 @@ async def analyse_photos(call: CallbackQuery, state: FSMContext) -> None:
     await call.message.edit_text(
         f"🔍 Analysing <b>{n_images}</b> photo(s)…\n\n"
         "I'm identifying products, reading labels, and counting stock. "
-        "This can take a minute or two — I'll post the results here."
+        "This can take a minute or two - I'll post the results here."
     )
     await call.answer()
     asyncio.create_task(
@@ -477,7 +477,7 @@ async def _run_analysis_task(
             await bot.send_message(
                 chat_id,
                 f"⚠️ Analysis failed: {exc}.{retry_note}\n\n"
-                "Your photos are kept — you can also add clearer photos before retrying.",
+                "Your photos are kept - you can also add clearer photos before retrying.",
                 reply_markup=kb.as_markup(),
             )
     except Exception as exc:  # noqa: BLE001
@@ -652,8 +652,8 @@ async def _item_view(db, item: InventoryScanItem, scan: InventoryScanSession):
         + (f" → {matched_name}" if matched_name and matched_name != item.product_name else ""),
         f"Confidence: <b>{_LEVEL_LABEL[level]}</b>",
         "",
-        f"Dosage: {item.dosage or '—'}",
-        f"Category: {item.category or '—'}",
+        f"Dosage: {item.dosage or '-'}",
+        f"Category: {item.category or '-'}",
         f"Prescription: {item.prescription}",
     ]
     if item.description:
@@ -733,7 +733,7 @@ async def view_photo(call: CallbackQuery) -> None:
         await call.answer("No source photo recorded for this item.", show_alert=True)
         return
     for fid in file_ids:
-        await call.message.answer_photo(fid, caption=f"Source photo — {item.product_name}"[:1024])
+        await call.message.answer_photo(fid, caption=f"Source photo - {item.product_name}"[:1024])
     await call.answer()
 
 
@@ -880,7 +880,7 @@ async def edit_value_input(message: Message, state: FSMContext) -> None:
                 db, item, field, value, message.from_user.id, scan.scan_mode
             )
         except (ValueError, ArithmeticError):
-            await message.answer("That value doesn't look right — please try again:")
+            await message.answer("That value doesn't look right - please try again:")
             return
         text, kb = await _item_view(db, item, scan)
     await state.clear()
@@ -1019,7 +1019,7 @@ async def confirm_all_safe(call: CallbackQuery) -> None:
     await call.message.edit_text(text, reply_markup=kb)
     await call.answer(
         f"Confirmed {confirmed} high-confidence item(s)." if confirmed
-        else "Nothing left that can be auto-confirmed — review the remaining items individually.",
+        else "Nothing left that can be auto-confirmed - review the remaining items individually.",
         show_alert=confirmed == 0,
     )
 
@@ -1038,7 +1038,7 @@ async def export_csv(call: CallbackQuery) -> None:
     stamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M")
     file = BufferedInputFile(csv_text.encode("utf-8-sig"), filename=f"inventory_scan_{stamp}.csv")
     await call.message.answer_document(
-        file, caption="📄 Reviewed scan export — same format as the CSV importer."
+        file, caption="📄 Reviewed scan export - same format as the CSV importer."
     )
     await call.answer("CSV sent ✅")
 
@@ -1057,7 +1057,7 @@ async def pre_commit(call: CallbackQuery) -> None:
         pending = sum(1 for i in scan.items if i.review_status == REVIEW_PENDING)
         mode_label = MODE_LABELS.get(scan.scan_mode, scan.scan_mode)
 
-    # An empty commit would throw the whole review away — block it.
+    # An empty commit would throw the whole review away - block it.
     if plan["update"] + plan["create"] + plan["draft"] == 0:
         kb = InlineKeyboardBuilder()
         kb.button(text="✅ Confirm All Safe Changes", callback_data="invscan:confirmall")
@@ -1068,7 +1068,7 @@ async def pre_commit(call: CallbackQuery) -> None:
             "⚠️ <b>Nothing is confirmed yet.</b>\n\n"
             f"All {plan['skip']} detected item(s) are still unreviewed or skipped, so "
             "updating now would change nothing and close this scan.\n\n"
-            "Confirm the items you want applied first — “Confirm All Safe Changes” "
+            "Confirm the items you want applied first - “Confirm All Safe Changes” "
             "handles the high-confidence ones in one tap.",
             reply_markup=kb.as_markup(),
         )
@@ -1127,7 +1127,7 @@ async def do_commit(call: CallbackQuery, state: FSMContext) -> None:
                 text, kb = await _summary_view(db, scan)
                 await call.message.edit_text(text, reply_markup=kb)
                 await call.answer(
-                    "Nothing is confirmed yet — confirm at least one item first.",
+                    "Nothing is confirmed yet - confirm at least one item first.",
                     show_alert=True,
                 )
                 return
@@ -1142,7 +1142,7 @@ async def do_commit(call: CallbackQuery, state: FSMContext) -> None:
         kb.button(text="⬅️ Back to Review", callback_data="invscan:summary")
         kb.adjust(1)
         await call.message.edit_text(
-            "❌ <b>Update failed — no inventory changes were made.</b>\n\n"
+            "❌ <b>Update failed - no inventory changes were made.</b>\n\n"
             f"Reason: {str(exc)[:200]}\n\nYou can fix the items and try again.",
             reply_markup=kb.as_markup(),
         )

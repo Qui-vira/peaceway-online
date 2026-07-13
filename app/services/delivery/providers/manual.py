@@ -1,4 +1,4 @@
-"""Manual dispatcher provider — the always-available Phase 1/2 default.
+"""Manual dispatcher provider - the always-available Phase 1/2 default.
 
 No external API. Fees come from the order's delivery zone (computed elsewhere),
 bookings produce a local reference, and status is driven by staff buttons.

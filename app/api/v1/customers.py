@@ -146,7 +146,7 @@ async def logout(
 ) -> None:
     """Sign out: invalidate the session token server-side and clear the cookie.
 
-    Idempotent — safe to call without a valid session.
+    Idempotent - safe to call without a valid session.
     """
     if customer is not None:
         clear_web_session(customer)
@@ -190,7 +190,7 @@ async def update_me(
 
 
 class TelegramLinkRequest(BaseModel):
-    """Raw Telegram Login Widget payload — verified server-side before use."""
+    """Raw Telegram Login Widget payload - verified server-side before use."""
 
     id: int
     auth_date: int
@@ -210,7 +210,7 @@ async def link_telegram(
     """Connect the customer's Telegram account to their web profile.
 
     Verifies the Login Widget signature (HMAC keyed on the bot token) and
-    freshness before trusting any field. One Telegram account per profile —
+    freshness before trusting any field. One Telegram account per profile -
     enforced here and by the unique constraint on customers.telegram_id.
     """
     bot_token = get_settings().telegram_bot_token

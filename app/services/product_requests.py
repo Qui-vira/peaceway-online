@@ -1,7 +1,7 @@
 """Product-request CRM logic: thread, status timeline, safety-gated conversion.
 
 A product request is treated as a customer lead with a full lifecycle, not a
-closed admin task — every status change is recorded and (optionally) shown to
+closed admin task - every status change is recorded and (optionally) shown to
 the customer; every message (customer or admin) is recorded in the thread.
 """
 from __future__ import annotations
@@ -17,7 +17,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models import ProductRequest, ProductRequestMessage, ProductRequestStatusEvent
 from app.models.ops import ProductRequestStatus
 
-# Statuses that mean "this medicine is cleared to sell" — only reachable via a
+# Statuses that mean "this medicine is cleared to sell" - only reachable via a
 # pharmacist-permission gate when the request is medicine-related.
 MEDICINE_CLEARANCE_STATUSES = {ProductRequestStatus.AVAILABLE.value, ProductRequestStatus.READY_TO_ORDER.value}
 
@@ -35,7 +35,7 @@ def can_convert_to_order(request: ProductRequest) -> tuple[bool, str | None]:
     without it having passed pharmacist clearance first."""
     if request.is_medicine and request.status not in CONVERTIBLE_STATUSES:
         return False, (
-            "This is a medicine request — a pharmacist must confirm it's "
+            "This is a medicine request - a pharmacist must confirm it's "
             "Available or Ready to Order before it can be converted."
         )
     return True, None

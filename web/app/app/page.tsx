@@ -149,7 +149,7 @@ export default function AppDashboard() {
                 <ChevronRight className="h-4 w-4 shrink-0 text-emerald-400/60" />
               </Link>
             )}
-            {/* Staff / partner entry points are for signed-out visitors only —
+            {/* Staff / partner entry points are for signed-out visitors only -
                 a signed-in customer never sees these on their dashboard. */}
             {!me && (
               <>
@@ -184,7 +184,7 @@ export default function AppDashboard() {
             <div className="mt-4 h-px bg-white/6" />
           </div>
 
-          {/* Today's medications — authenticated only */}
+          {/* Today's medications - authenticated only */}
           {me && <TodayMedsSection />}
 
           {/* Feature cards */}
@@ -237,7 +237,7 @@ export default function AppDashboard() {
             </div>
           </div>
 
-          {/* Connect Telegram — authenticated only */}
+          {/* Connect Telegram - authenticated only */}
           {me && (
             <div className="px-5">
               <ConnectTelegramCard profile={me} onLinked={setMe} />

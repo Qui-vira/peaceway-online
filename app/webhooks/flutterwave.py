@@ -1,4 +1,4 @@
-"""Flutterwave webhook — verifies signature, records event, approves paid orders."""
+"""Flutterwave webhook - verifies signature, records event, approves paid orders."""
 from __future__ import annotations
 
 from fastapi import APIRouter, Request

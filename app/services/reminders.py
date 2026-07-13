@@ -45,7 +45,7 @@ def validate_times(times: list[str]) -> list[str]:
         raise ValueError(f"At most {MAX_TIMES_PER_DAY} reminder times per day.")
     for t in cleaned:
         if not TIME_RE.match(t):
-            raise ValueError(f"Invalid time '{t}' — use 24h HH:MM, e.g. 08:00.")
+            raise ValueError(f"Invalid time '{t}' - use 24h HH:MM, e.g. 08:00.")
     return cleaned
 
 

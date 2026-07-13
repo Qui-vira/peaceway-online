@@ -96,7 +96,7 @@ export default function NewReminderPage() {
 
         <StepDots current={step} />
 
-        {/* Step 1 — What */}
+        {/* Step 1 - What */}
         {step === 1 && (
           <div className="space-y-4">
             <SectionLabel>Medication Info</SectionLabel>
@@ -147,7 +147,7 @@ export default function NewReminderPage() {
           </div>
         )}
 
-        {/* Step 2 — When */}
+        {/* Step 2 - When */}
         {step === 2 && (
           <div className="space-y-4">
             <SectionLabel>Schedule</SectionLabel>
@@ -265,7 +265,7 @@ export default function NewReminderPage() {
           </div>
         )}
 
-        {/* Step 3 — Review */}
+        {/* Step 3 - Review */}
         {step === 3 && (
           <div className="space-y-4">
             <SectionLabel>Review</SectionLabel>

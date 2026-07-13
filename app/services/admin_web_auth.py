@@ -156,7 +156,7 @@ async def verify_web_otp_and_create_session(
     """Verify OTP, create a session row, return the session token (UUID string).
 
     Returns None on any failure (invalid code, expired, admin not active).
-    Marks the OTP as used before checking the hash — prevents brute-force.
+    Marks the OTP as used before checking the hash - prevents brute-force.
     """
     now = datetime.now(timezone.utc)
 
@@ -176,7 +176,7 @@ async def verify_web_otp_and_create_session(
     if otp is None:
         return None
 
-    otp.used = True  # mark before hash check — prevents brute-force
+    otp.used = True  # mark before hash check - prevents brute-force
 
     if _hash_code(code) != otp.code_hash:
         return None

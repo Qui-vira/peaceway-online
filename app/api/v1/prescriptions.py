@@ -1,4 +1,4 @@
-"""Web prescription submission — text + optional base64 image."""
+"""Web prescription submission - text + optional base64 image."""
 from __future__ import annotations
 
 from fastapi import APIRouter, status

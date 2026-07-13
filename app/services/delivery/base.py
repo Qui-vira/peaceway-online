@@ -2,7 +2,7 @@
 
 Every provider (manual or official-API-backed) implements the same contract so the
 rest of the app never depends on a specific logistics company. New partners are
-added by writing one subclass — no other code changes.
+added by writing one subclass - no other code changes.
 
 IMPORTANT: API-backed providers must use each partner's OFFICIAL, documented API
 only. No scraping, no reverse-engineering of private/mobile endpoints.

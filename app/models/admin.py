@@ -59,7 +59,7 @@ class AdminUser(Base, TimestampMixin):
     full_name: Mapped[str | None] = mapped_column(String(255))
     email: Mapped[str | None] = mapped_column(String(255))
     # is_active stays the literal access gate used by every existing query
-    # (get_role_keys, recipients_for_roles) — kept in sync with `status` by the
+    # (get_role_keys, recipients_for_roles) - kept in sync with `status` by the
     # service layer so no existing SQL filter needs to change.
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     status: Mapped[AdminStatus] = mapped_column(
@@ -108,7 +108,7 @@ class WebAdminOtp(Base, TimestampMixin):
 
 
 class WebAdminSession(Base):
-    """Active web admin session — UUID token sent to client."""
+    """Active web admin session - UUID token sent to client."""
     __tablename__ = "web_admin_sessions"
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)

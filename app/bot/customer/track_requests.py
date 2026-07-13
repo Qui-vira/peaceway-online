@@ -1,4 +1,4 @@
-"""Customer 'Track My Requests' — view status/history and reply on a product
+"""Customer 'Track My Requests' - view status/history and reply on a product
 request, so a request is a live conversation, not a fire-and-forget ticket."""
 from __future__ import annotations
 

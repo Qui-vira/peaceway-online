@@ -1,4 +1,4 @@
-"""Provider registry — resolves provider instances and lists enabled ones."""
+"""Provider registry - resolves provider instances and lists enabled ones."""
 from __future__ import annotations
 
 from app.services.delivery.base import DeliveryProvider

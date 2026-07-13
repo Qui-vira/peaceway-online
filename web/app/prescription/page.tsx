@@ -142,7 +142,7 @@ export default function PrescriptionPage() {
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="e.g. Amoxicillin 500mg, 10 tablets — prescribed by Dr. Adeyemi"
+            placeholder="e.g. Amoxicillin 500mg, 10 tablets - prescribed by Dr. Adeyemi"
             rows={3}
             className="w-full resize-none rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-white/30 outline-none focus:border-emerald-500/50"
           />

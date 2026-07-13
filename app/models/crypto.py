@@ -1,4 +1,4 @@
-"""Crypto off-ramp payment record (Phase 3 — optional, manual settlement).
+"""Crypto off-ramp payment record (Phase 3 - optional, manual settlement).
 
 Deliberately conservative: a static wallet address receives funds, the customer
 submits a transaction hash, and an admin manually confirms both the on-chain

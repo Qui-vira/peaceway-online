@@ -41,7 +41,7 @@ class Settings(BaseSettings):
     # Pharmacy identity
     pharmacy_name: str = "Peaceway Pharmacy"
 
-    # Bank transfer (single, legacy) — used as fallback when bank_accounts is empty
+    # Bank transfer (single, legacy) - used as fallback when bank_accounts is empty
     bank_account_name: str = ""
     bank_account_number: str = ""
     bank_name: str = ""
@@ -87,7 +87,7 @@ class Settings(BaseSettings):
     gokada_api_key: str = ""
     custom_api_key: str = ""
 
-    # Crypto off-ramp (Phase 3 — optional, manual settlement)
+    # Crypto off-ramp (Phase 3 - optional, manual settlement)
     crypto_wallets: str = ""  # "NETWORK:TOKEN:ADDRESS" entries, comma-separated
 
     # Web API

@@ -265,7 +265,7 @@ footer {
   text-wrap: balance;
 }
 
-/* Installed PWA draws edge-to-edge under the system status bar — keep the
+/* Installed PWA draws edge-to-edge under the system status bar - keep the
    nav clear of the clock/battery icons. No-op in a normal browser tab. */
 #nav {
   padding-top: env(safe-area-inset-top);
@@ -837,7 +837,7 @@ footer {
   display: none;
 }
 
-/* s5 (How It Works) holds 10 steps + CTA — taller than 100vh on most
+/* s5 (How It Works) holds 10 steps + CTA - taller than 100vh on most
    viewports, so the pinned 100vh/overflow-hidden pattern clipped the
    "Start Your Order" button. This section flows at natural height instead. */
 #s5 .sticky {
@@ -1221,7 +1221,7 @@ footer {
     opacity: 0.88;
     filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.6));
   }
-  /* Fixed header floats over the slides — keep content clear of it and of
+  /* Fixed header floats over the slides - keep content clear of it and of
      the phone's status bar. */
   .con { padding-top: calc(84px + env(safe-area-inset-top)); }
   #s1 .sv {
@@ -1256,7 +1256,7 @@ footer {
   }
 }
 
-/* ── Premium hover micro-interactions — desktop pointers only ──────────── */
+/* ── Premium hover micro-interactions - desktop pointers only ──────────── */
 @media (hover: hover) and (pointer: fine) {
   /* Buttons: 2px lift + stronger green glow */
   .bp, .bg2, .ncta {

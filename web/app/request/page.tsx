@@ -249,7 +249,7 @@ export default function RequestPage() {
 
         <form onSubmit={handleSubmit} noValidate className="space-y-4">
 
-          {/* Card 1 — What are you looking for? */}
+          {/* Card 1 - What are you looking for? */}
           <SectionCard label="What are you looking for?">
             <FieldWrap label="Product / Medicine Name" error={errors.product_name}>
               <Package className="h-4 w-4 shrink-0 text-white/30" />
@@ -293,7 +293,7 @@ export default function RequestPage() {
             </FieldWrap>
           </SectionCard>
 
-          {/* Card 2 — Urgency chips */}
+          {/* Card 2 - Urgency chips */}
           <SectionCard label="How soon do you need it?">
             <div className="grid grid-cols-2 gap-2.5">
               {URGENCY_OPTIONS.map((opt) => (
@@ -329,7 +329,7 @@ export default function RequestPage() {
             </div>
           </SectionCard>
 
-          {/* Card 3 — Notes */}
+          {/* Card 3 - Notes */}
           <SectionCard label="Additional Details">
             <div className="rounded-xl border border-white/10 bg-white/4 px-4 py-3.5 transition-colors focus-within:border-emerald-500/50">
               <textarea
@@ -342,7 +342,7 @@ export default function RequestPage() {
               />
             </div>
             <p className="text-[11px] text-white/30">
-              Optional — helps us find the right product faster
+              Optional - helps us find the right product faster
             </p>
           </SectionCard>
 

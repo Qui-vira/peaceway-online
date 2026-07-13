@@ -209,7 +209,7 @@ async def pick_candidate(call: CallbackQuery, state: FSMContext) -> None:
         )
         await call.answer()
     else:
-        # No barcode — just go straight to product view.
+        # No barcode - just go straight to product view.
         from app.bot.staff.products import _show_product
         await _show_product(call, pid)
         await call.answer()

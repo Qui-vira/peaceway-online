@@ -27,12 +27,12 @@ type State =
   | { kind: "ready"; reminder: MedicationReminder };
 
 /** Build a Google Calendar deep-link for one occurrence (first time slot).
- *  Opens pre-filled in browser — no OAuth needed. */
+ *  Opens pre-filled in browser - no OAuth needed. */
 function buildGCalUrl(r: MedicationReminder): string {
   const firstTime = r.times[0] ?? "08:00";
   const [hh, mm] = firstTime.split(":").map(Number);
 
-  // Build start datetime on start_date at firstTime (local, no TZ offset needed — GCal handles it)
+  // Build start datetime on start_date at firstTime (local, no TZ offset needed - GCal handles it)
   const dateStr = r.start_date.replace(/-/g, "");
   const pad = (n: number) => String(n).padStart(2, "0");
   const startDt = `${dateStr}T${pad(hh)}${pad(mm)}00`;
@@ -83,7 +83,7 @@ export default function ReminderDetailPage() {
       const updated = await fn();
       setState({ kind: "ready", reminder: updated });
     } catch {
-      // silently ignore — user can retry
+      // silently ignore - user can retry
     } finally {
       setActing(false);
       setConfirmStop(false);
@@ -171,7 +171,7 @@ export default function ReminderDetailPage() {
           ) : isPaused ? (
             <div className="flex items-center gap-3 rounded-2xl border border-amber-500/20 bg-amber-500/8 px-4 py-3.5">
               <Clock className="h-4 w-4 shrink-0 text-amber-400" />
-              <p className="text-sm text-amber-300">Paused — no upcoming doses</p>
+              <p className="text-sm text-amber-300">Paused - no upcoming doses</p>
             </div>
           ) : null}
         </div>
@@ -274,7 +274,7 @@ export default function ReminderDetailPage() {
           )}
         </div>
 
-        {/* Danger zone — delete */}
+        {/* Danger zone - delete */}
         <div className="px-5">
           <div className="rounded-2xl border border-white/6 bg-white/3 px-4 py-4">
             <p className="text-[11px] font-semibold uppercase tracking-wide text-white/30 mb-3">

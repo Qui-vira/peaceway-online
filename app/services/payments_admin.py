@@ -14,7 +14,7 @@ from app.services import orders as orders_svc
 
 def rx_blocks_payment(order: Order) -> bool:
     """True if this order's prescription items haven't been pharmacist-cleared
-    yet — payment approval must never move ahead of that clearance."""
+    yet - payment approval must never move ahead of that clearance."""
     return order.rx_status not in (RxStatus.NOT_REQUIRED, RxStatus.APPROVED_FOR_PAYMENT)
 
 
@@ -43,7 +43,7 @@ async def approve_payment(
 
     await orders_svc.transition_status(session, order, OrderStatus.PAYMENT_APPROVED, by_label)
     # Automation: OTC orders skip straight to packaging. Rx orders stop at
-    # PAYMENT_APPROVED and require a manual "Start Packaging" — preserves the
+    # PAYMENT_APPROVED and require a manual "Start Packaging" - preserves the
     # original act:pay_approve checkpoint for medicine orders.
     if order.rx_status == RxStatus.NOT_REQUIRED:
         await orders_svc.transition_status(session, order, OrderStatus.PROCESSING, "system", "Auto: OTC paid")

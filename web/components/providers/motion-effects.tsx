@@ -4,7 +4,7 @@ import { useEffect } from "react";
 
 /* Foreground reveal: fade + slight upward slide, staggered within a group.
    Only elements BELOW the fold at setup time are tagged, so nothing visible
-   (hero included) is ever hidden — if JS fails, the page stays fully static
+   (hero included) is ever hidden - if JS fails, the page stays fully static
    and fully visible. */
 const REVEAL_SECTIONS = "#s2, #s3, #s4, #s5, #s6, #s7, #s8, #s9, footer.ft";
 const REVEAL_TARGETS = [
@@ -87,7 +87,7 @@ function setupReveals(): (() => void) | undefined {
 }
 
 /* Mobile landing carousel dots: one per slide, tracks swipe position.
-   Navigation, not decoration — runs even under prefers-reduced-motion. */
+   Navigation, not decoration - runs even under prefers-reduced-motion. */
 function setupCarouselDots(reducedMotion: boolean): (() => void) | undefined {
   if (!window.matchMedia("(max-width: 800px)").matches) return undefined;
   const track = document.getElementById("lmain");
@@ -289,7 +289,7 @@ export function MotionEffects(): JSX.Element | null {
 
     const cleanups: Array<() => void> = [];
 
-    // Carousel dots are navigation — they run even under reduced motion, and
+    // Carousel dots are navigation - they run even under reduced motion, and
     // re-mount when the viewport crosses the mobile breakpoint (rotation,
     // resize, or emulation applying after hydration).
     const carouselMq = window.matchMedia("(max-width: 800px)");

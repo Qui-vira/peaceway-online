@@ -1,4 +1,4 @@
-"""Public order-tracking endpoint — no auth required."""
+"""Public order-tracking endpoint - no auth required."""
 from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException, Query, status

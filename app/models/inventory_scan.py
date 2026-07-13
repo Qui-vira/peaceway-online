@@ -29,7 +29,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.models.base import JSONB, Base, TimestampMixin
 
 # Session lifecycle (application-validated strings, same lightweight pattern as
-# Prescription.review_status — adding a status never needs a column migration).
+# Prescription.review_status - adding a status never needs a column migration).
 SCAN_STATUS_COLLECTING = "collecting_images"
 SCAN_STATUS_ANALYSING = "analysing"
 SCAN_STATUS_REVIEW = "awaiting_review"
@@ -37,7 +37,7 @@ SCAN_STATUS_COMMITTED = "committed"
 SCAN_STATUS_CANCELLED = "cancelled"
 SCAN_STATUS_FAILED = "failed"
 
-# Scan modes — how confirmed quantities are applied to the catalog.
+# Scan modes - how confirmed quantities are applied to the catalog.
 SCAN_MODE_SET = "set_stock"      # full stock count: detected qty replaces stock
 SCAN_MODE_ADD = "add_stock"      # new stock received: detected qty adds to stock
 SCAN_MODE_DRAFT = "draft"        # reviewable draft only, no stock changes
@@ -107,7 +107,7 @@ class InventoryScanImage(Base, TimestampMixin):
         ForeignKey("inventory_scan_sessions.id", ondelete="CASCADE"), nullable=False, index=True
     )
     telegram_file_id: Mapped[str] = mapped_column(String(255), nullable=False)
-    # Telegram's stable per-file id — used to reject duplicate uploads.
+    # Telegram's stable per-file id - used to reject duplicate uploads.
     file_unique_id: Mapped[str] = mapped_column(String(128), nullable=False)
     media_group_id: Mapped[str | None] = mapped_column(String(64))
     position: Mapped[int] = mapped_column(Integer, nullable=False, default=0)

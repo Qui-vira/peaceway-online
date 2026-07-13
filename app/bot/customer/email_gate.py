@@ -6,7 +6,7 @@ returns True immediately. If not, it shows Add Email / Skip for Now / Main
 Menu, and resumes the original action (not Main Menu) once the customer adds
 an email or explicitly skips.
 
-The pending "resume" action is kept in an in-process dict keyed by chat id —
+The pending "resume" action is kept in an in-process dict keyed by chat id -
 this has the same single-process reliability characteristics as the existing
 aiogram MemoryStorage FSM (both reset on a process restart; nothing here is
 less durable than what's already in production).
@@ -59,7 +59,7 @@ async def ensure_email(
     resume: Callable[[], Awaitable[None]],
 ) -> bool:
     """Returns True if the caller should proceed now. Otherwise shows the gate
-    and arranges for `resume` to run after the customer adds/skips an email —
+    and arranges for `resume` to run after the customer adds/skips an email -
     the caller must `return` immediately when this returns False."""
     telegram_id = event.from_user.id
     async with get_session() as session:

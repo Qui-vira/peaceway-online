@@ -76,7 +76,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Peaceway Online", lifespan=lifespan)
 
-# CORS — allow the Vercel web frontend to call /api/v1/* from the browser.
+# CORS - allow the Vercel web frontend to call /api/v1/* from the browser.
 # Origins are configured via ALLOWED_ORIGINS env var (comma-separated).
 # Telegram webhooks are server-to-server and are unaffected by CORS.
 _settings = get_settings()
@@ -89,12 +89,12 @@ app.add_middleware(
     max_age=3600,
 )
 
-# Existing Telegram + payment + logistics webhooks — order and paths unchanged.
+# Existing Telegram + payment + logistics webhooks - order and paths unchanged.
 app.include_router(telegram_webhook.router)
 app.include_router(logistics_webhook.router)
 app.include_router(flutterwave_webhook.router)
 
-# Web API — mounted under /api/v1 so it never collides with bot webhook paths.
+# Web API - mounted under /api/v1 so it never collides with bot webhook paths.
 app.include_router(api_v1_router)
 
 

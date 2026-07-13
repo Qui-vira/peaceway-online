@@ -147,7 +147,7 @@ async def create_product_from_name(
     `generic_name` is required by the model; we seed it from the given name (staff
     can refine later). The product starts with `requires_review=True` (model
     default) so it is NOT sellable until a row marks it OTC or a pharmacist clears
-    it — consistent with the catalog safety rule.
+    it - consistent with the catalog safety rule.
     """
     name = name.strip()
     product = Product(name=name, generic_name=name)
@@ -172,7 +172,7 @@ async def apply_csv_row(session: AsyncSession, product: Product, row: dict, admi
         try:
             await apply_change(session, product, "category", row["category"].strip().title(), admin_id, reason=reason)
         except ValueError:
-            pass  # unknown category — skip silently
+            pass  # unknown category - skip silently
     if row.get("prescription"):
         await apply_change(session, product, "rx", row["prescription"].lower() in RX_TRUE, admin_id, reason=reason)
     if row.get("availability"):

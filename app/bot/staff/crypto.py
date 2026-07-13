@@ -1,6 +1,6 @@
 """Staff crypto-payment review: confirm on-chain receipt and Naira settlement.
 
-These are deliberately two separate manual confirmations — no automated
+These are deliberately two separate manual confirmations - no automated
 crypto->Naira settlement.
 """
 from __future__ import annotations

@@ -304,8 +304,8 @@ function StaffOtpGate({ onLogin }: { onLogin: (admin: AdminMe) => void }) {
                 />
                 <p className="text-[11px] text-white/30">
                   {channel === "telegram"
-                    ? "Check your Telegram — the code expires in 5 minutes."
-                    : "Check your email inbox — the code expires in 5 minutes."}
+                    ? "Check your Telegram - the code expires in 5 minutes."
+                    : "Check your email inbox - the code expires in 5 minutes."}
                 </p>
               </div>
               {error && <p className="text-[13px] text-red-400">{error}</p>}
@@ -428,10 +428,10 @@ function Dashboard({ admin }: { admin: AdminMe }) {
           <OrdersTab orders={orders} loading={loading} />
         )}
         {tab === "customers" && (
-          <div className="py-10 text-center text-white/40">Customer list — coming soon</div>
+          <div className="py-10 text-center text-white/40">Customer list - coming soon</div>
         )}
         {tab === "payments" && (
-          <div className="py-10 text-center text-white/40">Payment records — coming soon</div>
+          <div className="py-10 text-center text-white/40">Payment records - coming soon</div>
         )}
         {tab === "catalog" && (
           <CatalogTab />

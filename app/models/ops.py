@@ -116,7 +116,7 @@ class Prescription(Base, TimestampMixin):
 class ProductRequestStatus(str, enum.Enum):
     """Lifecycle of a product request, treated as a customer lead, not a
     closed ticket. Stored as a plain string column (see Prescription.review_status
-    for the same lightweight pattern) — application-validated, not DB-enforced,
+    for the same lightweight pattern) - application-validated, not DB-enforced,
     so adding a status never needs a risky column-type migration."""
 
     NEW = "NEW"
@@ -144,7 +144,7 @@ class ProductRequest(Base, TimestampMixin):
     """Customer request for a medicine/supplement we don't currently stock.
 
     Treated as a lead with a full lifecycle and message thread, not a closed
-    admin task — see ProductRequestMessage / ProductRequestStatusEvent.
+    admin task - see ProductRequestMessage / ProductRequestStatusEvent.
     """
 
     __tablename__ = "product_requests"

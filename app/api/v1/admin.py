@@ -1,4 +1,4 @@
-"""Admin web API — Telegram-bridge OTP auth + role-gated staff endpoints."""
+"""Admin web API - Telegram-bridge OTP auth + role-gated staff endpoints."""
 from __future__ import annotations
 
 from datetime import datetime
@@ -69,7 +69,7 @@ class AdminMeResponse(BaseModel):
 async def admin_request_otp(body: RequestOtpBody, request: Request, db: DbSession) -> dict:
     """Send a 6-digit OTP to the admin's Telegram chat.
 
-    Always returns {ok: true} — never reveals whether the telegram_id exists.
+    Always returns {ok: true} - never reveals whether the telegram_id exists.
     """
     from app.services.admin_web_auth import create_web_otp
 
@@ -128,7 +128,7 @@ async def admin_verify_otp(body: VerifyOtpBody, db: DbSession) -> dict:
 async def admin_request_email_otp(body: RequestEmailOtpBody, db: DbSession) -> dict:
     """Send a 6-digit OTP to an operations user's email address.
 
-    Always returns {ok: true} — never reveals whether the email exists.
+    Always returns {ok: true} - never reveals whether the email exists.
     """
     from app.services.admin_web_auth import create_web_email_otp, send_web_email_otp
 
@@ -406,7 +406,7 @@ async def admin_create_network_partner(
     db.add(partner)
     await db.flush()
     # Partners authenticate through the separate partner portal keyed on
-    # `portal_login_email` — no `admin_users` row is created for them.
+    # `portal_login_email` - no `admin_users` row is created for them.
     return {
         "id": str(partner.id),
         "key": partner.key,

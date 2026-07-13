@@ -2,13 +2,13 @@
 
 Explicit stages, observable in logs:
 
-  A. Image understanding      — the vision provider analyses the WHOLE batch
+  A. Image understanding      - the vision provider analyses the WHOLE batch
                                  (app.services.inventory_vision)
-  B. Cross-image dedup        — provider-level (one batched request) plus the
+  B. Cross-image dedup        - provider-level (one batched request) plus the
                                  code-level safety net merge_duplicate_candidates
-  C. Normalization            — pydantic-validated DetectedProduct candidates
-  D. Database matching        — match_candidate against products + aliases
-  E. Action planning          — plan_action per scan mode + confidence level
+  C. Normalization            - pydantic-validated DetectedProduct candidates
+  D. Database matching        - match_candidate against products + aliases
+  E. Action planning          - plan_action per scan mode + confidence level
 
 Nothing touches the real catalog until commit_scan_session, which routes every
 write through services.products_admin so PriceHistory + admin activity logs are
@@ -163,7 +163,7 @@ def merge_duplicate_candidates(
     """Merge candidates with the same normalized name + dosage.
 
     The provider is asked to deduplicate across overlapping photos, but if it
-    still returns the same product twice we keep the MAX count (never the sum —
+    still returns the same product twice we keep the MAX count (never the sum -
     the detections may describe the same physical units seen in two photos).
     Different dosages are never merged: they may be different SKUs.
     """
@@ -229,7 +229,7 @@ async def match_candidate(
         known.discard("")
         if norm in known:
             if not _dosage_compatible(dosage, p.strength):
-                # Same name, different strength: possibly a different SKU —
+                # Same name, different strength: possibly a different SKU -
                 # never auto-merge (spec §6 stage D).
                 return MATCH_PROBABLE, p, 0.6
             return MATCH_EXACT, p, 0.95
@@ -424,7 +424,7 @@ async def apply_correction(
             raise ValueError("Price must be 0 or more.")
         _record_correction(item, field, getattr(item, field), val, admin_id)
         setattr(item, field, val)
-    else:  # dosage, description — free text
+    else:  # dosage, description - free text
         val = str(new_value).strip() or None
         limit = 100 if field == "dosage" else 1000
         _record_correction(item, field, getattr(item, field), val, admin_id)

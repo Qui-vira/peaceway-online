@@ -3,7 +3,7 @@
 Gated on view_all_orders (full detail + contact) or view_customer_orders /
 view_order_totals (list access; contact details still privacy-gated per order_summary).
 Action buttons (approve/reject/packaging/dispatch/cancel/message) are NOT
-duplicated here — they reuse the existing act: handlers + order_actions()
+duplicated here - they reuse the existing act: handlers + order_actions()
 keyboard in app/bot/staff/orders.py and app/bot/keyboards/staff.py.
 """
 from __future__ import annotations

@@ -1,4 +1,4 @@
-"""Web orders API — cart checkout and order history."""
+"""Web orders API - cart checkout and order history."""
 from __future__ import annotations
 
 from decimal import Decimal

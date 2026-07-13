@@ -3,7 +3,7 @@
 The widget signs its payload with HMAC-SHA256 keyed on SHA256(bot_token); the
 same scheme is documented at https://core.telegram.org/widgets/login. Only a
 payload that verifies AND is fresh (auth_date within AUTH_MAX_AGE_SECONDS) may
-be trusted — the browser is never the source of truth.
+be trusted - the browser is never the source of truth.
 """
 from __future__ import annotations
 

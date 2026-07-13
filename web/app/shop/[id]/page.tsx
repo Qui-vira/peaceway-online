@@ -11,7 +11,7 @@ import { Spinner } from "@/components/app/ui";
 import { DrugIcon } from "@/components/app/drug-icons";
 
 function fmt(price: string | null) {
-  if (!price) return "—";
+  if (!price) return "-";
   return `₦${Number(price).toLocaleString("en-NG")}`;
 }
 

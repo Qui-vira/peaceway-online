@@ -1,4 +1,4 @@
-"""APScheduler jobs — currently the 24-hour post-delivery follow-up.
+"""APScheduler jobs - currently the 24-hour post-delivery follow-up.
 
 The job stores only the order id and rebuilds a Bot at run time, so it does not
 hold a live Bot reference (making a persistent jobstore an easy future upgrade).

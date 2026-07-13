@@ -43,19 +43,19 @@ export async function apiFetch<T>(
       const body = await res.json();
       detail = body?.detail ?? detail;
     } catch {
-      // non-JSON error body — use statusText as-is
+      // non-JSON error body - use statusText as-is
     }
     const err: ApiError = { status: res.status, detail };
     throw err;
   }
 
-  // 204 No Content — return undefined cast to T
+  // 204 No Content - return undefined cast to T
   if (res.status === 204) return undefined as unknown as T;
 
   return res.json() as Promise<T>;
 }
 
-/** Typed health check — confirms the Railway backend is reachable. */
+/** Typed health check - confirms the Railway backend is reachable. */
 export type HealthResponse = {
   status: string;
   service: string;

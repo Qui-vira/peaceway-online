@@ -1,6 +1,6 @@
 const CACHE_NAME = "peaceway-online-pwa-v6";
 
-// Only these never change — content-hashed by Next.js build
+// Only these never change - content-hashed by Next.js build
 const IMMUTABLE_PREFIX = "/_next/static/";
 
 // Offline fallback pages to precache
@@ -33,7 +33,7 @@ self.addEventListener("fetch", (event) => {
 
   const url = new URL(request.url);
 
-  // Next.js static chunks are content-hashed — safe to cache forever
+  // Next.js static chunks are content-hashed - safe to cache forever
   if (url.pathname.startsWith(IMMUTABLE_PREFIX)) {
     event.respondWith(
       caches.match(request).then(
@@ -47,7 +47,7 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Everything else: network-first — users always get latest on good connection
+  // Everything else: network-first - users always get latest on good connection
   event.respondWith(
     fetch(request)
       .then((response) => {

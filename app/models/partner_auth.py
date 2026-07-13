@@ -3,7 +3,7 @@
 Partners (wholesalers/suppliers) are a SEPARATE auth domain from Peaceway staff:
 identity is the `network_partners` row itself (matched by `portal_login_email`),
 never an `admin_users` row. Sessions and OTPs live in their own tables so a
-partner token can never resolve to a staff identity — the wall is structural,
+partner token can never resolve to a staff identity - the wall is structural,
 not role-based.
 """
 from __future__ import annotations
@@ -36,7 +36,7 @@ class PartnerPortalOtp(Base, TimestampMixin):
 
 
 class PartnerPortalSession(Base):
-    """Active partner portal session — UUID token sent via X-Partner-Session."""
+    """Active partner portal session - UUID token sent via X-Partner-Session."""
 
     __tablename__ = "partner_portal_sessions"
 

@@ -1,4 +1,4 @@
-"""Access gating — thin facade over the RBAC service.
+"""Access gating - thin facade over the RBAC service.
 
 Role membership is DB-backed (admin_users + assignments) with the env owner as
 bootstrap. Permissions come from the code matrix in app.core.rbac.

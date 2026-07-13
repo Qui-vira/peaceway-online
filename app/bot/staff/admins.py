@@ -284,7 +284,7 @@ async def add_got_details(message: Message, state: FSMContext) -> None:
     kb.button(text="👥 Staff list", callback_data="staff:admins")
     kb.adjust(1)
     await message.answer(
-        f"✅ Added <b>{full_name or tid}</b> as <b>{rbac.role_label(role_key)}</b> — status: 🟡 PENDING.\n\n"
+        f"✅ Added <b>{full_name or tid}</b> as <b>{rbac.role_label(role_key)}</b> - status: 🟡 PENDING.\n\n"
         "Tap <b>Activate now</b> to grant them access to /admin and the web panel.\n"
         "<i>If they have never messaged this bot, ask them to send /start once so "
         "they can receive alerts.</i>",
