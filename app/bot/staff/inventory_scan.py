@@ -1057,6 +1057,24 @@ async def pre_commit(call: CallbackQuery) -> None:
         pending = sum(1 for i in scan.items if i.review_status == REVIEW_PENDING)
         mode_label = MODE_LABELS.get(scan.scan_mode, scan.scan_mode)
 
+    # An empty commit would throw the whole review away — block it.
+    if plan["update"] + plan["create"] + plan["draft"] == 0:
+        kb = InlineKeyboardBuilder()
+        kb.button(text="✅ Confirm All Safe Changes", callback_data="invscan:confirmall")
+        kb.button(text="📋 Review All", callback_data="invscan:list:all:0")
+        kb.button(text="⬅️ Back to Summary", callback_data="invscan:summary")
+        kb.adjust(1)
+        await call.message.edit_text(
+            "⚠️ <b>Nothing is confirmed yet.</b>\n\n"
+            f"All {plan['skip']} detected item(s) are still unreviewed or skipped, so "
+            "updating now would change nothing and close this scan.\n\n"
+            "Confirm the items you want applied first — “Confirm All Safe Changes” "
+            "handles the high-confidence ones in one tap.",
+            reply_markup=kb.as_markup(),
+        )
+        await call.answer("Confirm at least one item first.", show_alert=True)
+        return
+
     if scan.scan_mode == SCAN_MODE_DRAFT:
         body = (
             "📝 <b>Finish Draft</b>\n\n"
@@ -1102,6 +1120,16 @@ async def do_commit(call: CallbackQuery, state: FSMContext) -> None:
             scan = await _scan_for_user(db, call.from_user.id)
             if scan is None:
                 await call.answer("No scan awaiting review.", show_alert=True)
+                return
+            plan = scan_service.commit_plan(scan)
+            if plan["update"] + plan["create"] + plan["draft"] == 0:
+                # Stale confirm button: nothing is confirmed, keep the session open.
+                text, kb = await _summary_view(db, scan)
+                await call.message.edit_text(text, reply_markup=kb)
+                await call.answer(
+                    "Nothing is confirmed yet — confirm at least one item first.",
+                    show_alert=True,
+                )
                 return
             scan_id = str(scan.id)
             summary = await scan_service.commit_scan_session(db, scan, call.from_user.id)
