@@ -28,3 +28,8 @@ node_modules/
 .codex/
 peaceway-online-pharmacy-website/
 *.md
+# Untracked local Node tooling at the repo root - if uploaded, NIXPACKS builds
+# a Node app (no pip/uvicorn) instead of the Python backend. The web service
+# (GitHub source) has no root package.json, so this matches its Python build.
+/package.json
+/package-lock.json
