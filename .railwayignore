@@ -26,4 +26,5 @@ graphify-out/
 design-system/
 node_modules/
 .codex/
+peaceway-online-pharmacy-website/
 *.md
