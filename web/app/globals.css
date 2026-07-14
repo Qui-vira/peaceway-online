@@ -641,6 +641,15 @@ footer {
   box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.06);
 }
 
+/* Hero CTA group: lay the buttons out with a real gap so their solid bottom
+   edges never crowd/gum together (row on desktop, wrapping to a column). */
+.ctg {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+}
+
 /* ── Tactile "pressable key" buttons (Duolingo-style) ───────────────────────
    A solid darker bottom EDGE (not a blur) gives real physical depth; the button
    visibly depresses on press (translateY + the edge collapses). Shared by every
@@ -1430,7 +1439,7 @@ footer {
     color: #f7faf6;
     text-shadow: 0 2px 12px rgba(0, 0, 0, 0.74);
   }
-  .ctg { flex-direction: column; gap: 11px; width: min(100%, 340px); }
+  .ctg { flex-direction: column; gap: 18px; width: min(100%, 340px); }
   .bp,
   .bg2,
   .ncta {
