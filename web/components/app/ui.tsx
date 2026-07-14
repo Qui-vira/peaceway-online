@@ -4,7 +4,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ChevronRight, UserPlus } from "lucide-react";
 import { DrugIcon } from "@/components/app/drug-icons";
+import { PeacewayLoader } from "@/components/app/peaceway-loader";
 import type { MedicationReminder } from "@/lib/api/reminders";
+
+export { PeacewayLoader };
 
 export const STATUS_LABELS: Record<string, string> = {
   NEW: "Received",
@@ -67,43 +70,8 @@ export function ActionCard({
   );
 }
 
-/**
- * Branded loader: the Peaceway pharmacy mark assembles itself - the hexagon
- * outline draws in, then the circle + cross pop into place, looping. Falls back
- * to the fully-formed static mark under prefers-reduced-motion.
- */
-export function PeacewayLoader({ size = 54 }: { size?: number }) {
-  return (
-    <span
-      className="pw-loader inline-block"
-      role="status"
-      aria-label="Loading"
-      style={{ width: size, height: size }}
-    >
-      <svg viewBox="0 0 100 100" width={size} height={size} fill="none" aria-hidden="true">
-        <path
-          className="pw-loader-hex"
-          d="M70 16 L90 50 L70 84 L30 84 L10 50 L30 16 Z"
-          stroke="#34d98a"
-          strokeWidth="4"
-          strokeLinejoin="round"
-          strokeLinecap="round"
-        />
-        <g className="pw-loader-core">
-          <circle cx="50" cy="50" r="15" stroke="#34d98a" strokeWidth="4" />
-          <path d="M50 42 L50 58 M42 50 L58 50" stroke="#34d98a" strokeWidth="4" strokeLinecap="round" />
-        </g>
-      </svg>
-    </span>
-  );
-}
-
 export function Spinner() {
-  return (
-    <div className="flex min-h-[50vh] items-center justify-center">
-      <PeacewayLoader />
-    </div>
-  );
+  return <PeacewayLoader />;
 }
 
 export function GuestWall({ message }: { message?: string }) {

@@ -493,36 +493,6 @@ footer {
   margin-left: 3rem;
 }
 
-/* ── Peaceway loader: the pharmacy mark assembles itself ─────────────────── */
-.pw-loader-hex {
-  stroke-dasharray: 240;
-  animation: pw-hex-draw 2s ease-in-out infinite;
-}
-.pw-loader-core {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: pw-core-pop 2s ease-in-out infinite;
-}
-@keyframes pw-hex-draw {
-  0% { stroke-dashoffset: 240; opacity: 0.25; }
-  42% { stroke-dashoffset: 0; opacity: 1; }
-  72% { stroke-dashoffset: 0; opacity: 1; }
-  100% { stroke-dashoffset: -240; opacity: 0.25; }
-}
-@keyframes pw-core-pop {
-  0%, 30% { transform: scale(0); opacity: 0; }
-  50%, 72% { transform: scale(1); opacity: 1; }
-  100% { transform: scale(0.55); opacity: 0; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .pw-loader-hex,
-  .pw-loader-core {
-    animation: none;
-    stroke-dashoffset: 0;
-    opacity: 1;
-    transform: none;
-  }
-}
 
 .hh {
   font-family: var(--font-syne), sans-serif;
