@@ -240,10 +240,13 @@ footer {
 .hcon {
   max-width: 1240px;
   margin: 0 auto;
-  padding: 88px 56px 0;
+  padding: 0 56px;
   position: relative;
   z-index: 10;
-  height: 100%;
+  /* Discount the in-flow 74px nav so the copy centres in the *visible* area
+     below it, not the full 100vh sticky (which starts under the nav and
+     overflows the fold) - keeps the top/bottom gaps balanced. */
+  height: calc(100% - 74px);
   display: flex;
   flex-direction: column;
   justify-content: center;
