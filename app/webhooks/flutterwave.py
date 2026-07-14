@@ -38,7 +38,13 @@ async def flutterwave_webhook(request: Request) -> dict:
             )
         )
         if verified and tx_ref and status == "successful":
-            order = (await session.execute(select(Order).where(Order.code == tx_ref))).scalar_one_or_none()
+            # Lock the order row so concurrent duplicate deliveries (Flutterwave
+            # retries) can't both read AWAITING_PAYMENT and double-transition.
+            order = (
+                await session.execute(
+                    select(Order).where(Order.code == tx_ref).with_for_update()
+                )
+            ).scalar_one_or_none()
             if order and order.status in (OrderStatus.AWAITING_PAYMENT, OrderStatus.PAYMENT_SUBMITTED):
                 await orders_svc.transition_status(session, order, OrderStatus.PAYMENT_APPROVED, "flutterwave")
                 if order.rx_status == RxStatus.NOT_REQUIRED:

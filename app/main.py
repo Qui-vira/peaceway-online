@@ -9,6 +9,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 
 from app.api.v1.router import router as api_v1_router
 from app.bot.dispatcher import build_bot, build_dispatcher, set_bot_commands
@@ -88,6 +89,11 @@ app.add_middleware(
     allow_headers=["Content-Type", "Authorization", "X-Requested-With"],
     max_age=3600,
 )
+
+# Compress JSON/text responses (catalog + order lists are the payloads that
+# benefit). Only kicks in above ~500 bytes and when the client sends
+# Accept-Encoding: gzip, so small webhook acks stay uncompressed.
+app.add_middleware(GZipMiddleware, minimum_size=500)
 
 # Existing Telegram + payment + logistics webhooks - order and paths unchanged.
 app.include_router(telegram_webhook.router)
