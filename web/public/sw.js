@@ -1,9 +1,14 @@
-const CACHE_NAME = "peaceway-online-pwa-v6";
+const CACHE_NAME = "peaceway-online-pwa-v7";
 
-// Only these never change - content-hashed by Next.js build
+// Only these never change - content-hashed by Next.js production build
 const IMMUTABLE_PREFIX = "/_next/static/";
 
-// Offline fallback pages to precache
+// On localhost the Next dev server reuses chunk paths across rebuilds, so
+// cache-first would serve stale JS and hide code changes. Never cache in dev.
+const IS_DEV =
+  self.location.hostname === "localhost" || self.location.hostname === "127.0.0.1";
+
+// Offline fallback pages to precache (production only)
 const PRECACHE_URLS = [
   "/offline",
   "/manifest.json",
@@ -12,13 +17,16 @@ const PRECACHE_URLS = [
 ];
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE_URLS))
-  );
+  if (!IS_DEV) {
+    event.waitUntil(
+      caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE_URLS))
+    );
+  }
   self.skipWaiting();
 });
 
 self.addEventListener("activate", (event) => {
+  // Drop every old cache (incl. any stale dev bundles from earlier versions).
   event.waitUntil(
     caches.keys().then((keys) =>
       Promise.all(keys.map((key) => (key !== CACHE_NAME ? caches.delete(key) : null)))
@@ -30,6 +38,9 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   const { request } = event;
   if (request.method !== "GET") return;
+
+  // Dev: pure network passthrough, no caching - HMR and code edits always win.
+  if (IS_DEV) return;
 
   const url = new URL(request.url);
 
@@ -51,7 +62,6 @@ self.addEventListener("fetch", (event) => {
   event.respondWith(
     fetch(request)
       .then((response) => {
-        // Cache a copy for offline fallback
         const copy = response.clone();
         caches.open(CACHE_NAME).then((c) => c.put(request, copy));
         return response;
