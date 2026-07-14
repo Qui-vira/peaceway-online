@@ -524,8 +524,12 @@ footer {
      Pristine studio-grey frames fill the hero; the white fringe that showed on
      dark is gone because white now sits on light. Dark type on the light stage,
      fading into the dark sections below. */
+  /* building lives in the right zone, clear of the left text column; fade its
+     left edge so the opaque studio-grey blends into the hero background */
   #s1 .pw-seq {
-    left: 0;
+    left: 40%;
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 10%);
+    mask-image: linear-gradient(to right, transparent 0%, #000 10%);
   }
   #s1 .hstage,
   #s1 .hscrim,
