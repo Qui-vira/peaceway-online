@@ -18,3 +18,12 @@ build/
 docs/
 tests/
 scripts/
+# Heavy non-backend assets - the Next.js frontend deploys on Vercel, so the
+# Railway Python services never need any of these.
+web/
+presentations/
+graphify-out/
+design-system/
+node_modules/
+.codex/
+*.md

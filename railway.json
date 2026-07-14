@@ -4,7 +4,7 @@
     "builder": "NIXPACKS"
   },
   "deploy": {
-    "startCommand": "sh scripts/start.sh",
+    "startCommand": "if [ \"$PW_ROLE\" = worker ]; then exec uvicorn app.worker_app:app --host 0.0.0.0 --port $PORT; else alembic upgrade head && exec uvicorn app.main:app --host 0.0.0.0 --port $PORT; fi",
     "healthcheckPath": "/health",
     "healthcheckTimeout": 100,
     "restartPolicyType": "ON_FAILURE",
