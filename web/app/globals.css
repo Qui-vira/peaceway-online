@@ -131,6 +131,31 @@ footer {
   z-index: 0;
 }
 
+.pw-seq {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.pw-seq-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.pw-seq-signage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0;
+  transition: opacity 0.15s linear;
+}
+
 .ov {
   position: absolute;
   inset: 0;
