@@ -493,49 +493,6 @@ footer {
   margin-left: 3rem;
 }
 
-/* Hero sound opt-in toggle (bottom-right of the hero, desktop only). */
-.pw-sound-toggle {
-  position: absolute;
-  right: 28px;
-  bottom: 28px;
-  z-index: 20;
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 8px 14px;
-  border-radius: 999px;
-  border: 1px solid var(--bdr);
-  background: rgba(8, 10, 8, 0.55);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  color: var(--m);
-  font-family: var(--font-syne), sans-serif;
-  font-size: 10.5px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: color 0.2s, border-color 0.2s, background 0.2s, transform 0.15s;
-}
-.pw-sound-toggle:hover {
-  color: var(--t);
-  border-color: rgba(52, 217, 138, 0.5);
-}
-.pw-sound-toggle:active {
-  transform: scale(0.95);
-}
-.pw-sound-toggle.is-on {
-  color: #34d98a;
-  border-color: rgba(52, 217, 138, 0.55);
-  background: rgba(15, 103, 60, 0.2);
-}
-@media (max-width: 800px) {
-  /* Mobile hero is a static frame (no scroll scrub to drive audio). */
-  .pw-sound-toggle {
-    display: none;
-  }
-}
-
 
 .hh {
   font-family: var(--font-syne), sans-serif;
@@ -589,7 +546,10 @@ footer {
   #s1 .hh {
     font-size: clamp(30px, 3.1vw, 48px);
     max-width: 440px;
-    background: linear-gradient(180deg, #15291d 0%, #0f673c 100%);
+    /* background-image (not the shorthand) so background-clip:text survives */
+    background-image: linear-gradient(180deg, #15291d 0%, #0f673c 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
   }
   #s1 .hs {
@@ -607,16 +567,6 @@ footer {
   }
   #s1 .snbg {
     -webkit-text-stroke: 1px rgba(15, 103, 60, 0.12);
-  }
-  #s1 .pw-sound-toggle {
-    background: rgba(255, 255, 255, 0.55);
-    border-color: rgba(15, 103, 60, 0.3);
-    color: #15291d;
-  }
-  #s1 .pw-sound-toggle.is-on {
-    background: rgba(15, 103, 60, 0.16);
-    border-color: rgba(15, 103, 60, 0.55);
-    color: #0f673c;
   }
   #s1 .sticky::after {
     content: "";
