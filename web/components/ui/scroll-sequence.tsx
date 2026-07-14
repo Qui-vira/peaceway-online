@@ -13,7 +13,7 @@ const SIGNAGE_FADE = 0.18;
  * Bump when the frame assets change so browsers re-fetch instead of serving a
  * stale cached .webp (the paths are otherwise stable). v2 = watermark erased.
  */
-const ASSET_VER = "4";
+const ASSET_VER = "5";
 
 /**
  * Scroll-linked image sequence on a canvas (the Apple product-page technique),
