@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/dist/ScrollTrigger";
+import { heroSound } from "@/lib/hero-sound";
 
 type Manifest = { count: number; width: number; height: number };
 
@@ -41,6 +42,7 @@ export function ScrollSequence({ sceneId = "s1" }: { sceneId?: string }): JSX.El
     const scene = document.getElementById(sceneId);
     let count = 0;
     let displayed = 0;
+    let lastProgress = 0;
     const images: Array<HTMLImageElement | undefined> = [];
     let disposed = false;
     let trigger: ScrollTrigger | undefined;
@@ -126,6 +128,9 @@ export function ScrollSequence({ sceneId = "s1" }: { sceneId?: string }): JSX.El
             displayed = self.progress * (count - 1);
             draw(displayed);
             setSignage(1 - self.progress / SIGNAGE_FADE);
+            const velocity = Math.abs(self.progress - lastProgress);
+            lastProgress = self.progress;
+            heroSound.update(self.progress, velocity);
           },
         });
         ScrollTrigger.refresh();

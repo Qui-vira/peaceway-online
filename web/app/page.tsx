@@ -2,6 +2,7 @@ import Image from "next/image";
 import type { ReactNode } from "react";
 import { ScrollSequence } from "@/components/ui/scroll-sequence";
 import { HeroContent } from "@/components/ui/hero-content";
+import { HeroSoundToggle } from "@/components/ui/hero-sound-toggle";
 import {
   TextFX,
   SplitText,
@@ -78,6 +79,7 @@ export default function Page(): JSX.Element {
             <div className="snbg" aria-hidden="true">01</div>
             <div className="hscrim" aria-hidden="true" />
             <HeroContent />
+            <HeroSoundToggle />
           </div>
         </div>
 
