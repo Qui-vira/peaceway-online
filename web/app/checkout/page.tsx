@@ -2,8 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
 import { getCart, cartTotal, clearCart, type CartItem } from "@/lib/cart";
 import { createOrder } from "@/lib/api/orders";
 import type { ApiError } from "@/lib/api";
@@ -11,9 +9,17 @@ import { getMe } from "@/lib/api/customers";
 import { AppShell } from "@/components/app/app-shell";
 import { Spinner } from "@/components/app/ui";
 
+const FOCUS =
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0b0c09]";
+
 const DELIVERY_FEE = 500;
 
 type PayMethod = "BANK_TRANSFER" | "FLUTTERWAVE";
+
+const PAY_OPTIONS: { value: PayMethod; label: string; sub: string }[] = [
+  { value: "BANK_TRANSFER", label: "Bank transfer / USSD", sub: "We'll send account details after placing" },
+  { value: "FLUTTERWAVE", label: "Pay online (card / transfer)", sub: "Powered by Flutterwave" },
+];
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -50,134 +56,143 @@ export default function CheckoutPage() {
       clearCart();
       router.push(`/orders/${order.id}?placed=1`);
     } catch (e: unknown) {
-      const apiErr = (typeof e === "object" && e !== null && "status" in e && "detail" in e)
-        ? (e as ApiError)
-        : null;
+      const apiErr =
+        typeof e === "object" && e !== null && "status" in e && "detail" in e ? (e as ApiError) : null;
       if (apiErr?.status === 401) {
         setSubmitting(false);
         router.push("/start");
         return;
       }
-      const msg = apiErr?.detail ?? "Something went wrong.";
-      setError(msg);
+      setError(apiErr?.detail ?? "Something went wrong.");
       setSubmitting(false);
     }
   }
 
-  if (loading) return <AppShell><Spinner /></AppShell>;
+  if (loading)
+    return (
+      <AppShell back={{ fallbackHref: "/cart" }}>
+        <Spinner />
+      </AppShell>
+    );
 
   const subtotal = cartTotal(cart);
   const total = subtotal + DELIVERY_FEE;
+  const inputCls = `w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-base text-white outline-none transition placeholder-white/30 focus:border-emerald-500/50 md:text-sm ${FOCUS}`;
 
   return (
-    <AppShell>
-      <div className="space-y-5 px-5 pt-10 pb-8">
-        {/* Header */}
-        <div className="flex items-center gap-3">
-          <Link
-            href="/cart"
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5"
-          >
-            <ArrowLeft className="h-4 w-4 text-white/70" />
-          </Link>
-          <h1 className="font-syne text-[20px] font-bold text-white">Checkout</h1>
-        </div>
+    <AppShell back={{ title: "Checkout", fallbackHref: "/cart" }}>
+      <div className="mx-auto w-full max-w-5xl px-5 pb-10 pt-4 md:px-8">
+        <div className="grid gap-6 md:grid-cols-[minmax(0,1fr)_340px] md:items-start">
+          {/* Left: delivery + payment */}
+          <div className="space-y-5">
+            {/* Delivery address */}
+            <section className="space-y-3 rounded-2xl border border-white/8 bg-white/[0.04] px-4 py-4">
+              <h2 className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/40">
+                Delivery Address
+              </h2>
+              <textarea
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                placeholder="Your street address, area, Lagos..."
+                aria-label="Delivery address"
+                rows={2}
+                className={`resize-none ${inputCls}`}
+              />
+              <input
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder="Delivery note (optional)"
+                aria-label="Delivery note"
+                className={inputCls}
+              />
+            </section>
 
-        {/* Order summary */}
-        <div className="rounded-2xl border border-white/8 bg-white/4 px-4 py-4 space-y-2.5">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/40 mb-3">
-            Order Summary
-          </p>
-          {cart.map((item) => (
-            <div key={item.product_id} className="flex justify-between text-[13px]">
-              <span className="text-white/60 truncate mr-2">{item.product_name} × {item.quantity}</span>
-              <span className="shrink-0 text-white">₦{(item.selling_price * item.quantity).toLocaleString()}</span>
-            </div>
-          ))}
-          <div className="h-px bg-white/8 mt-1" />
-          <div className="flex justify-between text-[13px]">
-            <span className="text-white/50">Delivery</span>
-            <span className="text-white">₦{DELIVERY_FEE.toLocaleString()}</span>
-          </div>
-          <div className="flex justify-between font-semibold">
-            <span className="text-white">Total</span>
-            <span className="text-emerald-400 text-[15px]">₦{total.toLocaleString()}</span>
-          </div>
-        </div>
-
-        {/* Delivery address */}
-        <div className="rounded-2xl border border-white/8 bg-white/4 px-4 py-4 space-y-3">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/40">
-            Delivery Address
-          </p>
-          <textarea
-            value={address}
-            onChange={(e) => setAddress(e.target.value)}
-            placeholder="Your street address, area, Lagos..."
-            rows={2}
-            className="w-full resize-none rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-white/30 outline-none focus:border-emerald-500/50"
-          />
-          <input
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-            placeholder="Delivery note (optional)"
-            className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-white/30 outline-none focus:border-emerald-500/50"
-          />
-        </div>
-
-        {/* Payment method */}
-        <div className="rounded-2xl border border-white/8 bg-white/4 px-4 py-4 space-y-3">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/40">
-            Payment Method
-          </p>
-          {(
-            [
-              { value: "BANK_TRANSFER", label: "Bank transfer / USSD", sub: "We'll send account details after placing" },
-              { value: "FLUTTERWAVE", label: "Pay online (card / transfer)", sub: "Powered by Flutterwave" },
-            ] as { value: PayMethod; label: string; sub: string }[]
-          ).map((opt) => (
-            <button
-              key={opt.value}
-              onClick={() => setPayMethod(opt.value)}
-              className={`flex w-full items-start gap-3 rounded-xl border p-3.5 text-left transition-all duration-200 active:scale-[0.99] motion-reduce:transform-none ${
-                payMethod === opt.value
-                  ? "border-emerald-500/40 bg-emerald-500/8 shadow-[0_0_24px_-8px_rgba(26,163,90,0.5)]"
-                  : "border-white/10 bg-transparent hover:border-white/20"
-              }`}
-            >
-              <span
-                className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ${
-                  payMethod === opt.value ? "border-emerald-500 bg-emerald-500" : "border-white/30"
-                }`}
-              >
-                {payMethod === opt.value && (
-                  <span className="h-2 w-2 rounded-full bg-black" />
-                )}
-              </span>
-              <div>
-                <p className="text-[13px] font-semibold text-white">{opt.label}</p>
-                <p className="text-[11px] text-white/40">{opt.sub}</p>
+            {/* Payment method */}
+            <section className="space-y-3 rounded-2xl border border-white/8 bg-white/[0.04] px-4 py-4">
+              <h2 className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/40">
+                Payment Method
+              </h2>
+              <div role="radiogroup" aria-label="Payment method" className="space-y-3">
+                {PAY_OPTIONS.map((opt) => {
+                  const selected = payMethod === opt.value;
+                  return (
+                    <button
+                      key={opt.value}
+                      role="radio"
+                      aria-checked={selected}
+                      onClick={() => setPayMethod(opt.value)}
+                      className={`flex w-full items-start gap-3 rounded-xl border p-3.5 text-left transition-all duration-200 active:scale-[0.99] motion-reduce:transform-none ${
+                        selected
+                          ? "border-emerald-500/40 bg-emerald-500/[0.08] shadow-[0_0_24px_-8px_rgba(26,163,90,0.5)]"
+                          : "border-white/10 hover:border-white/20"
+                      } ${FOCUS}`}
+                    >
+                      <span
+                        className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ${
+                          selected ? "border-emerald-500 bg-emerald-500" : "border-white/30"
+                        }`}
+                      >
+                        {selected && <span className="h-2 w-2 rounded-full bg-black" />}
+                      </span>
+                      <span>
+                        <span className="block text-[13px] font-semibold text-white">{opt.label}</span>
+                        <span className="block text-[11px] text-white/40">{opt.sub}</span>
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
+            </section>
+          </div>
+
+          {/* Right: summary + place order (sticky on desktop) */}
+          <div className="space-y-4 md:sticky md:top-24">
+            <section className="space-y-2.5 rounded-2xl border border-white/8 bg-white/[0.04] px-4 py-4">
+              <h2 className="mb-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/40">
+                Order Summary
+              </h2>
+              {cart.map((item) => (
+                <div key={item.product_id} className="flex justify-between gap-2 text-[13px]">
+                  <span className="truncate text-white/60">
+                    {item.product_name} × {item.quantity}
+                  </span>
+                  <span className="shrink-0 text-white">
+                    ₦{(item.selling_price * item.quantity).toLocaleString()}
+                  </span>
+                </div>
+              ))}
+              <div className="mt-1 h-px bg-white/8" />
+              <div className="flex justify-between text-[13px]">
+                <span className="text-white/50">Delivery</span>
+                <span className="text-white">₦{DELIVERY_FEE.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between font-semibold">
+                <span className="text-white">Total</span>
+                <span className="text-[15px] text-emerald-400">₦{total.toLocaleString()}</span>
+              </div>
+            </section>
+
+            {error && (
+              <p
+                role="alert"
+                className="rounded-xl border border-red-500/25 bg-red-500/[0.08] px-4 py-3 text-[13px] text-red-400"
+              >
+                {error}
+              </p>
+            )}
+
+            <button
+              disabled={submitting}
+              onClick={handleSubmit}
+              className={`flex min-h-[48px] w-full items-center justify-center rounded-xl bg-emerald-500 text-sm font-semibold text-black transition-all duration-200 hover:bg-emerald-400 hover:shadow-[0_10px_30px_rgba(26,163,90,0.35)] active:scale-[0.98] disabled:opacity-60 disabled:active:scale-100 motion-reduce:transform-none ${FOCUS}`}
+            >
+              {submitting ? "Placing order…" : `Place Order · ₦${total.toLocaleString()}`}
             </button>
-          ))}
+            <p className="text-center text-[11px] text-white/25">
+              By placing this order you agree to our terms of service.
+            </p>
+          </div>
         </div>
-
-        {error && (
-          <p className="rounded-xl border border-red-500/25 bg-red-500/8 px-4 py-3 text-[13px] text-red-400">
-            {error}
-          </p>
-        )}
-
-        <button
-          disabled={submitting}
-          onClick={handleSubmit}
-          className="w-full rounded-xl bg-emerald-500 py-3.5 text-sm font-semibold text-black transition-all duration-200 hover:bg-emerald-400 hover:shadow-[0_10px_30px_rgba(26,163,90,0.35)] active:scale-[0.98] disabled:opacity-60 disabled:active:scale-100 motion-reduce:transform-none"
-        >
-          {submitting ? "Placing order…" : `Place Order · ₦${total.toLocaleString()}`}
-        </button>
-        <p className="text-center text-[11px] text-white/25">
-          By placing this order you agree to our terms of service.
-        </p>
       </div>
     </AppShell>
   );

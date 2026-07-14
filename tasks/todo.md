@@ -63,9 +63,10 @@ live on /shop (Phase 3). So enhanced existing sections instead of adding demos.
 - [ ] Landing page
 - [x] Shop grid (`/shop`) — responsive grid (2→5 cols), constrained container, 16px mobile search input, focus rings + 44px targets, desktop cart in top nav
 - [x] Product detail (`/shop/[id]`) — desktop 2-col (sticky media + info/CTA), shared BackBar, focus rings + 48px CTA
-- [ ] Cart (`/cart`)
-- [ ] Checkout (`/checkout`)
-- [ ] Verify each at 375 / 768 / 1280
+- [x] Cart (`/cart`) — desktop 2-col (items + sticky summary), 44px qty steppers (Minus/Plus icons), per-line totals, focus rings; single-col mobile
+- [x] Checkout (`/checkout`) — desktop 2-col (address+payment | sticky summary+CTA), shared BackBar, 16px inputs, radiogroup payment semantics, focus rings
+- [ ] Landing page
+- [ ] Verify each at 375 / 768 / 1280 (shop/product/cart done; checkout auth-gated in dev — visual pass pending real backend)
 
 ## Phase 4 — PWA mobile-app polish
 - [ ] Audit/upgrade `manifest.json` (maskable icons, theme/background color, `display: standalone`, shortcuts)
