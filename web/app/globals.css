@@ -20,17 +20,6 @@ body {
   overflow-x: hidden;
 }
 
-html.has-custom-cursor,
-html.has-custom-cursor body,
-html.has-custom-cursor a,
-html.has-custom-cursor button,
-html.has-custom-cursor [role="button"],
-html.has-custom-cursor input,
-html.has-custom-cursor textarea,
-html.has-custom-cursor select {
-  cursor: none;
-}
-
 a {
   text-decoration: none;
   color: inherit;
@@ -333,11 +322,12 @@ footer {
 }
 
 .nlogo {
-  height: 36px;
+  height: 38px;
   width: auto;
-  background: rgba(255, 255, 255, 0.93);
-  border-radius: 7px;
-  padding: 3px 8px;
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 4px 11px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.22), 0 0 0 1px rgba(255, 255, 255, 0.06);
 }
 
 .nlinks {
@@ -1069,50 +1059,6 @@ footer {
   color: var(--m);
 }
 
-.pw-cursor {
-  position: fixed;
-  top: 0;
-  left: 0;
-  pointer-events: none;
-  z-index: 99999;
-  opacity: 0;
-  transform: translate3d(-999px, -999px, 0);
-  will-change: transform, opacity;
-  transition: opacity 0.18s ease, transform 0.08s linear;
-  /* difference blend inverts the cursor against whatever is behind it, so it
-     stays visible + never clashes on the light hero or the dark sections */
-  mix-blend-mode: difference;
-}
-
-.pw-cursor.is-visible {
-  opacity: 1;
-}
-
-.pw-cursor-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 999px;
-  background: #ffffff;
-}
-
-.pw-cursor-ring {
-  width: 34px;
-  height: 34px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.85);
-  background: transparent;
-  transition:
-    opacity 0.18s ease,
-    transform 0.12s ease,
-    border-color 0.18s ease,
-    background-color 0.18s ease;
-}
-
-.pw-cursor.is-hover {
-  border-color: rgba(255, 255, 255, 1);
-  background: rgba(255, 255, 255, 0.12);
-}
-
 .pw-dots {
   display: none;
 }
@@ -1214,19 +1160,6 @@ footer {
     padding-top: calc(88px + env(safe-area-inset-top));
   }
   #spbar { display: none; }
-  html.has-custom-cursor,
-  html.has-custom-cursor body,
-  html.has-custom-cursor a,
-  html.has-custom-cursor button,
-  html.has-custom-cursor [role="button"],
-  html.has-custom-cursor input,
-  html.has-custom-cursor textarea,
-  html.has-custom-cursor select {
-    cursor: auto;
-  }
-  .pw-cursor {
-    display: none !important;
-  }
   .con { padding-bottom: calc(142px + env(safe-area-inset-bottom)); }
 
   .ov {
@@ -1676,8 +1609,7 @@ footer {
     scroll-behavior: auto !important;
   }
 
-  .snbg,
-  .pw-cursor {
+  .snbg {
     transform: none !important;
   }
 
