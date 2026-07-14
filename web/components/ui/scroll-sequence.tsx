@@ -10,6 +10,12 @@ type Manifest = { count: number; width: number; height: number };
 const SIGNAGE_FADE = 0.18;
 
 /**
+ * Bump when the frame assets change so browsers re-fetch instead of serving a
+ * stale cached .webp (the paths are otherwise stable). v2 = watermark erased.
+ */
+const ASSET_VER = "2";
+
+/**
  * Scroll-linked image sequence on a canvas (the Apple product-page technique),
  * driven by GSAP ScrollTrigger for reliable scrubbing. The building frames are
  * matted onto transparency and drawn over the dark hero; the CSS-sticky parent
@@ -46,7 +52,7 @@ export function ScrollSequence({ sceneId = "s1" }: { sceneId?: string }): JSX.El
     let trigger: ScrollTrigger | undefined;
 
     const frameSrc = (i: number): string =>
-      `/sequence/${dir}/frame_${String(i + 1).padStart(4, "0")}.webp`;
+      `/sequence/${dir}/frame_${String(i + 1).padStart(4, "0")}.webp?v=${ASSET_VER}`;
 
     const signage = signageRef.current;
     if (signage) signage.src = `/branding/signage-${dir}.webp`;
