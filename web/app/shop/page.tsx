@@ -133,11 +133,13 @@ export default function ShopPage() {
               {state.products.map((p) => (
                 <div
                   key={p.id}
-                  className="flex flex-col rounded-2xl border border-white/8 bg-white/4 overflow-hidden"
+                  className="group flex flex-col overflow-hidden rounded-2xl border border-white/8 bg-white/4 transition duration-300 ease-out hover:-translate-y-1 hover:border-emerald-500/40 hover:shadow-[0_18px_44px_rgba(0,0,0,0.45)] active:scale-[0.98] motion-reduce:transform-none motion-reduce:transition-none"
                 >
                   <Link href={`/shop/${p.id}`}>
-                    <div className="flex h-[72px] items-center justify-center border-b border-white/6 bg-emerald-500/6">
-                      <DrugIcon form={p.dosage_form ?? undefined} size={36} />
+                    <div className="flex h-[72px] items-center justify-center overflow-hidden border-b border-white/6 bg-emerald-500/6">
+                      <div className="transition-transform duration-300 ease-out group-hover:scale-110 motion-reduce:transform-none">
+                        <DrugIcon form={p.dosage_form ?? undefined} size={36} />
+                      </div>
                     </div>
                   </Link>
                   <div className="flex flex-1 flex-col gap-1.5 p-3">

@@ -16,7 +16,20 @@ const config: Config = {
         m: "var(--m)",
         g: "var(--g)",
         g2: "var(--g2)",
-        r: "var(--r)"
+        r: "var(--r)",
+        // Harmonize the web-app accent (used everywhere as `emerald-*`) to the
+        // Peaceway brand greens so the app matches the marketing landing.
+        emerald: {
+          100: "#d7f7e5",
+          200: "#b7f3d0",
+          300: "#74e2a6",
+          400: "#34d98a",
+          500: "#1aa35a",
+          600: "#14803f",
+          700: "#0f673c",
+          800: "#0b4f2f",
+          900: "#083b24"
+        }
       },
       fontFamily: {
         display: ["var(--font-syne)", "sans-serif"],
