@@ -1329,6 +1329,60 @@ footer {
     border-color: rgba(255, 255, 255, 0.44);
     color: rgba(255, 255, 255, 0.92);
   }
+
+  /* ── Light showcase hero (mobile) ────────────────────────────────────────
+     Mirror the desktop light hero: pristine studio-grey building fills the
+     slide, dark type on a frosted-glass card, dark overlays hidden. Only #s1
+     flips - the other slides keep their dark treatment. */
+  #s1 .hstage,
+  #s1 .hscrim,
+  #s1 .grg,
+  #s1 .ovg,
+  #s1 .vign {
+    display: none;
+  }
+  #s1 .sticky {
+    background: linear-gradient(180deg, #cfd0cb 0%, #c5c6c1 52%, #bcbdb8 100%);
+  }
+  #s1 .sv-fb {
+    background: linear-gradient(180deg, #cfd0cb 0%, #c5c6c1 55%, #b7b8b3 100%);
+  }
+  #s1 .hcon::before {
+    /* Frosted glass, not an opaque panel - the branded studio-grey building
+       reads through it while dark type stays legible. */
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.62) 0%, rgba(246, 248, 244, 0.72) 100%),
+      radial-gradient(ellipse at 50% 0%, rgba(15, 103, 60, 0.12), transparent 62%);
+    border: 1px solid rgba(15, 103, 60, 0.18);
+    box-shadow: 0 22px 60px rgba(15, 40, 29, 0.22);
+    backdrop-filter: blur(6px) saturate(1.05);
+    -webkit-backdrop-filter: blur(6px) saturate(1.05);
+  }
+  #s1 .hh {
+    background: linear-gradient(180deg, #15291d 0%, #0f673c 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: none;
+  }
+  #s1 .htag {
+    color: #0f673c;
+    text-shadow: none;
+  }
+  #s1 .hs {
+    color: #33403a;
+    text-shadow: none;
+  }
+  #s1 .bp {
+    background: linear-gradient(100deg, #23bd6a 0%, #0f673c 100%);
+    box-shadow: 0 10px 26px -8px rgba(15, 103, 60, 0.5);
+  }
+  #s1 .bg2 {
+    background: rgba(255, 255, 255, 0.34);
+    border-color: rgba(15, 103, 60, 0.5);
+    color: #15291d;
+  }
+
   .gc,
   .pc,
   .sstep,
