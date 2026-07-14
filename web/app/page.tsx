@@ -66,6 +66,7 @@ export default function Page(): JSX.Element {
             <div className="ovg" />
             <div className="vign" />
             <div className="snbg" aria-hidden="true">01</div>
+            <div className="hscrim" aria-hidden="true" />
             <div className="hcon">
               <div className="htag">Peaceway Online · Igando, Lagos, Nigeria</div>
               <h1 className="hh">YOUR LAGOS<br />PHARMACY<br />IS NOW ONLINE</h1>

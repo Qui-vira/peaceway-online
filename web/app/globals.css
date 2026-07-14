@@ -357,6 +357,32 @@ footer {
   margin-bottom: 38px;
 }
 
+/* Hero split (desktop only): a dark scrim on the left holds the headline + CTAs
+   while the building animation reads on the right, so the two stop overlapping.
+   Mobile keeps its own centered card treatment, so this stays desktop-only. */
+@media (min-width: 801px) {
+  .hscrim {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    pointer-events: none;
+    transition: opacity 0.1s linear;
+    background: linear-gradient(
+      100deg,
+      rgba(7, 8, 6, 0.97) 0%,
+      rgba(7, 8, 6, 0.95) 47%,
+      rgba(7, 8, 6, 0.45) 60%,
+      rgba(7, 8, 6, 0) 74%
+    );
+  }
+  #s1 .htag,
+  #s1 .hh,
+  #s1 .hs,
+  #s1 .ctg {
+    max-width: 520px;
+  }
+}
+
 @keyframes entUp {
   from { opacity: 0; transform: translateY(30px); }
   to { opacity: 1; transform: none; }
