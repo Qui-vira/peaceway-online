@@ -9,6 +9,7 @@ import { addToCart, getCart } from "@/lib/cart";
 import { AppShell } from "@/components/app/app-shell";
 import { Spinner } from "@/components/app/ui";
 import { DrugIcon } from "@/components/app/drug-icons";
+import { TactileButton, TactileLink } from "@/components/app/tactile-button";
 
 const FOCUS =
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0b0c09]";
@@ -122,26 +123,23 @@ export default function ProductDetailPage() {
             <div className="space-y-2">
               {product.is_in_stock ? (
                 <>
-                  <button
-                    onClick={handleAdd}
-                    className={`w-full sm:w-auto sm:min-w-[240px] ${
-                      added
-                        ? "inline-flex min-h-[48px] items-center justify-center gap-2 rounded-2xl bg-emerald-500/20 text-sm font-bold text-emerald-400"
-                        : "pw-btn"
-                    }`}
-                  >
-                    {added ? (
-                      <>
-                        <Check className="h-4 w-4" /> Added to cart
-                      </>
-                    ) : (
-                      "Add to Cart"
-                    )}
-                  </button>
+                  {added ? (
+                    <div className="inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-2xl bg-emerald-500/20 text-sm font-bold text-emerald-400 sm:w-auto sm:min-w-[240px]">
+                      <Check className="h-4 w-4" /> Added to cart
+                    </div>
+                  ) : (
+                    <TactileButton onClick={handleAdd} className="w-full sm:w-auto sm:min-w-[240px]">
+                      Add to Cart
+                    </TactileButton>
+                  )}
                   {cartCount > 0 && (
-                    <Link href="/cart" className="pw-btn-2 w-full sm:w-auto sm:min-w-[240px]">
+                    <TactileLink
+                      variant="secondary"
+                      href="/cart"
+                      className="w-full sm:w-auto sm:min-w-[240px]"
+                    >
                       View Cart ({cartCount})
-                    </Link>
+                    </TactileLink>
                   )}
                 </>
               ) : (

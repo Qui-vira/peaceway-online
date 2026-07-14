@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { Trash2, ShoppingCart, Minus, Plus } from "lucide-react";
 import { getCart, updateQty, removeFromCart, cartTotal, type CartItem } from "@/lib/cart";
 import { AppShell } from "@/components/app/app-shell";
 import { EmptyState } from "@/components/app/ui";
 import { DrugIcon } from "@/components/app/drug-icons";
+import { TactileLink } from "@/components/app/tactile-button";
 
 const FOCUS =
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0b0c09]";
@@ -125,9 +125,9 @@ export default function CartPage() {
                 </div>
               </div>
 
-              <Link href="/checkout" className="pw-btn w-full">
+              <TactileLink href="/checkout" className="w-full">
                 Proceed to Checkout →
-              </Link>
+              </TactileLink>
             </div>
           </div>
         )}

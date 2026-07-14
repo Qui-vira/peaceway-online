@@ -8,6 +8,7 @@ import type { ApiError } from "@/lib/api";
 import { getMe } from "@/lib/api/customers";
 import { AppShell } from "@/components/app/app-shell";
 import { Spinner } from "@/components/app/ui";
+import { TactileButton } from "@/components/app/tactile-button";
 
 const FOCUS =
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0b0c09]";
@@ -181,9 +182,9 @@ export default function CheckoutPage() {
               </p>
             )}
 
-            <button disabled={submitting} onClick={handleSubmit} className="pw-btn w-full">
+            <TactileButton disabled={submitting} onClick={handleSubmit} className="w-full">
               {submitting ? "Placing order…" : `Place Order · ₦${total.toLocaleString()}`}
-            </button>
+            </TactileButton>
             <p className="text-center text-[11px] text-white/25">
               By placing this order you agree to our terms of service.
             </p>

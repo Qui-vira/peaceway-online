@@ -8,6 +8,7 @@ import { addToCart, getCart, type CartItem } from "@/lib/cart";
 import { AppShell } from "@/components/app/app-shell";
 import { Spinner, EmptyState, SectionLabel } from "@/components/app/ui";
 import { DrugIcon } from "@/components/app/drug-icons";
+import { TactileButton } from "@/components/app/tactile-button";
 
 type State = { kind: "loading" } | { kind: "ready"; products: Product[] };
 
@@ -161,23 +162,18 @@ export default function ShopPage() {
                     <p className="text-[13px] font-bold text-emerald-400">{fmt(p.selling_price)}</p>
                     {!p.is_in_stock ? (
                       <span className="mt-auto text-[11px] text-white/30">Out of stock</span>
+                    ) : addedIds.has(p.id) ? (
+                      <div className="mt-auto inline-flex min-h-[40px] w-full items-center justify-center gap-1.5 rounded-xl bg-emerald-500/20 text-[12px] font-bold text-emerald-400">
+                        <Check className="h-3.5 w-3.5" /> Added
+                      </div>
                     ) : (
-                      <button
+                      <TactileButton
+                        variant="sm"
                         onClick={() => handleAdd(p)}
-                        className={`mt-auto w-full ${
-                          addedIds.has(p.id)
-                            ? "inline-flex min-h-[40px] items-center justify-center gap-1.5 rounded-xl bg-emerald-500/20 text-[12px] font-bold text-emerald-400"
-                            : "pw-btn-sm"
-                        }`}
+                        className="mt-auto w-full"
                       >
-                        {addedIds.has(p.id) ? (
-                          <>
-                            <Check className="h-3.5 w-3.5" /> Added
-                          </>
-                        ) : (
-                          "+ Add"
-                        )}
-                      </button>
+                        + Add
+                      </TactileButton>
                     )}
                   </div>
                 </div>
