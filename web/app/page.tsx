@@ -272,7 +272,7 @@ export default function Page(): JSX.Element {
           </div>
         </div>
 
-        <div className="scene" id="s8" style={{ height: "145vh" }}>
+        <div className="scene" id="s8" style={{ height: "auto" }}>
           <div className="sticky" data-screen-label="Community">
             <div className="sv-fb" />
             <div className="ov" />

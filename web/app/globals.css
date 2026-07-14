@@ -1077,13 +1077,16 @@ footer {
 /* s5 (How It Works) holds 10 steps + CTA - taller than 100vh on most
    viewports, so the pinned 100vh/overflow-hidden pattern clipped the
    "Start Your Order" button. This section flows at natural height instead. */
-#s5 .sticky {
+#s5 .sticky,
+#s8 .sticky {
   position: relative;
   height: auto;
   min-height: 100vh;
 }
 
-#s5 .con {
+#s5 .con,
+#s8 .con {
+  padding-top: 88px;
   padding-bottom: 88px;
 }
 
@@ -1152,7 +1155,8 @@ footer {
     overflow-y: auto;
     overflow-x: hidden;
   }
-  #s5 .sticky {
+  #s5 .sticky,
+  #s8 .sticky {
     height: 100%;
     min-height: 0;
     overflow-y: auto;
