@@ -15,14 +15,27 @@ const EASE = [0.22, 0.61, 0.36, 1] as const;
 export function HeroContent(): JSX.Element {
   const reduce = useReducedMotion();
 
+  const hover = reduce
+    ? {}
+    : {
+        whileHover: { y: -2, scale: 1.015 },
+        whileTap: { scale: 0.97 },
+        transition: { type: "spring" as const, stiffness: 420, damping: 24 },
+      };
   const cta = (
     <>
-      <a className="bp" href={siteConfig.telegramBotUrl} target="_blank" rel="noreferrer noopener">
+      <motion.a
+        className="bp"
+        href={siteConfig.telegramBotUrl}
+        target="_blank"
+        rel="noreferrer noopener"
+        {...hover}
+      >
         Order on Telegram
-      </a>
-      <a className="bg2" href="/request">
+      </motion.a>
+      <motion.a className="bg2" href="/request" {...hover}>
         Check Product Availability
-      </a>
+      </motion.a>
     </>
   );
 

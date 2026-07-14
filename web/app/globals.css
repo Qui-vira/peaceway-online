@@ -564,10 +564,22 @@ footer {
   #s1 .ctg {
     max-width: 440px;
   }
+  #s1 .bp {
+    background: linear-gradient(100deg, #23bd6a 0%, #0f673c 100%);
+    box-shadow: 0 10px 26px -8px rgba(15, 103, 60, 0.55);
+  }
+  #s1 .bp:hover {
+    box-shadow: 0 14px 34px -8px rgba(15, 103, 60, 0.62);
+  }
   #s1 .bg2 {
-    background: rgba(255, 255, 255, 0.4);
-    border-color: rgba(15, 103, 60, 0.45);
+    background: rgba(255, 255, 255, 0.22);
+    border-color: rgba(15, 103, 60, 0.5);
     color: #15291d;
+  }
+  #s1 .bg2:hover {
+    background: rgba(15, 103, 60, 0.1);
+    border-color: rgba(15, 103, 60, 0.75);
+    color: #0f673c;
   }
   #s1 .snbg {
     -webkit-text-stroke: 1px rgba(15, 103, 60, 0.12);
@@ -1067,7 +1079,9 @@ footer {
   transform: translate3d(-999px, -999px, 0);
   will-change: transform, opacity;
   transition: opacity 0.18s ease, transform 0.08s linear;
-  mix-blend-mode: screen;
+  /* difference blend inverts the cursor against whatever is behind it, so it
+     stays visible + never clashes on the light hero or the dark sections */
+  mix-blend-mode: difference;
 }
 
 .pw-cursor.is-visible {
@@ -1078,16 +1092,15 @@ footer {
   width: 8px;
   height: 8px;
   border-radius: 999px;
-  background: linear-gradient(180deg, #3cf28a 0%, #0f673c 100%);
-  box-shadow: 0 0 16px rgba(15, 103, 60, 0.32);
+  background: #ffffff;
 }
 
 .pw-cursor-ring {
   width: 34px;
   height: 34px;
   border-radius: 999px;
-  border: 1px solid rgba(15, 103, 60, 0.55);
-  background: rgba(15, 103, 60, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  background: transparent;
   transition:
     opacity 0.18s ease,
     transform 0.12s ease,
@@ -1096,8 +1109,8 @@ footer {
 }
 
 .pw-cursor.is-hover {
-  border-color: rgba(15, 103, 60, 0.85);
-  background: rgba(15, 103, 60, 0.08);
+  border-color: rgba(255, 255, 255, 1);
+  background: rgba(255, 255, 255, 0.12);
 }
 
 .pw-dots {
