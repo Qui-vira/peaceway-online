@@ -563,39 +563,71 @@ footer {
 @media (min-width: 801px) {
   /* Building sequence lives in the right ~63% of the hero so it never sits
      behind the headline - even fully exploded it stays in its own zone. */
+  /* ── Light showcase hero ──────────────────────────────────────────────────
+     Pristine studio-grey frames fill the hero; the white fringe that showed on
+     dark is gone because white now sits on light. Dark type on the light stage,
+     fading into the dark sections below. */
   #s1 .pw-seq {
-    left: 40%;
+    left: 0;
   }
-  /* Move the stage glow to sit behind the right-zone building on desktop. */
-  #s1 .hstage {
-    background: radial-gradient(
-      ellipse 30% 46% at 70% 52%,
-      rgba(150, 168, 156, 0.17) 0%,
-      rgba(26, 138, 80, 0.08) 40%,
-      transparent 70%
-    );
+  #s1 .hstage,
+  #s1 .hscrim,
+  #s1 .grg,
+  #s1 .ovg,
+  #s1 .vign {
+    display: none;
   }
-  /* Soft depth scrim under the left text column; clear before the building. */
-  .hscrim {
-    position: absolute;
-    inset: 0;
-    z-index: 5;
-    pointer-events: none;
-    background: linear-gradient(
-      100deg,
-      rgba(7, 8, 6, 0.7) 0%,
-      rgba(7, 8, 6, 0.18) 26%,
-      transparent 38%
-    );
+  #s1 .sv-fb {
+    background: linear-gradient(180deg, #cfd0cb 0%, #c5c6c1 55%, #b7b8b3 100%);
+  }
+  #s1 .sticky {
+    background: #c5c6c1;
+  }
+  #s1 .htag {
+    color: #0f673c;
+  }
+  #s1 .hh {
+    font-size: clamp(30px, 3.1vw, 48px);
+    max-width: 440px;
+    background: linear-gradient(180deg, #15291d 0%, #0f673c 100%);
+    -webkit-text-fill-color: transparent;
+  }
+  #s1 .hs {
+    color: #33403a;
   }
   #s1 .htag,
   #s1 .hs,
   #s1 .ctg {
     max-width: 440px;
   }
-  #s1 .hh {
-    font-size: clamp(30px, 3.1vw, 48px);
-    max-width: 440px;
+  #s1 .bg2 {
+    background: rgba(255, 255, 255, 0.4);
+    border-color: rgba(15, 103, 60, 0.45);
+    color: #15291d;
+  }
+  #s1 .snbg {
+    -webkit-text-stroke: 1px rgba(15, 103, 60, 0.12);
+  }
+  #s1 .pw-sound-toggle {
+    background: rgba(255, 255, 255, 0.55);
+    border-color: rgba(15, 103, 60, 0.3);
+    color: #15291d;
+  }
+  #s1 .pw-sound-toggle.is-on {
+    background: rgba(15, 103, 60, 0.16);
+    border-color: rgba(15, 103, 60, 0.55);
+    color: #0f673c;
+  }
+  #s1 .sticky::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 20%;
+    z-index: 6;
+    pointer-events: none;
+    background: linear-gradient(to bottom, transparent, #0b0c09);
   }
 }
 
