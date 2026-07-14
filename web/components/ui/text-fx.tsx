@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  AnimatePresence,
   motion,
   useReducedMotion,
   type Variants,
@@ -163,7 +164,7 @@ export function SplitText({
   return (
     <Comp
       className={className}
-      style={style}
+      style={{ ...style, perspective: effect === "flip" ? "700px" : undefined }}
       variants={container}
       initial="hidden"
       whileInView="show"
@@ -193,6 +194,8 @@ export function SplitText({
               marginRight: spacing,
               transformOrigin: effect === "flip" ? "50% 100%" : undefined,
               whiteSpace: effect === "lines" ? "pre" : undefined,
+              willChange: "transform, opacity",
+              backfaceVisibility: "hidden",
             }}
           >
             {content}
@@ -223,21 +226,27 @@ export function RotatingWords({
     return () => window.clearInterval(id);
   }, [reduce, words.length, interval]);
 
+  const longest = words.reduce((a, b) => (b.length > a.length ? b : a), "");
   if (reduce) return <span className={className}>{words[0]}</span>;
   return (
-    <span className={className} style={{ display: "inline-grid", overflow: "hidden", verticalAlign: "bottom" }}>
-      {words.map((w, idx) => (
+    <span style={{ position: "relative", display: "inline-block", verticalAlign: "bottom", textAlign: "center" }}>
+      {/* invisible longest word reserves the slot width so nothing shifts */}
+      <span aria-hidden style={{ visibility: "hidden" }} className={className}>
+        {longest}
+      </span>
+      <AnimatePresence mode="wait" initial={false}>
         <motion.span
-          key={w}
-          style={{ gridArea: "1 / 1", whiteSpace: "nowrap" }}
-          initial={false}
-          animate={{ y: `${(idx - i) * 100}%`, opacity: idx === i ? 1 : 0 }}
-          transition={{ duration: 0.5, ease: EASE }}
-          aria-hidden={idx !== i}
+          key={words[i]}
+          className={className}
+          style={{ position: "absolute", left: 0, right: 0, display: "inline-block", whiteSpace: "nowrap", willChange: "transform, opacity" }}
+          initial={{ y: "0.55em", opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: "-0.55em", opacity: 0 }}
+          transition={{ duration: 0.42, ease: EASE }}
         >
-          {w}
+          {words[i]}
         </motion.span>
-      ))}
+      </AnimatePresence>
     </span>
   );
 }

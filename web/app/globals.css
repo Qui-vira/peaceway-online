@@ -123,13 +123,15 @@ footer {
   inset: 0;
   z-index: 0;
   background:
-    /* fine dot-grid texture so surfaces aren't dead-flat */
-    radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.022) 1px, transparent 1.6px) 0 0 / 34px 34px,
-    /* two asymmetric green ambient glows for organic depth */
-    radial-gradient(ellipse 58% 46% at 84% 16%, rgba(26, 138, 80, 0.14) 0%, transparent 60%),
-    radial-gradient(ellipse 66% 52% at 10% 96%, rgba(15, 103, 60, 0.16) 0%, transparent 62%),
+    /* dot-grid texture */
+    radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.03) 1px, transparent 1.7px) 0 0 / 30px 30px,
+    /* large green aurora glows (top-right + bottom-left) */
+    radial-gradient(ellipse 56% 44% at 84% 12%, rgba(38, 170, 100, 0.22) 0%, transparent 58%),
+    radial-gradient(ellipse 64% 50% at 8% 96%, rgba(15, 103, 60, 0.24) 0%, transparent 60%),
+    /* soft center spotlight for depth */
+    radial-gradient(ellipse 46% 46% at 50% 46%, rgba(38, 170, 100, 0.07) 0%, transparent 68%),
     /* diagonal tonal base (never pure black) */
-    linear-gradient(158deg, #15180f 0%, #0d100b 46%, #090a07 100%);
+    linear-gradient(158deg, #171b11 0%, #0e120b 46%, #090a07 100%);
 }
 
 /* Hairline accent line separating scenes, catching the ambient glow. */
@@ -221,7 +223,7 @@ footer {
   font-weight: 800;
   font-size: clamp(150px, 20vw, 300px);
   color: transparent;
-  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.016);
+  -webkit-text-stroke: 1px rgba(38, 170, 100, 0.07);
   right: -1%;
   bottom: -4%;
   line-height: 1;
