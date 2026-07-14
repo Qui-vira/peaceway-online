@@ -85,7 +85,12 @@ export default function ProductDetailPage() {
 
         {/* Hero */}
         <div className="flex flex-col items-center gap-4 px-5">
-          <div className="flex h-28 w-28 items-center justify-center rounded-2xl border border-emerald-500/25 bg-emerald-500/10">
+          <div className="relative flex h-28 w-28 items-center justify-center rounded-2xl border border-emerald-500/25 bg-emerald-500/10 shadow-[0_0_44px_-6px_rgba(26,163,90,0.5)]">
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0 rounded-2xl"
+              style={{ background: "radial-gradient(circle at 50% 40%, rgba(52,217,138,0.18), transparent 70%)" }}
+            />
             <DrugIcon form={product.dosage_form ?? undefined} size={64} />
           </div>
           <div className="text-center">
@@ -145,10 +150,10 @@ export default function ProductDetailPage() {
             <>
               <button
                 onClick={handleAdd}
-                className={`w-full rounded-xl py-3.5 text-sm font-semibold transition ${
+                className={`w-full rounded-xl py-3.5 text-sm font-semibold transition-all duration-200 active:scale-[0.98] motion-reduce:transform-none ${
                   added
                     ? "bg-emerald-500/20 text-emerald-400"
-                    : "bg-emerald-500 text-black hover:bg-emerald-400"
+                    : "bg-emerald-500 text-black hover:bg-emerald-400 hover:shadow-[0_10px_30px_rgba(26,163,90,0.35)]"
                 }`}
               >
                 {added ? "Added to cart ✓" : "Add to Cart"}

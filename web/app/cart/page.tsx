@@ -86,17 +86,17 @@ export default function CartPage() {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleQty(item.product_id, item.quantity - 1)}
-                        className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/15 text-white/70 hover:border-white/30"
+                        className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/15 text-white/70 transition-all duration-150 hover:border-white/30 active:scale-90 motion-reduce:transform-none"
                         aria-label={`Reduce ${item.product_name} quantity`}
                       >
                         −
                       </button>
-                      <span className="w-7 text-center text-[13px] font-semibold text-white">
+                      <span className="w-7 text-center text-[13px] font-semibold text-white tabular-nums">
                         {item.quantity}
                       </span>
                       <button
                         onClick={() => handleQty(item.product_id, item.quantity + 1)}
-                        className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500 text-[13px] font-bold text-black"
+                        className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500 text-[13px] font-bold text-black transition-all duration-150 hover:bg-emerald-400 active:scale-90 motion-reduce:transform-none"
                         aria-label={`Increase ${item.product_name} quantity`}
                       >
                         +
@@ -126,7 +126,7 @@ export default function CartPage() {
 
             <Link
               href="/checkout"
-              className="block w-full rounded-xl bg-emerald-500 py-3.5 text-center text-sm font-semibold text-black transition hover:bg-emerald-400"
+              className="block w-full rounded-xl bg-emerald-500 py-3.5 text-center text-sm font-semibold text-black transition-all duration-200 hover:bg-emerald-400 hover:shadow-[0_10px_30px_rgba(26,163,90,0.35)] active:scale-[0.98] motion-reduce:transform-none"
             >
               Proceed to Checkout →
             </Link>

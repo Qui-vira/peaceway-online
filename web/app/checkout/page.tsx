@@ -139,9 +139,9 @@ export default function CheckoutPage() {
             <button
               key={opt.value}
               onClick={() => setPayMethod(opt.value)}
-              className={`flex w-full items-start gap-3 rounded-xl border p-3.5 text-left transition ${
+              className={`flex w-full items-start gap-3 rounded-xl border p-3.5 text-left transition-all duration-200 active:scale-[0.99] motion-reduce:transform-none ${
                 payMethod === opt.value
-                  ? "border-emerald-500/40 bg-emerald-500/8"
+                  ? "border-emerald-500/40 bg-emerald-500/8 shadow-[0_0_24px_-8px_rgba(26,163,90,0.5)]"
                   : "border-white/10 bg-transparent hover:border-white/20"
               }`}
             >
@@ -171,7 +171,7 @@ export default function CheckoutPage() {
         <button
           disabled={submitting}
           onClick={handleSubmit}
-          className="w-full rounded-xl bg-emerald-500 py-3.5 text-sm font-semibold text-black transition hover:bg-emerald-400 disabled:opacity-60"
+          className="w-full rounded-xl bg-emerald-500 py-3.5 text-sm font-semibold text-black transition-all duration-200 hover:bg-emerald-400 hover:shadow-[0_10px_30px_rgba(26,163,90,0.35)] active:scale-[0.98] disabled:opacity-60 disabled:active:scale-100 motion-reduce:transform-none"
         >
           {submitting ? "Placing order…" : `Place Order · ₦${total.toLocaleString()}`}
         </button>

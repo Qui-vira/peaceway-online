@@ -320,7 +320,7 @@ export function PageHeader({
 type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
 
 const BUTTON_VARIANTS: Record<ButtonVariant, string> = {
-  primary: "bg-emerald-500 text-black hover:bg-emerald-400",
+  primary: "bg-emerald-500 text-black hover:bg-emerald-400 hover:shadow-[0_10px_30px_rgba(26,163,90,0.35)]",
   secondary: "border border-white/12 text-white/80 hover:border-white/25 hover:text-white",
   ghost: "text-white/60 hover:text-white",
   danger: "border border-red-500/30 text-red-300 hover:bg-red-500/10",
@@ -336,8 +336,9 @@ export function Button({
     <button
       {...props}
       className={[
-        "inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition",
-        "disabled:cursor-not-allowed disabled:opacity-50",
+        "inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition-all duration-200",
+        "active:scale-[0.98] motion-reduce:transform-none",
+        "disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100",
         BUTTON_VARIANTS[variant],
         className,
       ].join(" ")}
