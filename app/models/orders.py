@@ -203,6 +203,12 @@ class Order(Base, TimestampMixin):
 
     assigned_staff_id: Mapped[UUID | None] = mapped_column(ForeignKey("staff.id"))
 
+    # Post-delivery follow-up: stamped when the order is marked delivered; a
+    # dedicated scheduler worker polls for due-and-unsent rows and sends the
+    # 24h check-in, then sets followup_sent_at.
+    followup_due_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    followup_sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
     customer: Mapped[Customer] = relationship(back_populates="orders")
     items: Mapped[list["OrderItem"]] = relationship(
         back_populates="order", cascade="all, delete-orphan", lazy="selectin"

@@ -32,11 +32,12 @@ async def lifespan(app: FastAPI):
     app.state.bot = bot
     app.state.dp = dp
 
-    from app.scheduler.jobs import start_scheduler
     from app.services.rbac_service import seed_roles_and_permissions
     from app.services.web_customers import ensure_web_customer_columns
 
-    start_scheduler()
+    # NB: scheduled jobs (reminders + post-delivery follow-ups) run in a
+    # dedicated worker process (app.run_scheduler), not here - so the web
+    # dyno can be scaled horizontally without double-firing scheduled work.
     # Keep older databases compatible with the current web auth schema.
     try:
         async with async_session() as session:

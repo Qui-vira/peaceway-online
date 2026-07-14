@@ -1,6 +1,8 @@
 """Staff order-action handlers (role-gated), with automation + audit + customer updates."""
 from __future__ import annotations
 
+from datetime import datetime, timedelta, timezone
+
 from aiogram import Bot, F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
@@ -231,7 +233,9 @@ async def handle_action(call: CallbackQuery, state: FSMContext) -> None:
                     by=by,
                 )
             customer_msg = f"🏁 Your order {code} has been delivered. Thank you for choosing us!"
-            downstream = ("followup", order.id)
+            # Stamp the 24h follow-up; the scheduler worker sends it (DB-driven,
+            # so it survives restarts and doesn't tie scheduling to this process).
+            order.followup_due_at = datetime.now(timezone.utc) + timedelta(hours=24)
 
         elif action == "cancel":
             await orders_svc.transition_status(session, order, OrderStatus.CANCELLED, by)
@@ -265,10 +269,6 @@ async def handle_action(call: CallbackQuery, state: FSMContext) -> None:
                 from app.services.alerts import alert_ready_for_dispatch
 
                 await alert_ready_for_dispatch(bot, oid)
-            elif kind == "followup":
-                from app.scheduler.jobs import schedule_followup
-
-                schedule_followup(bot, oid)
         except Exception as exc:  # noqa: BLE001
             log.error("downstream_alert_failed", kind=kind, error=str(exc))
 
