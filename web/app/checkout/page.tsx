@@ -181,11 +181,7 @@ export default function CheckoutPage() {
               </p>
             )}
 
-            <button
-              disabled={submitting}
-              onClick={handleSubmit}
-              className={`flex min-h-[48px] w-full items-center justify-center rounded-xl bg-emerald-500 text-sm font-semibold text-black transition-all duration-200 hover:bg-emerald-400 hover:shadow-[0_10px_30px_rgba(26,163,90,0.35)] active:scale-[0.98] disabled:opacity-60 disabled:active:scale-100 motion-reduce:transform-none ${FOCUS}`}
-            >
+            <button disabled={submitting} onClick={handleSubmit} className="pw-btn w-full">
               {submitting ? "Placing order…" : `Place Order · ₦${total.toLocaleString()}`}
             </button>
             <p className="text-center text-[11px] text-white/25">

@@ -124,11 +124,11 @@ export default function ProductDetailPage() {
                 <>
                   <button
                     onClick={handleAdd}
-                    className={`inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-xl px-6 text-sm font-semibold transition-all duration-200 active:scale-[0.98] motion-reduce:transform-none sm:w-auto sm:min-w-[240px] ${
+                    className={`w-full sm:w-auto sm:min-w-[240px] ${
                       added
-                        ? "bg-emerald-500/20 text-emerald-400"
-                        : "bg-emerald-500 text-black hover:bg-emerald-400 hover:shadow-[0_10px_30px_rgba(26,163,90,0.35)]"
-                    } ${FOCUS}`}
+                        ? "inline-flex min-h-[48px] items-center justify-center gap-2 rounded-2xl bg-emerald-500/20 text-sm font-bold text-emerald-400"
+                        : "pw-btn"
+                    }`}
                   >
                     {added ? (
                       <>
@@ -139,10 +139,7 @@ export default function ProductDetailPage() {
                     )}
                   </button>
                   {cartCount > 0 && (
-                    <Link
-                      href="/cart"
-                      className={`inline-flex min-h-[44px] w-full items-center justify-center rounded-xl border border-white/10 px-6 text-sm text-white/60 transition hover:border-white/20 hover:text-white sm:w-auto sm:min-w-[240px] ${FOCUS}`}
-                    >
+                    <Link href="/cart" className="pw-btn-2 w-full sm:w-auto sm:min-w-[240px]">
                       View Cart ({cartCount})
                     </Link>
                   )}

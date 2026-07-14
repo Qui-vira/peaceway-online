@@ -125,10 +125,7 @@ export default function CartPage() {
                 </div>
               </div>
 
-              <Link
-                href="/checkout"
-                className={`flex min-h-[48px] w-full items-center justify-center rounded-xl bg-emerald-500 text-sm font-semibold text-black transition-all duration-200 hover:bg-emerald-400 hover:shadow-[0_10px_30px_rgba(26,163,90,0.35)] active:scale-[0.98] motion-reduce:transform-none ${FOCUS}`}
-              >
+              <Link href="/checkout" className="pw-btn w-full">
                 Proceed to Checkout →
               </Link>
             </div>

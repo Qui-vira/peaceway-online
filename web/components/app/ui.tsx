@@ -87,10 +87,7 @@ export function GuestWall({ message }: { message?: string }) {
             "We need your contact details so our pharmacists can reach you."}
         </p>
       </div>
-      <Link
-        href="/start"
-        className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-6 py-3.5 text-sm font-semibold text-black transition hover:bg-emerald-400"
-      >
+      <Link href="/start" className="pw-btn">
         Start Profile
         <ChevronRight className="h-4 w-4" />
       </Link>
@@ -127,10 +124,7 @@ export function EmptyState({
         <p className="max-w-xs text-sm leading-relaxed text-white/45">{message}</p>
       </div>
       {ctaHref && ctaLabel && (
-        <Link
-          href={ctaHref}
-          className="inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-5 py-3 text-sm font-semibold text-black transition hover:bg-emerald-400"
-        >
+        <Link href={ctaHref} className="pw-btn">
           {ctaLabel}
           <ChevronRight className="h-4 w-4" />
         </Link>

@@ -164,11 +164,11 @@ export default function ShopPage() {
                     ) : (
                       <button
                         onClick={() => handleAdd(p)}
-                        className={`mt-auto inline-flex min-h-[40px] w-full items-center justify-center gap-1.5 rounded-xl text-[12px] font-semibold transition active:scale-[0.98] motion-reduce:transform-none ${
+                        className={`mt-auto w-full ${
                           addedIds.has(p.id)
-                            ? "bg-emerald-500/20 text-emerald-400"
-                            : "bg-emerald-500 text-black hover:bg-emerald-400"
-                        } ${FOCUS}`}
+                            ? "inline-flex min-h-[40px] items-center justify-center gap-1.5 rounded-xl bg-emerald-500/20 text-[12px] font-bold text-emerald-400"
+                            : "pw-btn-sm"
+                        }`}
                       >
                         {addedIds.has(p.id) ? (
                           <>
