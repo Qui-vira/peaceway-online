@@ -395,6 +395,102 @@ footer {
   }
 }
 
+/* ── CSS-driven text FX: gradient movement, glitch, highlight sweep ───────── */
+.fx-gradient {
+  background: linear-gradient(90deg, #4ade80 0%, #dcccdb 34%, #1a8a50 64%, #4ade80 100%);
+  background-size: 260% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  animation: fx-gradient 6s linear infinite;
+}
+@keyframes fx-gradient {
+  to {
+    background-position: 260% 0;
+  }
+}
+
+.fx-glitch {
+  position: relative;
+  display: inline-block;
+}
+.fx-glitch::before,
+.fx-glitch::after {
+  content: attr(data-text);
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  pointer-events: none;
+}
+.fx-glitch::before {
+  color: #4ade80;
+  animation: fx-glitch-a 3s infinite steps(2, end);
+}
+.fx-glitch::after {
+  color: #ff6f7a;
+  animation: fx-glitch-b 3.4s infinite steps(2, end);
+}
+@keyframes fx-glitch-a {
+  0%, 92%, 100% { clip-path: inset(0 0 100% 0); transform: translate(0); }
+  93% { clip-path: inset(8% 0 62% 0); transform: translate(-2px, -1px); }
+  97% { clip-path: inset(48% 0 22% 0); transform: translate(2px, 1px); }
+}
+@keyframes fx-glitch-b {
+  0%, 90%, 100% { clip-path: inset(0 0 100% 0); transform: translate(0); }
+  92% { clip-path: inset(30% 0 40% 0); transform: translate(2px, 1px); }
+  96% { clip-path: inset(68% 0 8% 0); transform: translate(-2px, -1px); }
+}
+
+.fx-highlight {
+  background-image: linear-gradient(120deg, rgba(26, 138, 80, 0) 0%, rgba(26, 138, 80, 0.5) 50%, rgba(26, 138, 80, 0) 100%);
+  background-size: 220% 100%;
+  background-repeat: no-repeat;
+  background-position: -130% 0;
+  border-radius: 3px;
+  animation: fx-highlight 2.2s ease 0.5s both;
+}
+@keyframes fx-highlight {
+  to {
+    background-position: 130% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fx-glitch::before,
+  .fx-glitch::after {
+    display: none;
+  }
+  .fx-gradient {
+    -webkit-text-fill-color: currentColor;
+    color: var(--t);
+    background: none;
+  }
+}
+
+/* Footer trust marquee (horizontal ticker). */
+.ft-marquee {
+  border-top: 1px solid var(--bdr);
+  border-bottom: 1px solid var(--bdr);
+  padding: 16px 0;
+  margin-bottom: 44px;
+  font-family: var(--font-syne), sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 13.5px;
+  color: var(--m);
+}
+.ft-marquee-item {
+  display: inline-flex;
+  align-items: center;
+}
+.ft-marquee-dot {
+  color: var(--g2);
+  margin-left: 3rem;
+}
+
 .hh {
   font-family: var(--font-syne), sans-serif;
   font-weight: 800;

@@ -3,6 +3,14 @@ import type { ReactNode } from "react";
 import { ScrollSequence } from "@/components/ui/scroll-sequence";
 import { HeroContent } from "@/components/ui/hero-content";
 import {
+  TextFX,
+  SplitText,
+  RotatingWords,
+  ScrambleText,
+  Marquee,
+  MagneticText,
+} from "@/components/ui/text-fx";
+import {
   Camera,
   Mail,
   MapPin,
@@ -40,7 +48,7 @@ export default function Page(): JSX.Element {
           </div>
           <div className="flex items-center gap-3">
             <a className="ncta" href="/app">
-              Use Web App
+              <MagneticText>Use Web App</MagneticText>
             </a>
           </div>
         </div>
@@ -81,8 +89,8 @@ export default function Page(): JSX.Element {
             <div className="vign" />
             <div className="snbg" aria-hidden="true">02</div>
             <div className="con">
-              <div className="stag">Section 02</div>
-              <h2 className="shead" style={{ maxWidth: "700px" }}>Buying medicine should not feel like guessing.</h2>
+              <TextFX as="div" effect="slide-left" className="stag">Section 02</TextFX>
+              <SplitText as="h2" effect="mask-words" className="shead" style={{ maxWidth: "700px" }} text="Buying medicine should not feel like guessing." />
               <p className="ssub">In Lagos, getting the right medicine can feel risky. Wrong advice, fake products, and unnecessary movement should not be part of healthcare.</p>
               <div className="g3">
                 <div className="pc">
@@ -113,8 +121,8 @@ export default function Page(): JSX.Element {
             <div className="vign" />
             <div className="snbg" aria-hidden="true">03</div>
             <div className="con">
-              <div className="stag">Section 03 · What We Do</div>
-              <h2 className="shead">Order medicine. Ask a pharmacist.<br />Get it delivered.</h2>
+              <TextFX as="div" effect="slide-right" className="stag">Section 03 · What We Do</TextFX>
+              <SplitText as="h2" effect="lines" className="shead" text={"Order medicine. Ask a pharmacist.\nGet it delivered."} />
               <div className="g3" style={{ marginTop: "8px" }}>
                 <div className="gc"><div className="ic-g">+</div><div className="cn2">OTC Medicine Delivery</div><div className="cd">Order over-the-counter medicines directly through Telegram. Availability confirmed before you pay.</div></div>
                 <div className="gc"><div className="ic-g">+</div><div className="cn2">Pharmacist Questions via Telegram</div><div className="cd">Ask a pharmacist directly through our bot before ordering. Get proper, qualified guidance.</div></div>
@@ -140,8 +148,8 @@ export default function Page(): JSX.Element {
                   <Image className="phimg" src={media.pharmacyPhoto} alt="Peaceway Pharmacy, Igando Lagos" width={1400} height={900} />
                 </div>
                 <div>
-                  <div className="stag">Section 04 · Why Trust Us</div>
-                  <h2 className="shead">A real pharmacy behind the online service.</h2>
+                  <TextFX as="div" effect="fade-up" className="stag">Section 04 · Why Trust Us</TextFX>
+                  <TextFX as="h2" effect="blur" className="shead">A real pharmacy behind the online service.</TextFX>
                   <p style={{ fontSize: 14, color: "var(--m)", lineHeight: 1.7, marginBottom: 20 }}>Peaceway Online is not a startup guessing at healthcare. It is a real, physical pharmacy extending its service online.</p>
                   <div className="titem"><div className="tdot"><div className="tdi" /></div><div><div className="tt">Physical pharmacy in Igando/Agodo Ikotun</div><div className="tb">A real building, real address, real staff.</div></div></div>
                   <div className="titem"><div className="tdot"><div className="tdi" /></div><div><div className="tt">Pharmacist-led service</div><div className="tb">Every order and question is handled by qualified pharmacy staff.</div></div></div>
@@ -162,8 +170,8 @@ export default function Page(): JSX.Element {
             <div className="vign" />
             <div className="snbg" aria-hidden="true">05</div>
             <div className="con">
-              <div className="stag">Section 05 · How It Works</div>
-              <h2 className="shead">From message to delivery.</h2>
+              <TextFX as="div" effect="scale-up" className="stag">Section 05 · How It Works</TextFX>
+              <SplitText as="h2" effect="letters" className="shead" text="From message to delivery." />
               <p className="ssub">Ten steps. No complicated apps. Just Telegram, a pharmacist, and your door.</p>
               <div className="sgrid">
                 {[
@@ -199,8 +207,8 @@ export default function Page(): JSX.Element {
             <div className="con">
               <div className="g2">
                 <div>
-                  <div className="stag">Section 06 · Ask a Pharmacist</div>
-                  <h2 className="shead">Need help before you buy?</h2>
+                  <TextFX as="div" effect="slide-left" className="stag">Section 06 · Ask a Pharmacist</TextFX>
+                  <SplitText as="h2" effect="flip" className="shead" text="Need help before you buy?" />
                   <p style={{ fontSize: 15, color: "var(--m)", lineHeight: 1.75, maxWidth: 420, marginBottom: 20 }}>Our pharmacist is available through the Telegram bot. Ask questions about medicines, dosage, interactions, or side effects before you order.</p>
                   <p style={{ fontSize: 13, color: "rgba(177,189,176,.55)", maxWidth: 380, lineHeight: 1.65, marginBottom: 32 }}>Prescription-only products require review before supply. This is how we keep you safe.</p>
                   <a className="bp" href={siteConfig.telegramBotUrl} target="_blank" rel="noreferrer noopener">Ask a Pharmacist</a>
@@ -226,8 +234,8 @@ export default function Page(): JSX.Element {
             <div className="con">
               <div className="g2" style={{ alignItems: "flex-start" }}>
                 <div>
-                  <div className="stag">Section 07 · Delivery Areas</div>
-                  <h2 className="shead">Delivery across Lagos,<br />starting from Igando.</h2>
+                  <TextFX as="div" effect="scale-down" className="stag">Section 07 · Delivery Areas</TextFX>
+                  <SplitText as="h2" effect="lines" className="shead" text={"Delivery across Lagos,\nstarting from Igando."} />
                   <p style={{ fontSize: 15, color: "var(--m)", lineHeight: 1.7, maxWidth: 420, marginBottom: 32 }}>We deliver to communities around our pharmacy first. Coverage is expanding. If your area is not listed, ask us.</p>
                   <div className="ag">
                     {["Igando ★", "Agodo", "Ikotun", "Egbeda", "Isheri", "Idimu", "Iyana Ipaja", "Egbe", "Ejigbo", "Ijegun", "Other Lagos Mainland"].map((label, index) => (
@@ -273,8 +281,11 @@ export default function Page(): JSX.Element {
             <div className="grg" />
             <div className="snbg" aria-hidden="true">08</div>
             <div className="con" style={{ alignItems: "center", textAlign: "center" }}>
-              <div className="stag">Section 08 · Community</div>
-              <h2 className="shead" style={{ maxWidth: 620, margin: "0 auto 12px" }}>Join the Peaceway health community.</h2>
+              <TextFX as="div" effect="fade-in" className="stag">Section 08 · Community</TextFX>
+              <h2 className="shead" style={{ maxWidth: 620, margin: "0 auto 12px" }}>
+                Join the Peaceway{" "}
+                <RotatingWords words={["health", "care", "wellness"]} className="fx-gradient" /> community.
+              </h2>
               <p style={{ fontSize: 15, color: "var(--m)", maxWidth: 440, margin: "0 auto 44px", lineHeight: 1.7 }}>Stay informed. Get health tips. Ask questions. Be part of a growing Lagos health community.</p>
               <div style={{ display: "flex", flexDirection: "column", gap: 16, width: "100%", maxWidth: 620 }}>
                 <a className="tgcard tgc1" href={siteConfig.telegramChannelUrl} target="_blank" rel="noreferrer noopener">
@@ -310,8 +321,8 @@ export default function Page(): JSX.Element {
             <div className="con">
               <div className="g2" style={{ alignItems: "flex-start" }}>
                 <div>
-                  <div className="stag">Section 09 · Contact</div>
-                  <h2 className="shead">Talk to Peaceway.</h2>
+                  <TextFX as="div" effect="fade-up" className="stag">Section 09 · Contact</TextFX>
+                  <h2 className="shead"><ScrambleText text="Talk to Peaceway." /></h2>
                   <p style={{ fontSize: 15, color: "var(--m)", maxWidth: 380, lineHeight: 1.75, marginBottom: 16 }}>We are a real pharmacy with real people. Reach us through any of the channels below.</p>
                   <p style={{ fontSize: 13, color: "rgba(177,189,176,.5)", maxWidth: 360, lineHeight: 1.65 }}>For orders, use the Telegram bot. For general inquiries or pharmacist questions, any channel works.</p>
                 </div>
@@ -330,6 +341,16 @@ export default function Page(): JSX.Element {
       {/* Footer lives inside main so it becomes the last slide in the
           mobile carousel; on desktop it flows after the scenes as before. */}
       <footer className="ft" id="footer" data-screen-label="Footer">
+        <div className="ft-marquee" aria-hidden="true">
+          <Marquee speed={34}>
+            {["Genuine medicines", "Pharmacist-led guidance", "Delivery across Lagos", "A real Igando pharmacy", "Prescription review"].map((t) => (
+              <span key={t} className="ft-marquee-item">
+                {t}
+                <span className="ft-marquee-dot">✦</span>
+              </span>
+            ))}
+          </Marquee>
+        </div>
         <div style={{ maxWidth: 1240, margin: "0 auto", padding: "0 56px" }}>
           <div className="fg">
             <div>

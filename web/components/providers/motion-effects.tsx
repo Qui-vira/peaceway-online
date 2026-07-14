@@ -7,10 +7,9 @@ import { useEffect } from "react";
    (hero included) is ever hidden - if JS fails, the page stays fully static
    and fully visible. */
 const REVEAL_SECTIONS = "#s2, #s3, #s4, #s5, #s6, #s7, #s8, #s9, footer.ft";
+// Section headings/taglines are now animated by Framer Motion (TextFX/SplitText),
+// so the IntersectionObserver reveal only handles cards, list rows, and CTAs.
 const REVEAL_TARGETS = [
-  ".stag",
-  ".shead",
-  ".ssub",
   ".pc",
   ".gc",
   ".sstep",
