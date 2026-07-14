@@ -115,11 +115,32 @@ footer {
   position: relative;
 }
 
+/* Section backdrop: layered depth instead of flat near-black (Pro Max: never
+   pure black). A soft green ambient glow top and bottom + a gentle vertical
+   tonal gradient so sections read premium, not dead. */
 .sv-fb {
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse at 50% 100%, rgba(15, 103, 60, 0.1) 0%, #090a07 72%);
   z-index: 0;
+  background:
+    radial-gradient(ellipse 90% 55% at 50% -12%, rgba(26, 138, 80, 0.12) 0%, transparent 60%),
+    radial-gradient(ellipse 80% 50% at 50% 112%, rgba(15, 103, 60, 0.14) 0%, transparent 62%),
+    linear-gradient(180deg, #13160f 0%, #0d0f0b 48%, #090a07 100%);
+}
+
+/* Hero stage: a soft light pool behind the building so its white concrete
+   parts read as a building on a lit stage, not blocks floating on the void. */
+.hstage {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 42% 50% at 50% 52%,
+    rgba(150, 168, 156, 0.16) 0%,
+    rgba(26, 138, 80, 0.08) 38%,
+    transparent 68%
+  );
 }
 
 .pw-seq {
@@ -337,6 +358,28 @@ footer {
   margin-bottom: 20px;
 }
 
+/* Blinking caret for the typewriter tagline (Framer Motion types the chars). */
+.type-caret {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  margin-left: 3px;
+  vertical-align: -0.12em;
+  background: #4ade80;
+  animation: caret-blink 0.9s steps(1) infinite;
+}
+
+@keyframes caret-blink {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  50.01%,
+  100% {
+    opacity: 0;
+  }
+}
+
 .hh {
   font-family: var(--font-syne), sans-serif;
   font-weight: 800;
@@ -365,6 +408,15 @@ footer {
      behind the headline - even fully exploded it stays in its own zone. */
   #s1 .pw-seq {
     left: 40%;
+  }
+  /* Move the stage glow to sit behind the right-zone building on desktop. */
+  #s1 .hstage {
+    background: radial-gradient(
+      ellipse 30% 46% at 70% 52%,
+      rgba(150, 168, 156, 0.17) 0%,
+      rgba(26, 138, 80, 0.08) 40%,
+      transparent 70%
+    );
   }
   /* Soft depth scrim under the left text column; clear before the building. */
   .hscrim {

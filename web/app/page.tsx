@@ -1,6 +1,7 @@
 import Image from "next/image";
 import type { ReactNode } from "react";
 import { ScrollSequence } from "@/components/ui/scroll-sequence";
+import { HeroContent } from "@/components/ui/hero-content";
 import {
   Camera,
   Mail,
@@ -61,21 +62,14 @@ export default function Page(): JSX.Element {
         <div className="scene" id="s1" style={{ height: "190vh" }}>
           <div className="sticky" data-screen-label="Hero">
             <div className="sv-fb" />
+            <div className="hstage" aria-hidden="true" />
             <ScrollSequence sceneId="s1" />
             <div className="grg" />
             <div className="ovg" />
             <div className="vign" />
             <div className="snbg" aria-hidden="true">01</div>
             <div className="hscrim" aria-hidden="true" />
-            <div className="hcon">
-              <div className="htag">Peaceway Online · Igando, Lagos, Nigeria</div>
-              <h1 className="hh">YOUR LAGOS<br />PHARMACY<br />IS NOW ONLINE</h1>
-              <p className="hs">Genuine medicines, pharmacist guidance, and delivery across Lagos.</p>
-              <div className="ctg">
-                <a className="bp" href={siteConfig.telegramBotUrl} target="_blank" rel="noreferrer noopener">Order on Telegram</a>
-                <a className="bg2" href="/request">Check Product Availability</a>
-              </div>
-            </div>
+            <HeroContent />
           </div>
         </div>
 
