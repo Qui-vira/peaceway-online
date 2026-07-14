@@ -361,25 +361,32 @@ footer {
    while the building animation reads on the right, so the two stop overlapping.
    Mobile keeps its own centered card treatment, so this stays desktop-only. */
 @media (min-width: 801px) {
+  /* Building sequence lives in the right ~63% of the hero so it never sits
+     behind the headline - even fully exploded it stays in its own zone. */
+  #s1 .pw-seq {
+    left: 40%;
+  }
+  /* Soft depth scrim under the left text column; clear before the building. */
   .hscrim {
     position: absolute;
     inset: 0;
     z-index: 5;
     pointer-events: none;
-    transition: opacity 0.1s linear;
     background: linear-gradient(
       100deg,
-      rgba(7, 8, 6, 0.97) 0%,
-      rgba(7, 8, 6, 0.95) 47%,
-      rgba(7, 8, 6, 0.45) 60%,
-      rgba(7, 8, 6, 0) 74%
+      rgba(7, 8, 6, 0.7) 0%,
+      rgba(7, 8, 6, 0.18) 26%,
+      transparent 38%
     );
   }
   #s1 .htag,
-  #s1 .hh,
   #s1 .hs,
   #s1 .ctg {
-    max-width: 520px;
+    max-width: 440px;
+  }
+  #s1 .hh {
+    font-size: clamp(30px, 3.1vw, 48px);
+    max-width: 440px;
   }
 }
 

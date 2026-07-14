@@ -9,9 +9,6 @@ type Manifest = { count: number; width: number; height: number };
 /** Scroll fraction over which the pharmacy signage fades as the building explodes. */
 const SIGNAGE_FADE = 0.18;
 
-/** Scroll fraction over which the headline + scrim fade out. */
-const HERO_FADE = 0.45;
-
 /**
  * Scroll-linked image sequence on a canvas (the Apple product-page technique),
  * driven by GSAP ScrollTrigger for reliable scrubbing. The building frames are
@@ -115,13 +112,10 @@ export function ScrollSequence({ sceneId = "s1" }: { sceneId?: string }): JSX.El
         }
         resize();
 
-        // Headline + scrim fade out as the building explodes, so the text and
-        // the (nearly full-width) exploded building never fight for space.
-        const heroText = scene.querySelector<HTMLElement>(".hcon");
-        const heroScrim = scene.querySelector<HTMLElement>(".hscrim");
-
         // Scrub the whole sequence across the scene's pinned range (scene is
         // ~190vh with a position:sticky child, so the pin lasts sceneH - vh).
+        // The building lives in its own right-side zone (CSS), so the headline
+        // stays put and readable while it assembles/explodes.
         trigger = ScrollTrigger.create({
           trigger: scene,
           start: "top top",
@@ -132,12 +126,6 @@ export function ScrollSequence({ sceneId = "s1" }: { sceneId?: string }): JSX.El
             displayed = self.progress * (count - 1);
             draw(displayed);
             setSignage(1 - self.progress / SIGNAGE_FADE);
-            const fade = Math.max(0, Math.min(1, 1 - self.progress / HERO_FADE));
-            if (heroText) {
-              heroText.style.opacity = String(fade);
-              heroText.style.transform = `translateY(${(-self.progress * 40).toFixed(1)}px)`;
-            }
-            if (heroScrim) heroScrim.style.opacity = String(fade);
           },
         });
         ScrollTrigger.refresh();
