@@ -49,13 +49,17 @@ Build:
 - [x] `ScrollSequence.tsx` overlays signage layer, fades over first 18% scroll; CSS added; typecheck passes
 - [ ] Live verify: assembled hero shows signage, fades on scroll, mobile static shows it (BLOCKED on batch)
 
-## Phase 2 — Article "bonus" sections
-- [ ] Parallax band (background / midground / headline at different speeds)
-- [ ] Sticky-scroll reveal (pinned visual + fading/highlighting copy blocks; single column on mobile)
-- [ ] Springy hover product cards (lift + shadow + image scale + CTA fade; tap-state fallback; reduced-motion safe)
+## Phase 2 — Scroll depth on existing sections ✅ (commit 0832aeec)
+Re-scoped after finding: mobile landing is a horizontal carousel (vertical-scroll
+techniques are desktop-only), hover/tap card states already exist, product cards
+live on /shop (Phase 3). So enhanced existing sections instead of adding demos.
+- [x] Parallax: giant `.snbg` section numbers drift vs pinned content (desktop, scroll+rAF, reduced-motion-safe)
+- [x] Sticky-reveal: `#s5` "How It Works" steps highlight (badge fills, others dim) as each passes viewport centre via IntersectionObserver; no-JS = full
+- [x] Hover product cards -> deferred to Phase 3 (shop), where product cards exist
+- [x] Verified statically (CSSOM rules correct, JS wiring, parallax transform computed, typecheck). Live motion needs a visible browser: preview tab is `hidden` so rAF/IO/getComputedStyle are frozen
 
 ## Phase 3 — Core responsive rebuild (mobile + desktop)
-- [ ] Shared shell: top nav, mobile bottom-nav, footer — against DESIGN.md
+- [x] Shared shell: responsive AppShell — desktop top nav (logo + nav + live cart badge), mobile bottom-nav, shared footer; DESIGN.md a11y (3px focus rings, 44px targets, aria-current, safe-area). typecheck ✓
 - [ ] Landing page
 - [ ] Shop grid (`/shop`)
 - [ ] Product detail (`/shop/[id]`)
