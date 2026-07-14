@@ -61,8 +61,8 @@ live on /shop (Phase 3). So enhanced existing sections instead of adding demos.
 ## Phase 3 — Core responsive rebuild (mobile + desktop)
 - [x] Shared shell: responsive AppShell — desktop top nav (logo + nav + live cart badge), mobile bottom-nav, shared footer; DESIGN.md a11y (3px focus rings, 44px targets, aria-current, safe-area). typecheck ✓
 - [ ] Landing page
-- [ ] Shop grid (`/shop`)
-- [ ] Product detail (`/shop/[id]`)
+- [x] Shop grid (`/shop`) — responsive grid (2→5 cols), constrained container, 16px mobile search input, focus rings + 44px targets, desktop cart in top nav
+- [x] Product detail (`/shop/[id]`) — desktop 2-col (sticky media + info/CTA), shared BackBar, focus rings + 48px CTA
 - [ ] Cart (`/cart`)
 - [ ] Checkout (`/checkout`)
 - [ ] Verify each at 375 / 768 / 1280
