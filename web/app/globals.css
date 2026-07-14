@@ -542,6 +542,29 @@ footer {
   line-height: 1.6;
 }
 
+/* Sticky-scroll reveal (How It Works): JS adds .pw-steplit to #s5 and toggles
+   .is-active on the step nearest the viewport centre. No JS = steps stay full. */
+#s5 .sstep {
+  transition: opacity 0.45s ease;
+}
+#s5.pw-steplit .sstep {
+  opacity: 0.46;
+}
+#s5.pw-steplit .sstep.is-active {
+  opacity: 1;
+}
+#s5 .snum {
+  transition: background 0.35s ease, border-color 0.35s ease, color 0.35s ease,
+    box-shadow 0.35s ease, transform 0.35s ease;
+}
+#s5 .sstep.is-active .snum {
+  background: var(--g2);
+  border-color: var(--g2);
+  color: #fff;
+  box-shadow: 0 0 18px rgba(15, 103, 60, 0.5);
+  transform: scale(1.08);
+}
+
 .cw {
   max-width: 500px;
   display: flex;

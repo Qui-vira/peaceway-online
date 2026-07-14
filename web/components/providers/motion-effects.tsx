@@ -278,6 +278,78 @@ function setupCursor(): (() => void) | undefined {
   };
 }
 
+/* Desktop parallax: the giant background section numbers (.snbg) drift against
+   the pinned foreground content as each scene scrolls, adding depth (the
+   article's "different speeds" parallax). Desktop only - mobile is a carousel;
+   skipped under reduced-motion (both here and via the global .snbg transform
+   reset). Scroll-driven + rAF-throttled, matching the carousel-dots pattern. */
+function setupParallax(): (() => void) | undefined {
+  if (window.matchMedia("(max-width: 800px)").matches) return undefined;
+  const items: Array<{ el: HTMLElement; scene: HTMLElement; speed: number }> = [];
+  document.querySelectorAll<HTMLElement>(".scene").forEach((scene) => {
+    const num = scene.querySelector<HTMLElement>(".snbg");
+    if (num) items.push({ el: num, scene, speed: 0.14 });
+  });
+  if (!items.length) return undefined;
+
+  let raf = 0;
+  const update = (): void => {
+    raf = 0;
+    const vh = window.innerHeight;
+    for (const it of items) {
+      const r = it.scene.getBoundingClientRect();
+      if (r.bottom < 0 || r.top > vh) continue; // offscreen - skip
+      const center = r.top + r.height / 2 - vh / 2;
+      it.el.style.transform = `translate3d(0, ${(-center * it.speed).toFixed(1)}px, 0)`;
+    }
+  };
+  const onScroll = (): void => {
+    if (!raf) raf = window.requestAnimationFrame(update);
+  };
+  window.addEventListener("scroll", onScroll, { passive: true });
+  window.addEventListener("resize", onScroll);
+  update();
+
+  return () => {
+    window.removeEventListener("scroll", onScroll);
+    window.removeEventListener("resize", onScroll);
+    if (raf) window.cancelAnimationFrame(raf);
+    items.forEach((it) => {
+      it.el.style.transform = "";
+    });
+  };
+}
+
+/* Sticky-scroll reveal for "How It Works": each step highlights (number badge
+   fills, siblings dim) as it passes the viewport centre - the article's
+   feature-walkthrough effect. Desktop only. No JS = every step stays fully
+   visible (the .pw-steplit dimming class is only added here). */
+function setupStepHighlight(): (() => void) | undefined {
+  if (window.matchMedia("(max-width: 800px)").matches) return undefined;
+  const section = document.getElementById("s5");
+  const steps = section
+    ? Array.from(section.querySelectorAll<HTMLElement>(".sstep"))
+    : [];
+  if (!section || !steps.length) return undefined;
+
+  section.classList.add("pw-steplit");
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        entry.target.classList.toggle("is-active", entry.isIntersecting);
+      });
+    },
+    { rootMargin: "-42% 0px -42% 0px" }
+  );
+  steps.forEach((step) => observer.observe(step));
+
+  return () => {
+    observer.disconnect();
+    section.classList.remove("pw-steplit");
+    steps.forEach((step) => step.classList.remove("is-active"));
+  };
+}
+
 export function MotionEffects(): JSX.Element | null {
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -307,6 +379,12 @@ export function MotionEffects(): JSX.Element | null {
     if (!reduceMotionQuery.matches) {
       const revealCleanup = setupReveals();
       if (revealCleanup) cleanups.push(revealCleanup);
+
+      // Desktop-only scroll depth: parallax section numbers + step highlight.
+      const parallaxCleanup = setupParallax();
+      if (parallaxCleanup) cleanups.push(parallaxCleanup);
+      const stepCleanup = setupStepHighlight();
+      if (stepCleanup) cleanups.push(stepCleanup);
 
       // Custom cursor only makes sense with a mouse
       if (finePointerQuery.matches && !carouselMq.matches) {
