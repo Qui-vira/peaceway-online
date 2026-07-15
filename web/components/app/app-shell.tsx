@@ -185,7 +185,13 @@ function Footer() {
           <p className="leading-relaxed">{siteConfig.footerNote}</p>
           <p className="text-[#b1bdb0]">{siteConfig.address}</p>
         </div>
-        <nav aria-label="Footer" className="flex flex-wrap gap-x-6 gap-y-2">
+        {/* -my-2 keeps the row's visual rhythm while each link gets py-2, taking
+            them from 20px tall to a real 36px target. They were pure text with no
+            padding, on every route in the product. */}
+        <nav
+          aria-label="Footer"
+          className="-my-2 flex flex-wrap items-center gap-x-6 [&>*]:inline-flex [&>*]:min-h-[36px] [&>*]:items-center"
+        >
           <Link href="/shop" className={`rounded transition-colors hover:text-white ${FOCUS}`}>Shop</Link>
           <Link href="/ask-pharmacist" className={`rounded transition-colors hover:text-white ${FOCUS}`}>Ask a Pharmacist</Link>
           <Link href="/requests" className={`rounded transition-colors hover:text-white ${FOCUS}`}>Requests</Link>

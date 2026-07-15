@@ -231,7 +231,7 @@ export function MedCard({
   return (
     <button
       onClick={onClick}
-      className="flex w-full items-center gap-3 rounded-2xl border border-white/8 bg-white/4 px-4 py-4 text-left transition-colors hover:border-emerald-500/30 hover:bg-white/6 active:bg-white/8"
+      className="flex w-full items-center gap-3 rounded-2xl border border-white/8 bg-white/4 px-4 py-4 text-left transition-colors hover:border-emerald-500/30 hover:bg-white/6 active:bg-white/8 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[rgba(52,217,138,0.5)]"
     >
       <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-emerald-500/20 bg-emerald-500/12">
         <DrugIcon size={28} />
@@ -297,7 +297,10 @@ export function PageHeader({
       <button
         onClick={goBack}
         aria-label="Go back"
-        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/70 transition hover:border-white/20 hover:text-white active:bg-white/10"
+        // 44px, not 36px: this is the escape hatch on every deep screen, and it
+        // was the one control small enough to miss one-handed. Focus ring added -
+        // it was falling back to the UA default.
+        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/70 transition hover:border-white/20 hover:text-white active:bg-white/10 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[rgba(52,217,138,0.5)]"
       >
         <ArrowLeft className="h-4 w-4" />
       </button>
@@ -313,11 +316,25 @@ export function PageHeader({
 
 type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
 
+/**
+ * Delegates to the `.pw-btn*` classes rather than restating them.
+ *
+ * This used to be a parallel button system: `rounded-xl` against pw-btn's 16px,
+ * no min-height (so no 44px touch target), no focus ring, and `text-black` where
+ * the system uses Ink on Green. Two vocabularies for the same affordance is the
+ * product register's named failure - if the save button looks different in two
+ * places, one of them is wrong. The variants stay, so no call site changes; only
+ * what they resolve to does. `.pw-btn*` owns size, colour, radius and focus.
+ */
 const BUTTON_VARIANTS: Record<ButtonVariant, string> = {
-  primary: "bg-emerald-500 text-black hover:bg-emerald-400 hover:shadow-[0_10px_30px_rgba(26,163,90,0.35)]",
-  secondary: "border border-white/12 text-white/80 hover:border-white/25 hover:text-white",
-  ghost: "text-white/60 hover:text-white",
-  danger: "border border-red-500/30 text-red-300 hover:bg-red-500/10",
+  primary: "pw-btn",
+  secondary: "pw-btn-2",
+  // No pw- class for these two: they are deliberately not filled surfaces. They
+  // still take the system's height, radius and focus ring.
+  ghost:
+    "min-h-[44px] rounded-2xl px-5 text-[#b1bdb0] hover:text-white focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[rgba(52,217,138,0.5)]",
+  danger:
+    "min-h-[44px] rounded-2xl border border-red-500/30 px-5 text-red-300 hover:bg-red-500/10 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[rgba(52,217,138,0.5)]",
 };
 
 export function Button({
@@ -330,9 +347,8 @@ export function Button({
     <button
       {...props}
       className={[
-        "inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition-all duration-200",
-        "active:scale-[0.98] motion-reduce:transform-none",
-        "disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100",
+        "inline-flex items-center justify-center gap-2 text-sm font-semibold",
+        "disabled:cursor-not-allowed disabled:opacity-50",
         BUTTON_VARIANTS[variant],
         className,
       ].join(" ")}

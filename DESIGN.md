@@ -226,9 +226,11 @@ Sans is the pharmacist's voice: plain, legible, unremarkable on purpose.
 
 ### Named Rules
 
-**The Signage-Only Rule.** Syne is signage. It appears on the landing hero and section headings, and
-nowhere in the app — not on buttons, labels, table headers or data. A display font in a UI label is
-the fastest way to make a tool feel untrustworthy.
+**The Signage-Only Rule.** Syne is signage: it names things. Headings and wordmarks may carry it, on
+the landing and in the app alike — an `<h1>` is a sign. It is forbidden on **buttons, labels, table
+headers, form fields and data**. A display font on a UI label is the fastest way to make a tool feel
+untrustworthy; a display font on a page title is just the brand, still present once someone signs in.
+The test is whether the text names a thing or operates on it.
 
 **The 16px Floor Rule.** Body and input text never drop below 16px on mobile. This is an
 accessibility floor and an iOS zoom guard at once.
