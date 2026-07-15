@@ -1,24 +1,18 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { ShoppingCart, Search, Check } from "lucide-react";
+import { ShoppingCart, Search } from "lucide-react";
 import Link from "next/link";
 import { listCatalog, listCategories, type Product } from "@/lib/api/catalog";
 import { addToCart, getCart, type CartItem } from "@/lib/cart";
 import { AppShell } from "@/components/app/app-shell";
 import { Spinner, EmptyState, SectionLabel } from "@/components/app/ui";
-import { DrugIcon } from "@/components/app/drug-icons";
-import { TactileButton } from "@/components/app/tactile-button";
+import { ProductCard } from "@/components/app/product-card";
 
 type State = { kind: "loading" } | { kind: "ready"; products: Product[] };
 
 const FOCUS =
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0b0c09]";
-
-function fmt(price: string | null) {
-  if (!price) return "-";
-  return `₦${Number(price).toLocaleString("en-NG")}`;
-}
 
 export default function ShopPage() {
   const [state, setState] = useState<State>({ kind: "loading" });
@@ -137,46 +131,7 @@ export default function ShopPage() {
             </SectionLabel>
             <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 md:gap-4 lg:grid-cols-4 xl:grid-cols-5">
               {state.products.map((p) => (
-                <div
-                  key={p.id}
-                  className="pw-tile group flex flex-col overflow-hidden ease-out hover:-translate-y-1 focus-within:border-emerald-500/40 motion-reduce:hover:transform-none"
-                >
-                  <Link
-                    href={`/shop/${p.id}`}
-                    aria-label={p.name}
-                    className={`block ${FOCUS}`}
-                  >
-                    <div className="flex h-24 items-center justify-center overflow-hidden border-b border-white/6 bg-emerald-500/[0.06] sm:h-28">
-                      <div className="transition-transform duration-300 ease-out group-hover:scale-110 motion-reduce:transform-none">
-                        <DrugIcon form={p.dosage_form ?? undefined} size={40} />
-                      </div>
-                    </div>
-                  </Link>
-                  <div className="flex flex-1 flex-col gap-1.5 p-3">
-                    <Link href={`/shop/${p.id}`} className={`rounded ${FOCUS}`}>
-                      <p className="line-clamp-2 text-[13px] font-semibold leading-snug text-white">
-                        {p.name}
-                      </p>
-                      {p.strength && <p className="text-[11px] text-white/40">{p.strength}</p>}
-                    </Link>
-                    <p className="text-[13px] font-bold text-emerald-400">{fmt(p.selling_price)}</p>
-                    {!p.is_in_stock ? (
-                      <span className="mt-auto text-[11px] text-white/30">Out of stock</span>
-                    ) : addedIds.has(p.id) ? (
-                      <div className="mt-auto inline-flex min-h-[40px] w-full items-center justify-center gap-1.5 rounded-xl bg-emerald-500/20 text-[12px] font-bold text-emerald-400">
-                        <Check className="h-3.5 w-3.5" /> Added
-                      </div>
-                    ) : (
-                      <TactileButton
-                        variant="sm"
-                        onClick={() => handleAdd(p)}
-                        className="mt-auto w-full"
-                      >
-                        + Add
-                      </TactileButton>
-                    )}
-                  </div>
-                </div>
+                <ProductCard key={p.id} product={p} added={addedIds.has(p.id)} onAdd={handleAdd} />
               ))}
             </div>
           </div>
