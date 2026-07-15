@@ -54,38 +54,40 @@ body::before {
 }
 
 /* Route entrance. Paired with app/template.tsx, which Next remounts on every
-   navigation - a fresh element restarts the animation, so no JS keying needed.
-   Base state is visible: if the animation never runs, the page still renders.
-   That is the whole reason this is CSS and not framer-motion. */
-@keyframes pw-route-in {
-  from {
+   navigation - a fresh element re-triggers @starting-style, so no JS keying.
+
+   A transition off @starting-style, not a keyframe animation, and the reason is
+   the failure this whole file exists to prevent. The REST state is opacity:1:
+   @starting-style only supplies the entry origin, so if the transition never
+   runs - unsupported browser, a paused/frozen timeline, animations disabled -
+   the element rests visible. A keyframe with `... both` does the opposite: it
+   holds the `from` frame (opacity:0) whenever the timeline doesn't advance, so
+   a route wrapper built that way can still ship a blank page. Fail open, not
+   closed. Older browsers without @starting-style simply skip the entrance and
+   render the content, which is the correct degradation. */
+.pw-route {
+  opacity: 1;
+  transition: opacity 180ms cubic-bezier(0.22, 0.61, 0.36, 1),
+    transform 180ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+@starting-style {
+  .pw-route {
     opacity: 0;
     transform: translate3d(0, 6px, 0);
   }
-  to {
-    opacity: 1;
-    transform: none;
-  }
 }
 
-@keyframes pw-route-fade {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-.pw-route {
-  animation: pw-route-in 180ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
-}
-
-/* Reduced motion keeps the reveal and drops the travel - the transition still
-   says "new screen", it just doesn't move. */
+/* Reduced motion keeps the reveal and drops the travel. */
 @media (prefers-reduced-motion: reduce) {
   .pw-route {
-    animation: pw-route-fade 120ms linear both;
+    transition: opacity 120ms linear;
+  }
+  @starting-style {
+    .pw-route {
+      opacity: 0;
+      transform: none;
+    }
   }
 }
 
@@ -1484,9 +1486,12 @@ button:not(:disabled):not([aria-disabled="true"]),
   .sgrid { grid-template-columns: 1fr; }
   .fg { grid-template-columns: 1fr 1fr; }
   /* A flat 36px still clipped "PHARMACY" below 390px - it was fitted to one
-     phone. Fluid, so the longest word clears the gutters at every width. */
+     phone. Fluid, so the longest word clears the gutters at every width. The
+     22px floor only engages below ~320px (at 320 the preferred value is already
+     28px), so it keeps foldable outer displays (~280px) from clipping without
+     touching any width at or above 320px. 22px is still a valid Title size. */
   .hh {
-    font-size: clamp(28px, calc(10vw - 4px), 36px);
+    font-size: clamp(22px, calc(10vw - 4px), 36px);
     line-height: 0.98;
     filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 0.75));
   }
@@ -1495,7 +1500,7 @@ button:not(:disabled):not([aria-disabled="true"]),
      word actually on the page (ratio ~9.33x the font size), so it holds
      34px wherever 34px fits and gives way only where it would clip. */
   .shead {
-    font-size: clamp(26px, calc(10.4vw - 4.3px), 34px);
+    font-size: clamp(22px, calc(10.4vw - 4.3px), 34px);
     line-height: 1.04;
     color: #f4f7f2;
     text-shadow: 0 3px 18px rgba(0, 0, 0, 0.9);
