@@ -7,6 +7,7 @@ import { isAuthError } from "@/lib/api";
 import { getMe, type CustomerProfile } from "@/lib/api/customers";
 import { listTodayReminders, type MedicationReminder } from "@/lib/api/reminders";
 import { AppShell } from "@/components/app/app-shell";
+import { StaggerItem, StaggerList } from "@/components/app/motion";
 import { ConnectTelegramCard } from "@/components/app/connect-telegram";
 import {
   FeatureCard,
@@ -106,9 +107,10 @@ function TodayMedsSection() {
           </Link>
         </div>
       ) : (
-        <div className="flex gap-3 overflow-x-auto pb-1 -mx-5 px-5">
+        <StaggerList className="flex gap-3 overflow-x-auto pb-1 -mx-5 px-5">
           {state.reminders.map((r) => (
-            <Link key={r.id} href={`/reminders/${r.id}`} className="shrink-0 w-44">
+            <StaggerItem key={r.id} className="shrink-0">
+            <Link href={`/reminders/${r.id}`} className="block h-full w-44">
               <div className="flex flex-col gap-2 rounded-2xl border border-white/8 bg-white/4 p-4 h-full">
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-emerald-500/20 bg-emerald-500/12">
                   <MedicationsIcon size={22} />
@@ -123,15 +125,18 @@ function TodayMedsSection() {
                 )}
               </div>
             </Link>
+            </StaggerItem>
           ))}
+          <StaggerItem className="shrink-0">
           <Link
             href="/reminders"
-            className="flex shrink-0 w-16 flex-col items-center justify-center rounded-2xl border border-white/8 bg-white/3 gap-1"
+            className="flex h-full w-16 flex-col items-center justify-center rounded-2xl border border-white/8 bg-white/3 gap-1"
           >
             <ChevronRight className="h-5 w-5 text-[#b1bdb0]" />
             <span className="text-[11px] text-[#b1bdb0]">All</span>
           </Link>
-        </div>
+          </StaggerItem>
+        </StaggerList>
       )}
     </div>
   );

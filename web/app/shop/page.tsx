@@ -8,6 +8,7 @@ import { addToCart, getCart, type CartItem } from "@/lib/cart";
 import { AppShell } from "@/components/app/app-shell";
 import { Spinner, EmptyState, LoadFailed, SectionLabel } from "@/components/app/ui";
 import { ProductCard } from "@/components/app/product-card";
+import { StaggerItem, StaggerList } from "@/components/app/motion";
 
 // "failed" is not an empty catalogue. Rendering "No medicines found" because
 // the backend was unreachable tells a customer this pharmacy has no stock -
@@ -139,11 +140,13 @@ export default function ShopPage() {
             <SectionLabel>
               {state.products.length} product{state.products.length !== 1 ? "s" : ""}
             </SectionLabel>
-            <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 md:gap-4 lg:grid-cols-4 xl:grid-cols-5">
+            <StaggerList className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 md:gap-4 lg:grid-cols-4 xl:grid-cols-5">
               {state.products.map((p) => (
-                <ProductCard key={p.id} product={p} added={addedIds.has(p.id)} onAdd={handleAdd} />
+                <StaggerItem key={p.id}>
+                  <ProductCard product={p} added={addedIds.has(p.id)} onAdd={handleAdd} />
+                </StaggerItem>
               ))}
-            </div>
+            </StaggerList>
           </div>
         )}
       </div>

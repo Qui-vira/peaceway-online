@@ -6,6 +6,7 @@ import { Package } from "lucide-react";
 import { isAuthError } from "@/lib/api";
 import { listOrders, type Order } from "@/lib/api/orders";
 import { AppShell } from "@/components/app/app-shell";
+import { StaggerItem, StaggerList } from "@/components/app/motion";
 import {
   EmptyState,
   GuestWall,
@@ -105,11 +106,11 @@ export default function OrdersPage() {
         )}
 
         {state.kind === "ready" && state.orders.length > 0 && (
-          <div className="space-y-3">
+          <StaggerList className="space-y-3">
             <SectionLabel>{state.orders.length} order{state.orders.length !== 1 ? "s" : ""}</SectionLabel>
             {state.orders.map((order) => (
+              <StaggerItem key={order.id}>
               <button
-                key={order.id}
                 onClick={() => router.push(`/orders/${order.id}`)}
                 className="flex w-full items-center gap-3 rounded-2xl border border-white/8 bg-white/4 px-4 py-4 text-left transition hover:border-emerald-500/30 hover:bg-white/6"
               >
@@ -144,8 +145,9 @@ export default function OrdersPage() {
                   </p>
                 </div>
               </button>
+              </StaggerItem>
             ))}
-          </div>
+          </StaggerList>
         )}
       </div>
     </AppShell>

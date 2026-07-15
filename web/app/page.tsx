@@ -245,16 +245,16 @@ export default function Page(): JSX.Element {
                     </circle>
                     <text x="156" y="200" fontSize="11" fill="#0F673C" fontFamily="DM Sans,sans-serif" fontWeight="700">Igando</text>
                     <circle cx="162" cy="172" r="5" fill="rgba(15,103,60,0.45)" stroke="#0F673C" strokeWidth="1" />
-                    <text x="170" y="176" fontSize="9" fill="rgba(177,189,176,0.65)" fontFamily="DM Sans,sans-serif">Agodo</text>
+                    <text x="170" y="180" fontSize="11" fill="#b1bdb0" fontWeight="600" fontFamily="DM Sans,sans-serif">Agodo</text>
                     <circle cx="108" cy="215" r="5" fill="rgba(15,103,60,0.4)" stroke="rgba(15,103,60,0.6)" strokeWidth="1" />
-                    <text x="116" y="219" fontSize="9" fill="rgba(177,189,176,0.65)" fontFamily="DM Sans,sans-serif">Ikotun</text>
+                    <text x="116" y="219" fontSize="11" fill="#b1bdb0" fontWeight="600" fontFamily="DM Sans,sans-serif">Ikotun</text>
                     <circle cx="198" cy="163" r="4" fill="rgba(177,189,176,0.2)" stroke="rgba(177,189,176,0.3)" strokeWidth="1" />
-                    <text x="206" y="167" fontSize="8.5" fill="rgba(177,189,176,0.5)" fontFamily="DM Sans,sans-serif">Egbeda</text>
+                    <text x="206" y="167" fontSize="11" fill="#b1bdb0" fontFamily="DM Sans,sans-serif">Egbeda</text>
                     <circle cx="88" cy="180" r="4" fill="rgba(177,189,176,0.2)" stroke="rgba(177,189,176,0.3)" strokeWidth="1" />
-                    <text x="96" y="184" fontSize="8.5" fill="rgba(177,189,176,0.5)" fontFamily="DM Sans,sans-serif">Idimu</text>
+                    <text x="96" y="184" fontSize="11" fill="#b1bdb0" fontFamily="DM Sans,sans-serif">Idimu</text>
                     <circle cx="236" cy="145" r="4" fill="rgba(177,189,176,0.2)" stroke="rgba(177,189,176,0.3)" strokeWidth="1" />
-                    <text x="244" y="149" fontSize="8.5" fill="rgba(177,189,176,0.5)" fontFamily="DM Sans,sans-serif">Ejigbo</text>
-                    <text x="86" y="258" fontSize="10.5" fill="rgba(177,189,176,0.35)" fontFamily="DM Sans,sans-serif">Lagos State, Nigeria</text>
+                    <text x="244" y="149" fontSize="11" fill="#b1bdb0" fontFamily="DM Sans,sans-serif">Ejigbo</text>
+                    <text x="86" y="258" fontSize="11" fill="#b1bdb0" fontFamily="DM Sans,sans-serif">Lagos State, Nigeria</text>
                   </svg>
                 </div>
               </div>

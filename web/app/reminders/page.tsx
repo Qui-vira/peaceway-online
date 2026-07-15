@@ -7,6 +7,7 @@ import { isAuthError } from "@/lib/api";
 import { listReminders, type MedicationReminder } from "@/lib/api/reminders";
 import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/app/app-shell";
+import { StaggerItem, StaggerList } from "@/components/app/motion";
 import {
   LoadFailed,
   EmptyState,
@@ -129,16 +130,17 @@ export default function RemindersPage() {
             )}
 
             {/* All medications */}
-            <div className="space-y-3">
+            <StaggerList className="space-y-3">
               <SectionLabel>All Medications</SectionLabel>
               {allReminders.map((r) => (
-                <MedCard
-                  key={r.id}
-                  reminder={r}
-                  onClick={() => router.push(`/reminders/${r.id}`)}
-                />
+                <StaggerItem key={r.id}>
+                  <MedCard
+                    reminder={r}
+                    onClick={() => router.push(`/reminders/${r.id}`)}
+                  />
+                </StaggerItem>
               ))}
-            </div>
+            </StaggerList>
           </div>
         )}
       </div>

@@ -3,8 +3,10 @@
 import { useEffect, useRef } from "react";
 import Link from "next/link";
 import gsap from "gsap";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Check, Plus } from "lucide-react";
 import { DrugIcon } from "@/components/app/drug-icons";
+import { EASE } from "@/components/app/motion";
 import type { Product } from "@/lib/api/catalog";
 
 const FOCUS =
@@ -33,6 +35,7 @@ export function ProductCard({
   const cardRef = useRef<HTMLDivElement>(null);
   const iconRef = useRef<HTMLDivElement>(null);
   const ctaRef = useRef<HTMLSpanElement>(null);
+  const reduce = useReducedMotion();
 
   useEffect(() => {
     const card = cardRef.current;
@@ -42,7 +45,11 @@ export function ProductCard({
 
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const canHover = window.matchMedia("(hover: hover)").matches;
-    if (reduce || !canHover) return; // touch/reduced-motion use the CSS :active/base state
+    // Touch gets its press from `.pw-tile-press`-style CSS on the element below,
+    // not from GSAP: a pointer-driven lift has no meaning without a pointer.
+    // The card's own touch feedback is `active:scale-[0.98]` in the markup, which
+    // is why this early return is correct rather than a gap.
+    if (reduce || !canHover) return;
 
     const ctx = gsap.context(() => {
       // quickTo avoids re-creating tweens on every pointer event across the grid.
@@ -105,17 +112,43 @@ export function ProductCard({
         <p className="text-[13px] font-bold text-emerald-400">{fmt(p.selling_price)}</p>
         {!p.is_in_stock ? (
           <span className="mt-auto text-[11px] text-[#b1bdb0]">Out of stock</span>
-        ) : added ? (
-          <div className="mt-auto inline-flex min-h-[40px] w-full items-center justify-center gap-1.5 rounded-xl bg-emerald-500/20 text-[12px] font-bold text-emerald-400">
-            <Check className="h-3.5 w-3.5" /> Added
-          </div>
         ) : (
-          <button
-            onClick={() => onAdd(p)}
-            className={`pw-btn-sm mt-auto w-full ${FOCUS}`}
-          >
-            <Plus className="h-3.5 w-3.5" /> Add
-          </button>
+          /* Add -> Added is the one state change on this screen the customer
+             causes themselves, and it was a hard cut: the button was simply a
+             different element on the next render. The crossfade is what makes
+             the tap feel acknowledged rather than merely obeyed. Both states are
+             the same height, so nothing below reflows and the swap costs no CLS.
+             `mode="wait"` would leave a 140ms hole in the grid; the two states
+             overlap in a fixed-height box instead. */
+          <div className="relative mt-auto min-h-[40px]">
+            <AnimatePresence initial={false}>
+              {added ? (
+                <motion.div
+                  key="added"
+                  initial={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.96 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.18, ease: EASE }}
+                  className="absolute inset-0 inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-emerald-500/20 text-[12px] font-bold text-emerald-400"
+                >
+                  <Check className="h-3.5 w-3.5" aria-hidden /> Added
+                </motion.div>
+              ) : (
+                <motion.button
+                  key="add"
+                  onClick={() => onAdd(p)}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.14, ease: EASE }}
+                  whileTap={reduce ? undefined : { scale: 0.96 }}
+                  className={`pw-btn-sm absolute inset-0 w-full ${FOCUS}`}
+                >
+                  <Plus className="h-3.5 w-3.5" aria-hidden /> Add
+                </motion.button>
+              )}
+            </AnimatePresence>
+          </div>
         )}
       </div>
     </div>

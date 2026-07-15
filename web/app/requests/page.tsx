@@ -6,6 +6,7 @@ import { ChevronRight } from "lucide-react";
 import { isAuthError } from "@/lib/api";
 import { listRequests, type ProductRequest } from "@/lib/api/requests";
 import { AppShell } from "@/components/app/app-shell";
+import { StaggerItem, StaggerList } from "@/components/app/motion";
 import {
   EmptyState,
   GuestWall,
@@ -88,10 +89,10 @@ export default function RequestsPage() {
         )}
 
         {state.kind === "ready" && state.requests.length > 0 && (
-          <div className="space-y-3">
+          <StaggerList className="space-y-3">
             {state.requests.map((r) => (
+              <StaggerItem key={r.id}>
               <Link
-                key={r.id}
                 href={`/requests/${r.id}`}
                 className="flex items-center gap-4 rounded-2xl border border-white/8 bg-white/4 px-4 py-4 transition-all hover:border-emerald-500/30 hover:bg-white/6 active:bg-white/8"
               >
@@ -116,8 +117,9 @@ export default function RequestsPage() {
 
                 <ChevronRight className="h-4 w-4 shrink-0 text-[#b1bdb0]" />
               </Link>
+              </StaggerItem>
             ))}
-          </div>
+          </StaggerList>
         )}
       </div>
     </AppShell>

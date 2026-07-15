@@ -53,6 +53,42 @@ body::before {
   --bdr2: rgba(255, 255, 255, 0.04);
 }
 
+/* Route entrance. Paired with app/template.tsx, which Next remounts on every
+   navigation - a fresh element restarts the animation, so no JS keying needed.
+   Base state is visible: if the animation never runs, the page still renders.
+   That is the whole reason this is CSS and not framer-motion. */
+@keyframes pw-route-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 6px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes pw-route-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.pw-route {
+  animation: pw-route-in 180ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+/* Reduced motion keeps the reveal and drops the travel - the transition still
+   says "new screen", it just doesn't move. */
+@media (prefers-reduced-motion: reduce) {
+  .pw-route {
+    animation: pw-route-fade 120ms linear both;
+  }
+}
+
 #spbar {
   position: fixed;
   left: 0;
@@ -221,6 +257,8 @@ footer {
 }
 
 .con {
+  min-width: 0;
+  width: 100%;
   max-width: 1240px;
   margin: 0 auto;
   padding: 0 56px;
@@ -235,6 +273,8 @@ footer {
 }
 
 .hcon {
+  min-width: 0;
+  width: 100%;
   max-width: 1240px;
   margin: 0 auto;
   /* Sit the copy 80px below the nav (top-anchored) rather than vertically
@@ -1182,7 +1222,8 @@ button:not(:disabled):not([aria-disabled="true"]),
 }
 
 .ctlb {
-  font-size: 10.5px;
+  /* 10.5px was below the 11px floor. */
+  font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.1em;
   color: rgba(177, 189, 176, 0.5);
@@ -1192,6 +1233,9 @@ button:not(:disabled):not([aria-disabled="true"]),
 }
 
 .ctva {
+  /* 18px tall; same fix as .fl. */
+  display: inline-block;
+  padding: 4px 0;
   font-size: 14px;
   color: var(--t);
   font-weight: 500;
@@ -1224,6 +1268,9 @@ button:not(:disabled):not([aria-disabled="true"]),
 
 .fl {
   display: block;
+  /* 20px tall with no padding - under the 24px WCAG 2.2 AA target minimum.
+     Padded rather than enlarged: the type size is correct, the hit box was not. */
+  padding: 5px 0;
   font-size: 13px;
   color: var(--m);
   margin-bottom: 10px;
@@ -1436,22 +1483,31 @@ button:not(:disabled):not([aria-disabled="true"]),
   .g2 { grid-template-columns: 1fr; gap: 32px; }
   .sgrid { grid-template-columns: 1fr; }
   .fg { grid-template-columns: 1fr 1fr; }
-  /* 11vw clipped "PHARMACY" past the right edge on phone widths */
+  /* A flat 36px still clipped "PHARMACY" below 390px - it was fitted to one
+     phone. Fluid, so the longest word clears the gutters at every width. */
   .hh {
-    font-size: 36px;
+    font-size: clamp(28px, calc(10vw - 4px), 36px);
     line-height: 0.98;
     filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 0.75));
   }
+  /* Same fault as .hh: a flat 34px overflowed the gutters at 320-360px on
+     the two longest section headings. Sized off the widest unbreakable
+     word actually on the page (ratio ~9.33x the font size), so it holds
+     34px wherever 34px fits and gives way only where it would clip. */
   .shead {
-    font-size: 34px;
+    font-size: clamp(26px, calc(10.4vw - 4.3px), 34px);
     line-height: 1.04;
     color: #f4f7f2;
     text-shadow: 0 3px 18px rgba(0, 0, 0, 0.9);
   }
   .htag {
     max-width: 68vw;
-    font-size: 9.5px;
-    line-height: 1.55;
+    /* Was 9.5px. DESIGN.md: "nothing renders below 11px". This line names the
+       physical pharmacy - it is the trust claim, not decoration - and it was
+       the smallest text on a phone. Tracking is reduced so it still fits. */
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    line-height: 1.5;
     color: #86efac;
     text-shadow: 0 2px 14px rgba(0, 0, 0, 0.85);
   }
