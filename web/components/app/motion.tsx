@@ -1,7 +1,13 @@
 "use client";
 
+import {
+  Children,
+  cloneElement,
+  isValidElement,
+  type ReactElement,
+  type ReactNode,
+} from "react";
 import { motion, useReducedMotion, type Variants } from "framer-motion";
-import type { ReactNode } from "react";
 
 /**
  * The app surface's motion vocabulary.
@@ -28,22 +34,34 @@ import type { ReactNode } from "react";
 /** The system's out-curve. Matches cubic-bezier(0.22,0.61,0.36,1) in globals.css. */
 export const EASE = [0.22, 0.61, 0.36, 1] as const;
 
-/** Press physics. Matches TactileButton, so the whole product presses one way. */
-export const PRESS_SPRING = {
-  type: "spring" as const,
-  stiffness: 620,
-  damping: 22,
-  mass: 0.6,
-};
-
-/** 30-80ms is the legible stagger band; 40 with a cap keeps long lists honest. */
+/** 30-80ms is the legible stagger band; 40ms reads as a reveal, not a wait. */
 const STAGGER_MS = 0.04;
+/** Base offset before the first item, so the list doesn't start mid-transition. */
+const LEAD_MS = 0.02;
+/**
+ * Cap the stagger at the first few items. Framer's `staggerChildren` has no cap,
+ * so on an uncapped list the Nth item's delay is N * step: a 50-item catalogue
+ * would leave its back half invisible for ~2s, and a 100-item one for ~4s. Past
+ * this index every remaining item shares one delay and arrives together - the
+ * reveal stays legible without holding late content hostage to list length.
+ */
 const STAGGER_CAP = 6;
 
+type StaggerItemProps = {
+  children: ReactNode;
+  className?: string;
+  /** Injected by StaggerList; callers don't pass it. */
+  index?: number;
+};
+
 /**
- * List container. Staggers its children in, but only the first few - a 40-item
- * order history should not take two seconds to finish arriving, and stagger is
- * decorative: it must never gate reading.
+ * List container. Hands each StaggerItem its position so the item can compute a
+ * capped delay itself - this is why the delay lives on the item and not on a
+ * `staggerChildren` here, which cannot be bounded.
+ *
+ * Only StaggerItem children receive an index, and only they advance the counter,
+ * so a mixed list (a SectionLabel followed by rows) staggers the rows correctly
+ * and leaves the label alone.
  */
 export function StaggerList({
   children,
@@ -52,81 +70,47 @@ export function StaggerList({
   children: ReactNode;
   className?: string;
 }) {
-  const reduce = useReducedMotion();
-  const container: Variants = {
-    hidden: {},
-    show: {
-      transition: reduce
-        ? {}
-        : { staggerChildren: STAGGER_MS, delayChildren: 0.02 },
-    },
-  };
+  let itemIndex = 0;
+  const positioned = Children.map(children, (child) => {
+    if (isValidElement(child) && child.type === StaggerItem) {
+      const withIndex = cloneElement(child as ReactElement<StaggerItemProps>, {
+        index: itemIndex,
+      });
+      itemIndex += 1;
+      return withIndex;
+    }
+    return child;
+  });
+
   return (
-    <motion.div
-      className={className}
-      variants={container}
-      initial="hidden"
-      animate="show"
-    >
-      {children}
+    <motion.div className={className} initial="hidden" animate="show">
+      {positioned}
     </motion.div>
   );
 }
 
 /**
- * A list row / card. Rises 8px and fades.
+ * A list row / card. Rises 8px and fades, after a delay set by its position.
  *
- * `initial` is the hidden state, but the element is in the DOM and hit-testable
+ * `hidden` is the resting state, but the element is in the DOM and hit-testable
  * throughout - this is an entrance, not a gate. If the animation never fires
- * (a hidden tab, a headless renderer), framer still applies the `animate` state
- * on mount, so the row cannot ship invisible. That failure mode is exactly how
- * this project's hero headline disappeared on iOS.
+ * (a hidden tab, a headless renderer), framer still applies the `show` state on
+ * mount, so the row cannot ship invisible. That failure mode is exactly how this
+ * project's hero headline disappeared on iOS.
  */
-export function StaggerItem({
-  children,
-  className,
-}: {
-  children: ReactNode;
-  className?: string;
-}) {
+export function StaggerItem({ children, className, index = 0 }: StaggerItemProps) {
   const reduce = useReducedMotion();
+  const delay = reduce ? 0 : LEAD_MS + Math.min(index, STAGGER_CAP) * STAGGER_MS;
   const item: Variants = {
     hidden: reduce ? { opacity: 0 } : { opacity: 0, y: 8 },
     show: {
       opacity: 1,
       y: 0,
-      transition: { duration: reduce ? 0.15 : 0.24, ease: EASE },
+      transition: { duration: reduce ? 0.15 : 0.24, ease: EASE, delay },
     },
   };
   return (
     <motion.div className={className} variants={item}>
-      {children}
-    </motion.div>
-  );
-}
-
-/**
- * Section entrance for a whole block of content. One fade+rise, not a per-child
- * stagger - reserving stagger for real lists keeps it meaningful instead of
- * becoming the uniform reflex applied to every section on the page.
- */
-export function FadeIn({
-  children,
-  className,
-  delay = 0,
-}: {
-  children: ReactNode;
-  className?: string;
-  delay?: number;
-}) {
-  const reduce = useReducedMotion();
-  return (
-    <motion.div
-      className={className}
-      initial={reduce ? { opacity: 0 } : { opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: reduce ? 0.15 : 0.24, ease: EASE, delay }}
-    >
       {children}
     </motion.div>
   );
