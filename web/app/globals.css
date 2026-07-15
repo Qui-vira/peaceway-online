@@ -1536,15 +1536,26 @@ button:not(:disabled):not([aria-disabled="true"]),
     background: linear-gradient(180deg, #cfd0cb 0%, #c5c6c1 55%, #b7b8b3 100%);
   }
   #s1 .hcon::before {
-    /* Frosted glass, not an opaque panel - the branded studio-grey building
-       reads through it while dark type stays legible. */
-    background:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.62) 0%, rgba(246, 248, 244, 0.72) 100%),
-      radial-gradient(ellipse at 50% 0%, rgba(15, 103, 60, 0.12), transparent 62%);
-    border: 1px solid rgba(15, 103, 60, 0.18);
-    box-shadow: 0 22px 60px rgba(15, 40, 29, 0.22);
-    backdrop-filter: blur(6px) saturate(1.05);
-    -webkit-backdrop-filter: blur(6px) saturate(1.05);
+    /* Nearly clear at the top so the animated building is the visible hero,
+       ramping opaque toward the bottom to keep the copy + buttons legible. */
+    background: linear-gradient(
+      180deg,
+      rgba(242, 246, 241, 0.06) 0%,
+      rgba(242, 246, 241, 0.14) 32%,
+      rgba(242, 246, 241, 0.58) 60%,
+      rgba(242, 246, 241, 0.84) 100%
+    );
+    border: 1px solid rgba(15, 103, 60, 0.12);
+    box-shadow: 0 22px 60px rgba(15, 40, 29, 0.18);
+    backdrop-filter: blur(1.5px);
+    -webkit-backdrop-filter: blur(1.5px);
+  }
+  /* House now shows through, so shadow the top copy for contrast over it. */
+  #s1 .htag {
+    text-shadow: 0 1px 10px rgba(242, 246, 241, 0.9);
+  }
+  #s1 .hs {
+    text-shadow: 0 1px 8px rgba(242, 246, 241, 0.85);
   }
   #s1 .hh {
     background: linear-gradient(180deg, #15291d 0%, #0f673c 100%);
