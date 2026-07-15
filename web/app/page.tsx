@@ -68,7 +68,7 @@ export default function Page(): JSX.Element {
         </div>
 
         <div className="scene" id="s1" style={{ height: "190vh" }}>
-          <div className="sticky" data-screen-label="Hero">
+          <div className="pw-sticky" data-screen-label="Hero">
             <div className="sv-fb" />
             <div className="hstage" aria-hidden="true" />
             <ScrollSequence sceneId="s1" />
@@ -82,7 +82,7 @@ export default function Page(): JSX.Element {
         </div>
 
         <div className="scene" id="s2" style={{ height: "155vh" }}>
-          <div className="sticky" data-screen-label="The Problem">
+          <div className="pw-sticky" data-screen-label="The Problem">
             <div className="sv-fb" />
             <div className="ov" style={{ background: "rgba(7,8,6,.72)" }} />
             <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom,rgba(7,8,6,.6) 0%,rgba(40,4,8,.2) 50%,rgba(7,8,6,.96) 100%)", zIndex: 1, pointerEvents: "none" }} />
@@ -114,7 +114,7 @@ export default function Page(): JSX.Element {
         </div>
 
         <div className="scene" id="s3" style={{ height: "200vh" }}>
-          <div className="sticky" data-screen-label="Services">
+          <div className="pw-sticky" data-screen-label="Services">
             <div className="sv-fb" />
             <div className="ov" />
             <div className="ovg" />
@@ -136,7 +136,7 @@ export default function Page(): JSX.Element {
         </div>
 
         <div className="scene" id="s4" style={{ height: "165vh" }}>
-          <div className="sticky" data-screen-label="Why Trust Peaceway">
+          <div className="pw-sticky" data-screen-label="Why Trust Peaceway">
             <div className="sv-fb" />
             <div className="ov" />
             <div className="ovg" />
@@ -163,7 +163,7 @@ export default function Page(): JSX.Element {
         </div>
 
         <div className="scene" id="s5" style={{ height: "auto" }}>
-          <div className="sticky" data-screen-label="How Ordering Works">
+          <div className="pw-sticky" data-screen-label="How Ordering Works">
             <div className="sv-fb" />
             <div className="ov" />
             <div className="ovg" />
@@ -198,7 +198,7 @@ export default function Page(): JSX.Element {
         </div>
 
         <div className="scene" id="s6" style={{ height: "165vh" }}>
-          <div className="sticky" data-screen-label="Ask the Pharmacist">
+          <div className="pw-sticky" data-screen-label="Ask the Pharmacist">
             <div className="sv-fb" />
             <div className="ov" />
             <div className="ovg" />
@@ -225,7 +225,7 @@ export default function Page(): JSX.Element {
         </div>
 
         <div className="scene" id="s7" style={{ height: "160vh" }}>
-          <div className="sticky" data-screen-label="Delivery Areas">
+          <div className="pw-sticky" data-screen-label="Delivery Areas">
             <div className="sv-fb" />
             <div className="ov" />
             <div className="ovg" />
@@ -273,7 +273,7 @@ export default function Page(): JSX.Element {
         </div>
 
         <div className="scene" id="s8" style={{ height: "auto" }}>
-          <div className="sticky" data-screen-label="Community">
+          <div className="pw-sticky" data-screen-label="Community">
             <div className="sv-fb" />
             <div className="ov" />
             <div className="ovg" />
@@ -312,7 +312,7 @@ export default function Page(): JSX.Element {
         </div>
 
         <div className="scene" id="s9" style={{ height: "145vh" }}>
-          <div className="sticky" data-screen-label="Contact">
+          <div className="pw-sticky" data-screen-label="Contact">
             <div className="sv-fb" />
             <div className="ov" />
             <div className="ovg" />

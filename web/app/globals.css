@@ -81,7 +81,11 @@ body::before {
   position: relative;
 }
 
-.sticky {
+/* Landing-scene pin. Namespaced `pw-` because a bare `.sticky` collides with
+   Tailwind's `sticky` position utility - every app screen using `sticky top-0`
+   (TopNav, BackBar, PageHeader) would inherit the 100vh height and opaque
+   background below and push its own content off-screen. */
+.pw-sticky {
   position: sticky;
   top: 0;
   height: 100vh;
@@ -533,7 +537,7 @@ footer {
   #s1 .sv-fb {
     background: linear-gradient(180deg, #cfd0cb 0%, #c5c6c1 55%, #b7b8b3 100%);
   }
-  #s1 .sticky {
+  #s1 .pw-sticky {
     background: #c5c6c1;
   }
   #s1 .htag {
@@ -583,7 +587,7 @@ footer {
   #s1 .snbg {
     -webkit-text-stroke: 1px rgba(15, 103, 60, 0.12);
   }
-  #s1 .sticky::after {
+  #s1 .pw-sticky::after {
     content: "";
     position: absolute;
     left: 0;
@@ -1265,8 +1269,8 @@ button:not(:disabled):not([aria-disabled="true"]),
 /* s5 (How It Works) holds 10 steps + CTA - taller than 100vh on most
    viewports, so the pinned 100vh/overflow-hidden pattern clipped the
    "Start Your Order" button. This section flows at natural height instead. */
-#s5 .sticky,
-#s8 .sticky {
+#s5 .pw-sticky,
+#s8 .pw-sticky {
   position: relative;
   height: auto;
   min-height: 100vh;
@@ -1336,21 +1340,21 @@ button:not(:disabled):not([aria-disabled="true"]),
     scroll-snap-stop: always;
     overflow: hidden;
   }
-  .sticky {
+  .pw-sticky {
     position: relative;
     height: 100%;
     min-height: 0;
     overflow-y: auto;
     overflow-x: hidden;
   }
-  #s5 .sticky,
-  #s8 .sticky {
+  #s5 .pw-sticky,
+  #s8 .pw-sticky {
     height: 100%;
     min-height: 0;
     overflow-y: auto;
   }
-  .sticky > .con,
-  .sticky > .hcon {
+  .pw-sticky > .con,
+  .pw-sticky > .hcon {
     height: auto;
     min-height: 100%;
   }
@@ -1538,7 +1542,7 @@ button:not(:disabled):not([aria-disabled="true"]),
   #s1 .vign {
     display: none;
   }
-  #s1 .sticky {
+  #s1 .pw-sticky {
     background: linear-gradient(180deg, #cfd0cb 0%, #c5c6c1 52%, #bcbdb8 100%);
   }
   #s1 .sv-fb {
