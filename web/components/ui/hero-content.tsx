@@ -82,18 +82,23 @@ export function HeroContent(): JSX.Element {
         <span className="type-caret" aria-hidden />
       </motion.div>
 
+      {/* The wipe is an overflow mask + translate, not an animated clip-path.
+          clip-path interpolation is the least reliable way to do this, and a
+          line that fails to animate stays clipped to nothing - i.e. an
+          invisible headline. A transform is the same animation the subtext and
+          CTAs below already use, so it fails the same way they do: never. */}
       <h1 className="hh" aria-label="Your Lagos pharmacy is now online">
         {HEADLINE.map((line, i) => (
-          <motion.span
-            key={line}
-            style={{ display: "block" }}
-            initial={{ clipPath: "inset(0 0 105% 0)", y: 16 }}
-            animate={{ clipPath: "inset(0 0 0% 0)", y: 0 }}
-            transition={{ duration: 0.8, ease: EASE, delay: 1.05 + i * 0.13 }}
-            aria-hidden
-          >
-            {line}
-          </motion.span>
+          <span key={line} className="hh-mask" aria-hidden>
+            <motion.span
+              className="hh-line"
+              initial={{ y: "110%" }}
+              animate={{ y: "0%" }}
+              transition={{ duration: 0.8, ease: EASE, delay: 1.05 + i * 0.13 }}
+            >
+              {line}
+            </motion.span>
+          </span>
         ))}
       </h1>
 

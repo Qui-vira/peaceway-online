@@ -502,6 +502,17 @@ footer {
   margin-bottom: 22px;
 }
 
+/* Headline wipe: each line is masked by an overflow:hidden block and slides up
+   from below. Kept as plain elements (no clip-path) so a line can never end up
+   permanently clipped out of sight. */
+.hh-mask {
+  display: block;
+  overflow: hidden;
+}
+.hh-line {
+  display: block;
+}
+
 .hs {
   font-size: clamp(15px, 1.5vw, 19px);
   color: #b1bdb0;
@@ -1530,11 +1541,21 @@ button:not(:disabled):not([aria-disabled="true"]),
   #s1 .hcon::before {
     content: none;
   }
+  /* Paint the headline with a plain colour on phones instead of gradient-clipped
+     text. `background-clip: text` + `-webkit-text-fill-color: transparent` on
+     .hh means the letters are transparent and are only visible if the clipped
+     background paints - and Safari drops that clip when the element has
+     transformed descendants, which the animated lines are. The result is a
+     headline that is present, occupies its full height, and renders nothing.
+     A solid fill cannot fail that way. #15291d is the gradient's own top stop,
+     so the colour is unchanged to the eye at this size; desktop keeps the
+     gradient, where it demonstrably renders. */
   #s1 .hh {
-    background: linear-gradient(180deg, #15291d 0%, #0f673c 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
+    background: none;
+    -webkit-background-clip: border-box;
+    background-clip: border-box;
+    -webkit-text-fill-color: currentColor;
+    color: #15291d;
     filter: none;
   }
   #s1 .htag {
