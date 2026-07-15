@@ -20,6 +20,16 @@ web/*.tsbuildinfo
 # Local agent / tooling scratch (not part of the app)
 .claude/
 .playwright-mcp/
+.agents/
+.codex/
+skills-lock.json
+
+# Generated knowledge graph (rebuilt with `graphify update .`)
+/graphify-out/
+
+# Stray root-level npm install. The app lives in web/ and resolves its own
+# deps from web/node_modules; nothing at the repo root is an npm package.
+/node_modules/
 
 # Import exports (may contain catalog data)
 scripts/exports/
