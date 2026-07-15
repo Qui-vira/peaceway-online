@@ -4,13 +4,20 @@ description: The 24/7 ordering and operations surface for a real, licensed Lagos
 colors:
   dispensary-green: "#0f673c"
   dispensary-green-lit: "#1a8a50"
+  dispensary-green-bright: "#23bd6a"
   signal-green: "#34d98a"
+  signal-green-soft: "#4ade80"
   cross-red: "#a80b16"
   counter-black: "#0b0c09"
   raised-surface: "#191a17"
   ink: "#dcdddb"
   ink-muted: "#b1bdb0"
   hairline: "#ffffff14"
+  stage-light: "#cfd0cb"
+  stage: "#c5c6c1"
+  stage-deep: "#bcbdb8"
+  stage-ink: "#15291d"
+  stage-ink-muted: "#33403a"
 typography:
   display:
     fontFamily: "Syne, sans-serif"
@@ -24,11 +31,23 @@ typography:
     fontWeight: 700
     lineHeight: 1.1
     letterSpacing: "-0.02em"
+  title:
+    fontFamily: "DM Sans, sans-serif"
+    fontSize: "19px"
+    fontWeight: 600
+    lineHeight: 1.3
+    letterSpacing: "normal"
   body:
     fontFamily: "DM Sans, sans-serif"
     fontSize: "16px"
     fontWeight: 400
     lineHeight: 1.6
+    letterSpacing: "normal"
+  body-compact:
+    fontFamily: "DM Sans, sans-serif"
+    fontSize: "14px"
+    fontWeight: 400
+    lineHeight: 1.5
     letterSpacing: "normal"
   label:
     fontFamily: "DM Sans, sans-serif"
@@ -36,7 +55,15 @@ typography:
     fontWeight: 600
     lineHeight: 1.2
     letterSpacing: "0.2em"
+  micro:
+    fontFamily: "DM Sans, sans-serif"
+    fontSize: "11px"
+    fontWeight: 500
+    lineHeight: 1.2
+    letterSpacing: "normal"
 rounded:
+  hairline: "4px"
+  chip: "10px"
   input: "12px"
   surface: "16px"
   panel: "20px"
@@ -113,9 +140,26 @@ A near-black room with one green light in it, and a red reserved for the cross.
 - **Signal Green** (#34d98a): The green that speaks. Every green *word*, small icon, and focus ring.
   Bright enough to survive the dark base.
 
+- **Dispensary Green, Bright** (#23bd6a): The top stop of the primary button's gradient body. Pairs
+  with #0f673c so a button reads as lit from above.
+- **Signal Green, Soft** (#4ade80): Signal Green's sibling, used on labels and the typing caret. Both
+  clear AA on the dark base; either is correct for green text.
+
 ### Secondary
 - **Cross Red** (#a80b16): The pharmacy cross. Destructive actions and genuine problems only. It is
   never a highlight, never a badge for emphasis, never used to draw the eye toward something good.
+
+### Tertiary — The Studio Stage
+The hero inverts the system. The building sequence is rendered on a lit studio-grey backdrop, so #s1
+runs a light surface with dark green ink while every other section stays on Counter Black. This is
+deliberate: the counter is the lit thing on a dark street. It is the only light surface in the
+product, and it exists to make the building legible.
+
+- **Stage Light** (#cfd0cb): The top of the studio backdrop.
+- **Stage** (#c5c6c1): The backdrop proper — the grey the building is photographed against.
+- **Stage Deep** (#bcbdb8): The bottom of the backdrop, where it falls into the dark sections below.
+- **Stage Ink** (#15291d): Headline and hard type on the stage. Reads 10.3:1 on Stage.
+- **Stage Ink Muted** (#33403a): Supporting copy on the stage. Reads 7.6:1 on Stage.
 
 ### Neutral
 - **Counter Black** (#0b0c09): The page. The dark street the counter is lit against.
@@ -137,6 +181,11 @@ or a destructive action, it is the wrong colour.
 **The One Light Rule.** One green light in a dark room. If a screen has green competing with green,
 or the accent is doing decorative work, the screen has lost the metaphor.
 
+**The One Stage Rule.** The Studio Stage belongs to #s1 and nothing else. A second light surface
+anywhere in the product breaks the metaphor: the counter is lit *because* the street is dark. On the
+stage the contrast rules invert — Stage Ink, never Ink; Dispensary Green becomes legible as type
+there (4.7:1 on Stage) but Signal Green does not.
+
 ## 3. Typography
 
 **Display Font:** Syne (fallback: sans-serif) — weights 700/800
@@ -155,7 +204,10 @@ Sans is the pharmacist's voice: plain, legible, unremarkable on purpose.
   not appear here.
 - **Body** (DM Sans 400, 16px, line-height 1.6): All prose. Cap measure at 65–75ch. 16px is a floor
   on mobile inputs, not a preference — smaller triggers iOS auto-zoom.
+- **Body Compact** (DM Sans 400, 14px, line-height 1.5): Dense app UI — list rows, secondary lines,
+  button text. Not for prose.
 - **Label** (DM Sans 600, 12px, tracking 0.2em, uppercase): Eyebrows and small caps labels.
+- **Micro** (DM Sans 500, 11px): Badges, counts, timestamps. The floor. Nothing renders below 11px.
 
 ### Named Rules
 
@@ -165,6 +217,12 @@ the fastest way to make a tool feel untrustworthy.
 
 **The 16px Floor Rule.** Body and input text never drop below 16px on mobile. This is an
 accessibility floor and an iOS zoom guard at once.
+
+**The Seven Steps Rule.** The ramp is Display · Headline · Title · Body · Body Compact · Label ·
+Micro. Nothing else. This is aspirational, and honestly so: the code currently ships literal sizes at
+10, 13, 15, 22, 26, 30, 32, 42 and 46px, none of which are steps. That is not spec drift — no ramp
+was ever enforced, and an earlier proposal in `tasks/DESIGN.md` was violated too. New work uses the
+steps; existing off-step sizes are debt to be paid down, not precedent to copy.
 
 ## 4. Elevation
 

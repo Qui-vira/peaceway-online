@@ -16,11 +16,53 @@
         "canonical": "#1a8a50",
         "tonalRamp": ["#083b24", "#0b4f2f", "#0f673c", "#14803f", "#1a8a50", "#1aa35a", "#34d98a", "#b7f3d0"]
       },
+      "dispensary-green-bright": {
+        "role": "primary",
+        "displayName": "Dispensary Green, Bright",
+        "canonical": "#23bd6a",
+        "tonalRamp": ["#083b24", "#0b4f2f", "#0f673c", "#14803f", "#1aa35a", "#23bd6a", "#74e2a6", "#d7f7e5"]
+      },
       "signal-green": {
         "role": "primary",
         "displayName": "Signal Green",
         "canonical": "#34d98a",
         "tonalRamp": ["#083b24", "#0b4f2f", "#0f673c", "#14803f", "#1aa35a", "#34d98a", "#74e2a6", "#d7f7e5"]
+      },
+      "signal-green-soft": {
+        "role": "primary",
+        "displayName": "Signal Green, Soft",
+        "canonical": "#4ade80",
+        "tonalRamp": ["#083b24", "#0b4f2f", "#0f673c", "#14803f", "#1aa35a", "#4ade80", "#86efac", "#c7f8d8"]
+      },
+      "stage-light": {
+        "role": "tertiary",
+        "displayName": "Stage Light",
+        "canonical": "#cfd0cb",
+        "tonalRamp": ["#15291d", "#33403a", "#5c5f59", "#8a8d86", "#bcbdb8", "#c5c6c1", "#cfd0cb", "#f4f7f2"]
+      },
+      "stage": {
+        "role": "tertiary",
+        "displayName": "Stage",
+        "canonical": "#c5c6c1",
+        "tonalRamp": ["#15291d", "#33403a", "#5c5f59", "#8a8d86", "#bcbdb8", "#c5c6c1", "#cfd0cb", "#f4f7f2"]
+      },
+      "stage-deep": {
+        "role": "tertiary",
+        "displayName": "Stage Deep",
+        "canonical": "#bcbdb8",
+        "tonalRamp": ["#15291d", "#33403a", "#5c5f59", "#8a8d86", "#bcbdb8", "#c5c6c1", "#cfd0cb", "#f4f7f2"]
+      },
+      "stage-ink": {
+        "role": "tertiary",
+        "displayName": "Stage Ink",
+        "canonical": "#15291d",
+        "tonalRamp": ["#05130b", "#15291d", "#33403a", "#0f673c", "#1aa35a", "#34d98a", "#74e2a6", "#d7f7e5"]
+      },
+      "stage-ink-muted": {
+        "role": "tertiary",
+        "displayName": "Stage Ink Muted",
+        "canonical": "#33403a",
+        "tonalRamp": ["#05130b", "#15291d", "#33403a", "#5c5f59", "#8a8d86", "#bcbdb8", "#c5c6c1", "#f4f7f2"]
       },
       "cross-red": {
         "role": "secondary",
@@ -62,8 +104,11 @@
     "typographyMeta": {
       "display": { "displayName": "Display", "purpose": "Landing hero only. Syne 800, set very tight. One per page." },
       "headline": { "displayName": "Headline", "purpose": "Section headings on the marketing surface. Syne 700." },
+      "title": { "displayName": "Title", "purpose": "Card and screen titles inside the app. DM Sans 600 - Syne never appears here." },
       "body": { "displayName": "Body", "purpose": "All prose. DM Sans 400 at a 16px floor, 65-75ch measure." },
-      "label": { "displayName": "Label", "purpose": "Eyebrows and small caps labels. DM Sans 600, 0.2em tracking." }
+      "body-compact": { "displayName": "Body Compact", "purpose": "Dense app UI - list rows, secondary lines, button text. Not for prose." },
+      "label": { "displayName": "Label", "purpose": "Eyebrows and small caps labels. DM Sans 600, 0.2em tracking." },
+      "micro": { "displayName": "Micro", "purpose": "Badges, counts, timestamps. The floor - nothing renders below 11px." }
     },
     "shadows": [
       { "name": "tile-lip", "value": "0 4px 0 0 rgba(255,255,255,0.05), 0 10px 22px -12px rgba(0,0,0,0.6)", "purpose": "The default raised surface. First shadow is the edge catching light; second is the ground beneath it." },
@@ -156,7 +201,9 @@
       { "name": "The Fills-Only Rule", "body": "Dispensary Green (#0f673c) is forbidden on text, small icons and focus rings. It fails WCAG AA against Counter Black - a legibility failure on a page where the words are drug names and dosages. Green type uses Signal Green (#34d98a) or #4ade80. No exceptions, and no \"it's only a label.\"", "section": "colors" },
       { "name": "The Red Means Stop Rule", "body": "Cross Red never celebrates. If a red element is not an error, a warning or a destructive action, it is the wrong colour.", "section": "colors" },
       { "name": "The One Light Rule", "body": "One green light in a dark room. If a screen has green competing with green, or the accent is doing decorative work, the screen has lost the metaphor.", "section": "colors" },
+      { "name": "The One Stage Rule", "body": "The Studio Stage belongs to #s1 and nothing else. A second light surface anywhere in the product breaks the metaphor: the counter is lit because the street is dark. On the stage the contrast rules invert - Stage Ink, never Ink; Dispensary Green becomes legible as type there (4.7:1 on Stage) but Signal Green does not.", "section": "colors" },
       { "name": "The Signage-Only Rule", "body": "Syne is signage. It appears on the landing hero and section headings, and nowhere in the app - not on buttons, labels, table headers or data. A display font in a UI label is the fastest way to make a tool feel untrustworthy.", "section": "typography" },
+      { "name": "The Seven Steps Rule", "body": "The ramp is Display, Headline, Title, Body, Body Compact, Label, Micro. Nothing else. This is aspirational, and honestly so: the code currently ships literal sizes at 10, 13, 15, 22, 26, 30, 32, 42 and 46px, none of which are steps. That is not spec drift - no ramp was ever enforced, and an earlier proposal in tasks/DESIGN.md was violated too. New work uses the steps; existing off-step sizes are debt to be paid down, not precedent to copy.", "section": "typography" },
       { "name": "The 16px Floor Rule", "body": "Body and input text never drop below 16px on mobile. This is an accessibility floor and an iOS zoom guard at once.", "section": "typography" },
       { "name": "The Objects-Not-Cards Rule", "body": "If a surface has a drop shadow and no edge, it is floating, and it is wrong. The lip is the system. A shadow alone is a card from another design system.", "section": "elevation" },
       { "name": "The Press-Is-Physical Rule", "body": "Pressable things depress. Touch feedback is scale(0.98) or a 3px translate within 120-140ms - never a colour flash, never nothing.", "section": "elevation" }

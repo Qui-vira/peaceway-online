@@ -400,19 +400,12 @@ footer {
 }
 
 /* ── CSS-driven text FX: gradient movement, glitch, highlight sweep ───────── */
+/* Solid Signal Green. This was a gradient clipped to the glyphs, drifting on a
+   6s infinite loop: decorative rather than meaningful, and the same technique
+   that shipped an invisible hero headline on iOS. The word still rotates -
+   that is RotatingWords, and it carries the idea on its own. */
 .fx-gradient {
-  background: linear-gradient(90deg, #4ade80 0%, #dcccdb 34%, #1a8a50 64%, #4ade80 100%);
-  background-size: 260% 100%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
-  animation: fx-gradient 6s linear infinite;
-}
-@keyframes fx-gradient {
-  to {
-    background-position: 260% 0;
-  }
+  color: #34d98a;
 }
 
 .fx-glitch {
@@ -502,9 +495,11 @@ footer {
   font-size: clamp(36px, 5.5vw, 76px);
   line-height: 0.96;
   letter-spacing: -0.028em;
-  background: linear-gradient(180deg, #dcccdb 12%, #5a9e70 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  /* Solid fill. The glyphs used to be transparent, painted only by a gradient
+     clipped to the text - which Safari drops when the element has transformed
+     descendants, and that shipped an invisible hero headline on iOS. Emphasis
+     comes from weight and size. */
+  color: #dcdddb;
   margin-bottom: 22px;
 }
 
@@ -563,11 +558,11 @@ footer {
   #s1 .hh {
     font-size: clamp(30px, 3.1vw, 48px);
     max-width: 440px;
-    /* background-image (not the shorthand) so background-clip:text survives */
-    background-image: linear-gradient(180deg, #15291d 0%, #0f673c 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
+    /* Stage Ink, solid. This used to be a gradient clipped to the text, which
+       is the same technique that rendered the headline invisible on iOS - and
+       it is why mobile already paints this solid. Desktop matches it now:
+       one headline treatment, no clip to lose. */
+    color: #15291d;
   }
   #s1 .hs {
     color: #33403a;
@@ -1436,8 +1431,6 @@ button:not(:disabled):not([aria-disabled="true"]),
   .hh {
     font-size: 36px;
     line-height: 0.98;
-    background: linear-gradient(180deg, #ffffff 0%, #c7f8d8 100%);
-    -webkit-background-clip: text;
     filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 0.75));
   }
   .shead {
@@ -1555,15 +1548,12 @@ button:not(:disabled):not([aria-disabled="true"]),
   #s1 .hcon::before {
     content: none;
   }
-  /* Paint the headline with a plain colour on phones instead of gradient-clipped
-     text. `background-clip: text` + `-webkit-text-fill-color: transparent` on
-     .hh means the letters are transparent and are only visible if the clipped
-     background paints - and Safari drops that clip when the element has
-     transformed descendants, which the animated lines are. The result is a
-     headline that is present, occupies its full height, and renders nothing.
-     A solid fill cannot fail that way. #15291d is the gradient's own top stop,
-     so the colour is unchanged to the eye at this size; desktop keeps the
-     gradient, where it demonstrably renders. */
+  /* Stage Ink, solid - same treatment desktop now uses. The letters used to be
+     transparent, painted only by a gradient clipped to the glyphs, which Safari
+     drops when the element has transformed descendants: a headline that
+     occupies its full height and renders nothing. A solid fill cannot fail that
+     way, and #15291d was the gradient's own top stop, so the colour is
+     unchanged to the eye. */
   #s1 .hh {
     background: none;
     -webkit-background-clip: border-box;
