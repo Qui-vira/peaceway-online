@@ -1533,8 +1533,8 @@ button:not(:disabled):not([aria-disabled="true"]),
 
   /* ── Light showcase hero (mobile) ────────────────────────────────────────
      Mirror the desktop light hero: pristine studio-grey building fills the
-     slide, dark type on a frosted-glass card, dark overlays hidden. Only #s1
-     flips - the other slides keep their dark treatment. */
+     slide, dark type straight on the light stage, dark overlays hidden. Only
+     #s1 flips - the other slides keep their dark treatment. */
   #s1 .hstage,
   #s1 .hscrim,
   #s1 .grg,
@@ -1548,20 +1548,12 @@ button:not(:disabled):not([aria-disabled="true"]),
   #s1 .sv-fb {
     background: linear-gradient(180deg, #cfd0cb 0%, #c5c6c1 55%, #b7b8b3 100%);
   }
+  /* No card on the hero - desktop has none. The white veil this used to paint
+     (ramping to 0.84 at the bottom) sat over the building and muted the copy
+     and buttons, which is what made the phone hero look washed out next to
+     desktop. The other slides keep the dark card from `.con::before` above. */
   #s1 .hcon::before {
-    /* Nearly clear at the top so the animated building is the visible hero,
-       ramping opaque toward the bottom to keep the copy + buttons legible. */
-    background: linear-gradient(
-      180deg,
-      rgba(242, 246, 241, 0.06) 0%,
-      rgba(242, 246, 241, 0.14) 32%,
-      rgba(242, 246, 241, 0.58) 60%,
-      rgba(242, 246, 241, 0.84) 100%
-    );
-    border: 1px solid rgba(15, 103, 60, 0.12);
-    box-shadow: 0 22px 60px rgba(15, 40, 29, 0.18);
-    backdrop-filter: blur(1.5px);
-    -webkit-backdrop-filter: blur(1.5px);
+    content: none;
   }
   #s1 .hh {
     background: linear-gradient(180deg, #15291d 0%, #0f673c 100%);
