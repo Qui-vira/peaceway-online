@@ -173,7 +173,8 @@ export function SplitText({
     >
       {units.map((u, i) => {
         const content = effect === "letters" || effect === "typewriter" || effect === "flip" ? (u === " " ? " " : u) : u;
-        const spacing = effect === "words" || effect === "mask-words" || effect === "lines" ? "0.28em" : undefined;
+        // `lines` are blocks, so they need no inter-word margin.
+        const spacing = effect === "words" || effect === "mask-words" ? "0.28em" : undefined;
         if (effect === "mask-words") {
           return (
             <span key={i} aria-hidden style={{ display: "inline-block", overflow: "hidden", marginRight: spacing, verticalAlign: "top" }}>
@@ -190,10 +191,16 @@ export function SplitText({
             variants={unitVariant}
             transition={unitTransition}
             style={{
-              display: "inline-block",
+              /* A line is its own row. It used to be an inline-block that only
+                 landed on a new row because the units together overflowed the
+                 container - which also meant `white-space: pre` was needed to
+                 hold each line together, and that made a line unbreakable. On a
+                 phone a 576px line then sat in a 312px column and was simply
+                 clipped at the edge. As a block it owns its row by construction
+                 and wraps within itself when the column is narrow. */
+              display: effect === "lines" ? "block" : "inline-block",
               marginRight: spacing,
               transformOrigin: effect === "flip" ? "50% 100%" : undefined,
-              whiteSpace: effect === "lines" ? "pre" : undefined,
               willChange: "transform, opacity",
               backfaceVisibility: "hidden",
             }}
