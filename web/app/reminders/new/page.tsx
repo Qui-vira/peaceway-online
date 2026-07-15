@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Plus, X, AlertTriangle } from "lucide-react";
+import { localDateKey } from "@/lib/date";
 import { AppShell } from "@/components/app/app-shell";
 import { SectionLabel } from "@/components/app/ui";
 import { createReminder } from "@/lib/api/reminders";
@@ -39,9 +40,7 @@ export default function NewReminderPage() {
   const [instructions, setInstructions] = useState("");
   const [times, setTimes] = useState<string[]>([]);
   const [customTime, setCustomTime] = useState("");
-  const [startDate, setStartDate] = useState(
-    new Date().toISOString().slice(0, 10)
-  );
+  const [startDate, setStartDate] = useState(localDateKey());
   const [hasEnd, setHasEnd] = useState(false);
   const [endDate, setEndDate] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -75,7 +74,7 @@ export default function NewReminderPage() {
     }
   }
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = localDateKey();
 
   return (
     <AppShell>

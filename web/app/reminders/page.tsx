@@ -6,6 +6,7 @@ import { Bell, Plus } from "lucide-react";
 import { isAuthError } from "@/lib/api";
 import { listReminders, type MedicationReminder } from "@/lib/api/reminders";
 import { useRouter } from "next/navigation";
+import { localDateKey } from "@/lib/date";
 import { AppShell } from "@/components/app/app-shell";
 import { StaggerItem, StaggerList } from "@/components/app/motion";
 import {
@@ -23,10 +24,6 @@ type State =
   | { kind: "guest" }
   | { kind: "failed" }
   | { kind: "ready"; reminders: MedicationReminder[] };
-
-function todayStr(): string {
-  return new Date().toISOString().slice(0, 10);
-}
 
 export default function RemindersPage() {
   const router = useRouter();
@@ -49,7 +46,7 @@ export default function RemindersPage() {
     load();
   }, [load]);
 
-  const today = todayStr();
+  const today = localDateKey();
   const todayReminders =
     state.kind === "ready"
       ? state.reminders.filter(

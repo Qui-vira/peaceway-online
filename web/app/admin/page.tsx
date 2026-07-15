@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {
   LayoutGrid, ClipboardList, Package, Users, DollarSign, ShoppingBag,
@@ -493,7 +493,15 @@ function CatalogTab() {
   const [savingId, setSavingId] = useState<string | null>(null);
   const [message, setMessage] = useState("");
 
+  // Only the newest search may write to state. The 300ms debounce cancels
+  // pending runs but not in-flight ones, so a slow earlier response could land
+  // after a fast later one and leave the grid showing products that do not
+  // match the search box. This grid is where stock and prices get edited: the
+  // list on screen must be the list that was asked for.
+  const productsRunId = useRef(0);
+
   const loadProducts = useCallback(async () => {
+    const id = ++productsRunId.current;
     setLoading(true);
     setMessage("");
     try {
@@ -502,6 +510,7 @@ function CatalogTab() {
       params.set("status_filter", statusFilter);
       params.set("limit", "100");
       const result = await adminFetch<AdminProductsResponse>(`/admin/products?${params.toString()}`);
+      if (productsRunId.current !== id) return;
       setData(result);
       setDrafts((current) => {
         const next = { ...current };
@@ -511,9 +520,10 @@ function CatalogTab() {
         return next;
       });
     } catch (error) {
+      if (productsRunId.current !== id) return;
       setMessage(error instanceof Error ? error.message : "Could not load products.");
     } finally {
-      setLoading(false);
+      if (productsRunId.current === id) setLoading(false);
     }
   }, [q, statusFilter]);
 

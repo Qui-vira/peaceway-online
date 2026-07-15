@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { ShoppingCart, Search } from "lucide-react";
 import Link from "next/link";
 import { listCatalog, listCategories, type Product } from "@/lib/api/catalog";
@@ -36,16 +36,25 @@ export default function ShopPage() {
       .catch(() => setCategories(["All"]));
   }, []);
 
+  // Every search run gets a number, and only the newest one is allowed to write
+  // to state. The 350ms debounce below cancels *pending* runs, but it cannot
+  // cancel one already in flight: type "para", wait for the request to leave,
+  // then type "cetamol", and the slower first response could land last and
+  // repaint the grid with results for a query the customer has moved on from -
+  // search box saying one thing, shelf showing another.
+  const runId = useRef(0);
+
   const load = useCallback(async () => {
+    const id = ++runId.current;
     setState({ kind: "loading" });
     try {
       const products = await listCatalog({
         q: q || undefined,
         category: category !== "All" ? category : undefined,
       });
-      setState({ kind: "ready", products });
+      if (runId.current === id) setState({ kind: "ready", products });
     } catch {
-      setState({ kind: "failed" });
+      if (runId.current === id) setState({ kind: "failed" });
     }
   }, [q, category]);
 
