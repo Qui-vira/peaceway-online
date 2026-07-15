@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import {
   adminFetch, setAdminToken, clearAdminToken, getAdminToken, anyPermission,
+  isAdminAuthError,
 } from "@/lib/admin-auth";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -995,7 +996,13 @@ export default function AdminPage() {
     if (token) {
       adminFetch<AdminMe>("/admin/me")
         .then((me) => setAdmin(me))
-        .catch(() => clearAdminToken())
+        .catch((e) => {
+          // Only drop the token when the backend says it is invalid. This used
+          // to clear on ANY failure, so a network blip destroyed a working
+          // admin's session and forced a re-login. A failed request is not
+          // evidence that the session is bad.
+          if (isAdminAuthError(e)) clearAdminToken();
+        })
         .finally(() => setChecked(true));
     } else {
       setChecked(true);

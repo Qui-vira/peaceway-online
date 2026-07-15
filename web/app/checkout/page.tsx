@@ -4,10 +4,10 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getCart, cartTotal, clearCart, type CartItem } from "@/lib/cart";
 import { createOrder } from "@/lib/api/orders";
-import type { ApiError } from "@/lib/api";
+import { isAuthError, type ApiError } from "@/lib/api";
 import { getMe } from "@/lib/api/customers";
 import { AppShell } from "@/components/app/app-shell";
-import { Spinner } from "@/components/app/ui";
+import { LoadFailed, Spinner } from "@/components/app/ui";
 import { TactileButton } from "@/components/app/tactile-button";
 import { siteConfig } from "@/lib/constants";
 
@@ -33,6 +33,8 @@ export default function CheckoutPage() {
   const [note, setNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  // Auth could not be confirmed - not the same as "signed out".
+  const [authFailed, setAuthFailed] = useState(false);
 
   // Every order here is a delivery, so an address is required, not optional.
   // This used to submit `address || undefined`, which let an order through with
@@ -49,7 +51,14 @@ export default function CheckoutPage() {
     }
     setCart(c);
     getMe()
-      .catch(() => router.replace("/start"))
+      // Only bounce to sign-up when the backend actually says "not you". This
+      // used to redirect on ANY failure, so a stutter mid-purchase threw a
+      // signed-in customer out of checkout and onto a registration form - with
+      // their cart intact but their identity apparently gone.
+      .catch((e) => {
+        if (isAuthError(e)) router.replace("/start");
+        else setAuthFailed(true);
+      })
       .finally(() => setLoading(false));
   }, [router]);
 
@@ -87,6 +96,19 @@ export default function CheckoutPage() {
     return (
       <AppShell back={{ fallbackHref: "/cart" }}>
         <Spinner />
+      </AppShell>
+    );
+
+  if (authFailed)
+    return (
+      <AppShell back={{ title: "Checkout", fallbackHref: "/cart" }}>
+        <div className="px-5 pt-6">
+          <LoadFailed
+            what="your account"
+            detail="We couldn't reach the pharmacy to confirm your details. Your cart is safe - try again."
+            onRetry={() => window.location.reload()}
+          />
+        </div>
       </AppShell>
     );
 

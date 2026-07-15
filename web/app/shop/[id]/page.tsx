@@ -4,10 +4,11 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { AlertTriangle, Check } from "lucide-react";
+import { isNotFound } from "@/lib/api";
 import { getProduct, type Product } from "@/lib/api/catalog";
 import { addToCart, getCart } from "@/lib/cart";
 import { AppShell } from "@/components/app/app-shell";
-import { Spinner } from "@/components/app/ui";
+import { LoadFailed, Spinner } from "@/components/app/ui";
 import { DrugIcon } from "@/components/app/drug-icons";
 import { TactileButton, TactileLink } from "@/components/app/tactile-button";
 
@@ -25,6 +26,8 @@ export default function ProductDetailPage() {
 
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
+  // Distinct from `product === null`, which renders "not found".
+  const [failed, setFailed] = useState(false);
   const [added, setAdded] = useState(false);
   const [cartCount, setCartCount] = useState(0);
 
@@ -33,7 +36,13 @@ export default function ProductDetailPage() {
     if (!id) return;
     getProduct(id)
       .then((p) => setProduct(p))
-      .catch(() => setProduct(null))
+      .catch((e) => {
+        // Only a 404 means this medicine does not exist. Anything else and we
+        // simply could not look - saying "not found" would be a claim about
+        // the catalogue we have no basis for.
+        if (isNotFound(e)) setProduct(null);
+        else setFailed(true);
+      })
       .finally(() => setLoading(false));
   }, [id]);
 
@@ -56,11 +65,21 @@ export default function ProductDetailPage() {
       </AppShell>
     );
 
+  if (failed) {
+    return (
+      <AppShell back={{ title: "Product", fallbackHref: "/shop" }}>
+        <div className="px-5 pt-6">
+          <LoadFailed what="this medicine" onRetry={() => window.location.reload()} />
+        </div>
+      </AppShell>
+    );
+  }
+
   if (!product) {
     return (
       <AppShell back={{ title: "Product", fallbackHref: "/shop" }}>
         <div className="flex flex-col items-center gap-4 px-5 py-20 text-center">
-          <p className="text-white/60">Product not found.</p>
+          <p className="text-[#b1bdb0]">Product not found.</p>
           <Link href="/shop" className={`rounded text-sm text-emerald-400 hover:underline ${FOCUS}`}>
             ← Back to Shop
           </Link>

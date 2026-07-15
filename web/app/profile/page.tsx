@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CheckCircle, Loader2, LogOut, Mail, MapPin, Phone, User } from "lucide-react";
 import {
@@ -12,9 +12,9 @@ import {
   type CustomerProfile,
   type Zone,
 } from "@/lib/api/customers";
-import type { ApiError } from "@/lib/api";
+import { isAuthError, type ApiError } from "@/lib/api";
 import { AppShell } from "@/components/app/app-shell";
-import { GuestWall, SectionLabel, Spinner } from "@/components/app/ui";
+import { GuestWall, LoadFailed, SectionLabel, Spinner } from "@/components/app/ui";
 
 function FieldShell({
   icon,
@@ -44,6 +44,10 @@ export default function ProfilePage() {
   const [me, setMe] = useState<CustomerProfile | null>(null);
   const [zones, setZones] = useState<Zone[]>([]);
   const [guest, setGuest] = useState(false);
+  // Distinct from `guest`: the backend never answered, so we do not know who
+  // this is. A guest wall here would tell a signed-in customer their profile
+  // is gone because their connection stuttered.
+  const [failed, setFailed] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -52,7 +56,12 @@ export default function ProfilePage() {
 
   const [form, setForm] = useState({ full_name: "", email: "", delivery_area: "" });
 
-  useEffect(() => {
+  const load = useCallback(() => {
+    setLoading(true);
+    setGuest(false);
+    setFailed(false);
+    // listZones falling back to [] is fine: zones are a convenience list, not
+    // a claim about the user. getMe failing is not.
     Promise.all([getMe(), listZones().catch(() => [] as Zone[])])
       .then(([profile, zoneList]) => {
         setMe(profile);
@@ -63,9 +72,13 @@ export default function ProfilePage() {
           delivery_area: profile.delivery_area ?? "",
         });
       })
-      .catch(() => setGuest(true))
+      .catch((e) => (isAuthError(e) ? setGuest(true) : setFailed(true)))
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
 
   async function handleSignOut() {
     setSigningOut(true);
@@ -105,6 +118,8 @@ export default function ProfilePage() {
 
         {loading && <Spinner />}
         {guest && <GuestWall />}
+
+        {failed && <LoadFailed what="your profile" onRetry={load} />}
 
         {me && !loading && (
           <>

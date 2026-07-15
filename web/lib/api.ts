@@ -22,20 +22,64 @@ export type ApiError = {
   detail: string;
 };
 
+/**
+ * `status: 0` means the request never reached the backend - DNS, offline, CORS,
+ * timeout, a dead server. It is deliberately not a real HTTP status, so it can
+ * never collide with one.
+ *
+ * This distinction is the whole point. `fetch` rejects with a bare TypeError on
+ * a network failure, which is indistinguishable from any other thrown value at
+ * the call site. Callers were therefore writing `.catch(() => setGuest(true))`
+ * and turning "I could not reach the pharmacy" into "you are not signed in" -
+ * or, worse, into "you have no medication today". A failure to reach the server
+ * is not information about the user. Callers must be able to tell the two apart,
+ * so the client has to hand them the difference.
+ */
+export const NETWORK_ERROR_STATUS = 0;
+
+export function isApiError(e: unknown): e is ApiError {
+  return typeof e === "object" && e !== null && "status" in e && "detail" in e;
+}
+
+/** The backend answered, and said "not you". This IS real information. */
+export function isAuthError(e: unknown): boolean {
+  return isApiError(e) && (e.status === 401 || e.status === 403);
+}
+
+/** The backend never answered. This is NOT information about the user. */
+export function isNetworkError(e: unknown): boolean {
+  return isApiError(e) && e.status === NETWORK_ERROR_STATUS;
+}
+
+export function isNotFound(e: unknown): boolean {
+  return isApiError(e) && e.status === 404;
+}
+
 export async function apiFetch<T>(
   path: string,
   options: RequestInit = {}
 ): Promise<T> {
   const url = `${getApiBase()}${path}`;
 
-  const res = await fetch(url, {
-    ...options,
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-      ...(options.headers ?? {}),
-    },
-  });
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      ...options,
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        ...(options.headers ?? {}),
+      },
+    });
+  } catch {
+    // fetch only rejects when the request never completed. Normalise it into an
+    // ApiError so every call site sees one shape and can classify it.
+    const err: ApiError = {
+      status: NETWORK_ERROR_STATUS,
+      detail: "We couldn't reach the pharmacy. Check your connection.",
+    };
+    throw err;
+  }
 
   if (!res.ok) {
     let detail = res.statusText;

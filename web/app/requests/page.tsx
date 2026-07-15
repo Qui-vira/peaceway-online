@@ -1,16 +1,25 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
+import { isAuthError } from "@/lib/api";
 import { listRequests, type ProductRequest } from "@/lib/api/requests";
 import { AppShell } from "@/components/app/app-shell";
-import { EmptyState, GuestWall, SectionLabel, SkeletonCard, StatusChip } from "@/components/app/ui";
+import {
+  EmptyState,
+  GuestWall,
+  LoadFailed,
+  SectionLabel,
+  SkeletonCard,
+  StatusChip,
+} from "@/components/app/ui";
 import { GenericIcon } from "@/components/app/drug-icons";
 
 type State =
   | { kind: "loading" }
   | { kind: "guest" }
+  | { kind: "failed" }
   | { kind: "ready"; requests: ProductRequest[] };
 
 function formatDate(iso: string): string {
@@ -24,11 +33,22 @@ function formatDate(iso: string): string {
 export default function RequestsPage() {
   const [state, setState] = useState<State>({ kind: "loading" });
 
-  useEffect(() => {
+  // A 401 means the backend looked and said "not you" - that is real.
+  // Anything else (offline, timeout, 500) means nobody looked, so we must
+  // not render a guest wall and tell a signed-in customer their account
+  // is gone.
+  const load = useCallback(() => {
+    setState({ kind: "loading" });
     listRequests()
       .then((requests) => setState({ kind: "ready", requests }))
-      .catch(() => setState({ kind: "guest" }));
+      .catch((e) =>
+        setState(isAuthError(e) ? { kind: "guest" } : { kind: "failed" })
+      );
   }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
 
   return (
     <AppShell>
@@ -54,6 +74,8 @@ export default function RequestsPage() {
         )}
 
         {state.kind === "guest" && <GuestWall />}
+
+        {state.kind === "failed" && <LoadFailed what="your requests" onRetry={load} />}
 
         {state.kind === "ready" && state.requests.length === 0 && (
           <EmptyState

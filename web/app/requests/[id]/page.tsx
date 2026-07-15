@@ -3,9 +3,10 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { isAuthError, isNotFound } from "@/lib/api";
 import { getRequest, type ProductRequestDetail } from "@/lib/api/requests";
 import { AppShell } from "@/components/app/app-shell";
-import { GuestWall, Spinner, StatusChip } from "@/components/app/ui";
+import { GuestWall, LoadFailed, Spinner, StatusChip } from "@/components/app/ui";
 import { GenericIcon } from "@/components/app/drug-icons";
 
 function formatDateTime(iso: string): string {
@@ -34,12 +35,18 @@ export default function RequestDetailPage({
   params: { id: string };
 }) {
   const [req, setReq] = useState<ProductRequestDetail | null>(null);
-  const [error, setError] = useState<"guest" | "notfound" | null>(null);
+  const [error, setError] = useState<"guest" | "notfound" | "failed" | null>(null);
 
   useEffect(() => {
     getRequest(params.id)
       .then(setReq)
-      .catch((e) => setError(e?.status === 404 ? "notfound" : "guest"));
+      // 404 and 401 are answers. Anything else (offline, 500) is not, and must
+      // not render as "create a profile first".
+      .catch((e) =>
+        setError(
+          isNotFound(e) ? "notfound" : isAuthError(e) ? "guest" : "failed"
+        )
+      );
   }, [params.id]);
 
   return (
@@ -57,6 +64,11 @@ export default function RequestDetailPage({
 
       {!req && !error && <Spinner />}
       {error === "guest" && <GuestWall />}
+      {error === "failed" && (
+        <div className="px-5 pt-6">
+          <LoadFailed what="this request" onRetry={() => window.location.reload()} />
+        </div>
+      )}
       {error === "notfound" && (
         <p className="px-5 py-10 text-center text-sm text-white/50">
           This request could not be found.

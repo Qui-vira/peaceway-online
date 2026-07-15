@@ -4,9 +4,10 @@ import { useEffect, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, CheckCircle2 } from "lucide-react";
+import { isNotFound } from "@/lib/api";
 import { getOrder, type Order } from "@/lib/api/orders";
 import { AppShell } from "@/components/app/app-shell";
-import { Spinner } from "@/components/app/ui";
+import { LoadFailed, Spinner } from "@/components/app/ui";
 
 const STATUS_LABEL: Record<string, string> = {
   NEW: "Received",
@@ -56,16 +57,32 @@ export default function OrderDetailPage() {
 
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
+  // Distinct from `order === null`, which renders "order not found". A failed
+  // request is not evidence that the order does not exist.
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     if (!id) return;
     getOrder(id)
       .then(setOrder)
-      .catch(() => setOrder(null))
+      .catch((e) => {
+        if (isNotFound(e)) setOrder(null);
+        else setFailed(true);
+      })
       .finally(() => setLoading(false));
   }, [id]);
 
   if (loading) return <AppShell><Spinner /></AppShell>;
+
+  if (failed) {
+    return (
+      <AppShell back={{ fallbackHref: "/orders" }}>
+        <div className="px-5 pt-6">
+          <LoadFailed what="this order" onRetry={() => window.location.reload()} />
+        </div>
+      </AppShell>
+    );
+  }
 
   if (!order) {
     return (

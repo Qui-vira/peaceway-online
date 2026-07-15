@@ -17,9 +17,9 @@ import {
   type Urgency,
 } from "@/lib/api/requests";
 import { getMe } from "@/lib/api/customers";
-import type { ApiError } from "@/lib/api";
+import { isAuthError, type ApiError } from "@/lib/api";
 import { AppShell } from "@/components/app/app-shell";
-import { GuestWall, StatusChip } from "@/components/app/ui";
+import { GuestWall, LoadFailed, StatusChip } from "@/components/app/ui";
 import { TabletIcon } from "@/components/app/drug-icons";
 
 type Field = "product_name" | "strength" | "form" | "quantity" | "urgency" | "note";
@@ -87,6 +87,9 @@ function FieldWrap({
 
 export default function RequestPage() {
   const [authed, setAuthed] = useState<boolean | null>(null);
+  // Separate from `authed`: unknown auth must not render as a guest wall, and
+  // must not spin forever either.
+  const [authFailed, setAuthFailed] = useState(false);
   const [form, setForm] = useState({
     product_name: "",
     strength: "",
@@ -102,7 +105,12 @@ export default function RequestPage() {
   useEffect(() => {
     getMe()
       .then(() => setAuthed(true))
-      .catch(() => setAuthed(false));
+      // Only a 401/403 means "not signed in". Any other failure leaves auth
+      // unknown, and `authed` stays null rather than asserting a guest.
+      .catch((e) => {
+        if (isAuthError(e)) setAuthed(false);
+        else setAuthFailed(true);
+      });
   }, []);
 
   function validate(): Errors {
@@ -142,6 +150,16 @@ export default function RequestPage() {
     } finally {
       setLoading(false);
     }
+  }
+
+  if (authFailed) {
+    return (
+      <AppShell>
+        <div className="px-5 pt-10">
+          <LoadFailed what="your account" onRetry={() => window.location.reload()} />
+        </div>
+      </AppShell>
+    );
   }
 
   if (authed === null) {

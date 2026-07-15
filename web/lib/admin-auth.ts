@@ -32,6 +32,19 @@ export class AdminFetchError extends Error {
   }
 }
 
+/** Mirrors NETWORK_ERROR_STATUS in ./api: the request never reached the server. */
+export const ADMIN_NETWORK_ERROR = 0;
+
+/** The backend answered and rejected the session. Real information. */
+export function isAdminAuthError(e: unknown): boolean {
+  return e instanceof AdminFetchError && (e.status === 401 || e.status === 403);
+}
+
+/** Nobody answered. Says nothing about whether the session is valid. */
+export function isAdminNetworkError(e: unknown): boolean {
+  return e instanceof AdminFetchError && e.status === ADMIN_NETWORK_ERROR;
+}
+
 let _reloading = false;
 
 export function adminFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
@@ -60,6 +73,15 @@ export function adminFetch<T>(path: string, options: RequestInit = {}): Promise<
     }
     if (res.status === 204) return undefined as unknown as T;
     return res.json() as Promise<T>;
+  }).catch((e) => {
+    // A rejected fetch never reached the backend. Normalise it so callers can
+    // tell it apart from a 401 - otherwise a dropped packet looks identical to
+    // an invalid session, and the caller clears a perfectly good token.
+    if (e instanceof AdminFetchError) throw e;
+    throw new AdminFetchError(
+      ADMIN_NETWORK_ERROR,
+      "We couldn't reach the server. Check your connection."
+    );
   });
 }
 

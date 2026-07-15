@@ -1,14 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { Bell, Building2, ChevronRight, ShieldCheck, User } from "lucide-react";
+import { isAuthError } from "@/lib/api";
 import { getMe, type CustomerProfile } from "@/lib/api/customers";
 import { listTodayReminders, type MedicationReminder } from "@/lib/api/reminders";
 import { AppShell } from "@/components/app/app-shell";
 import { ConnectTelegramCard } from "@/components/app/connect-telegram";
 import {
   FeatureCard,
+  LoadFailed,
   MedCard,
   SectionLabel,
   SkeletonCard,
@@ -32,14 +34,38 @@ function todayLabel(): string {
   });
 }
 
+/**
+ * `failed` is a state, not an empty list.
+ *
+ * This previously did `.catch(() => setReminders([]))`, so a dropped request
+ * rendered "No reminders today" - telling someone with medication scheduled
+ * that they have none. That is the one failure mode a medication-adherence
+ * product must never have. A request that did not complete says nothing about
+ * what this person needs to take; unknown must stay unknown.
+ */
+type MedsState =
+  | { kind: "loading" }
+  | { kind: "ready"; reminders: MedicationReminder[] }
+  | { kind: "failed" };
+
 function TodayMedsSection() {
-  const [reminders, setReminders] = useState<MedicationReminder[] | null>(null);
+  const [state, setState] = useState<MedsState>({ kind: "loading" });
+
+  const load = useCallback(() => {
+    setState({ kind: "loading" });
+    listTodayReminders()
+      .then((reminders) => setState({ kind: "ready", reminders }))
+      // Every failure lands here, auth included: a signed-out user has no
+      // medication state to report either, so "no reminders" is still a claim we
+      // cannot make. The dashboard renders its own guest wall above this.
+      .catch(() => setState({ kind: "failed" }));
+  }, []);
 
   useEffect(() => {
-    listTodayReminders()
-      .then(setReminders)
-      .catch(() => setReminders([]));
-  }, []);
+    load();
+  }, [load]);
+
+  const reminders = state.kind === "ready" ? state.reminders : null;
 
   return (
     <div className="space-y-3 px-5">
@@ -53,11 +79,17 @@ function TodayMedsSection() {
         </Link>
       </div>
 
-      {reminders === null ? (
+      {state.kind === "loading" ? (
         <div className="flex gap-3 overflow-x-auto pb-1">
           <SkeletonCard lines={3} />
         </div>
-      ) : reminders.length === 0 ? (
+      ) : state.kind === "failed" ? (
+        <LoadFailed
+          what="today's medications"
+          detail="We couldn't reach the pharmacy, so we can't show what you need to take today. This does not mean you have none."
+          onRetry={load}
+        />
+      ) : reminders!.length === 0 ? (
         <div className="flex items-center gap-4 rounded-2xl border border-white/8 bg-white/3 px-5 py-4">
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/6">
             <Bell className="h-5 w-5 text-[#b1bdb0]" />
@@ -75,7 +107,7 @@ function TodayMedsSection() {
         </div>
       ) : (
         <div className="flex gap-3 overflow-x-auto pb-1 -mx-5 px-5">
-          {reminders.map((r) => (
+          {state.reminders.map((r) => (
             <Link key={r.id} href={`/reminders/${r.id}`} className="shrink-0 w-44">
               <div className="flex flex-col gap-2 rounded-2xl border border-white/8 bg-white/4 p-4 h-full">
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-emerald-500/20 bg-emerald-500/12">
@@ -105,21 +137,42 @@ function TodayMedsSection() {
   );
 }
 
+/**
+ * `unknown` is not `guest`. A 401 means the backend looked and said "not you";
+ * a network failure means nobody looked. Rendering "Welcome to Peaceway / Sign
+ * in or create account" at a signed-in customer because their connection
+ * stuttered tells them their account is gone.
+ */
+type AuthState =
+  | { kind: "loading" }
+  | { kind: "signedIn"; me: CustomerProfile }
+  | { kind: "guest" }
+  | { kind: "unknown" };
+
 export default function AppDashboard() {
-  const [me, setMe] = useState<CustomerProfile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [auth, setAuth] = useState<AuthState>({ kind: "loading" });
+
+  const loadMe = useCallback(() => {
+    setAuth({ kind: "loading" });
+    getMe()
+      .then((me) => setAuth({ kind: "signedIn", me }))
+      .catch((e) => setAuth(isAuthError(e) ? { kind: "guest" } : { kind: "unknown" }));
+  }, []);
 
   useEffect(() => {
-    getMe()
-      .then(setMe)
-      .catch(() => setMe(null))
-      .finally(() => setLoading(false));
-  }, []);
+    loadMe();
+  }, [loadMe]);
+
+  const me = auth.kind === "signedIn" ? auth.me : null;
 
   return (
     <AppShell>
-      {loading ? (
+      {auth.kind === "loading" ? (
         <Spinner />
+      ) : auth.kind === "unknown" ? (
+        <div className="px-5 pt-10">
+          <LoadFailed what="your account" onRetry={loadMe} />
+        </div>
       ) : (
         <div className="space-y-7 pb-4">
 
@@ -240,7 +293,10 @@ export default function AppDashboard() {
           {/* Connect Telegram - authenticated only */}
           {me && (
             <div className="px-5">
-              <ConnectTelegramCard profile={me} onLinked={setMe} />
+              <ConnectTelegramCard
+                profile={me}
+                onLinked={(updated) => setAuth({ kind: "signedIn", me: updated })}
+              />
             </div>
           )}
 

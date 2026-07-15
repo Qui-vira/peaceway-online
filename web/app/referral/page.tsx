@@ -3,9 +3,9 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Copy, Share2, Gift } from "lucide-react";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, isAuthError } from "@/lib/api";
 import { AppShell } from "@/components/app/app-shell";
-import { GuestWall, SectionLabel } from "@/components/app/ui";
+import { GuestWall, LoadFailed, SectionLabel } from "@/components/app/ui";
 
 interface MeResponse {
   full_name: string | null;
@@ -25,11 +25,17 @@ export default function ReferralPage() {
   const [me, setMe] = useState<MeResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     apiFetch<MeResponse>("/me")
       .then(setMe)
-      .catch(() => setMe(null))
+      // setMe(null) renders the signed-out view. Only assert that when the
+      // backend actually said so.
+      .catch((e) => {
+        if (isAuthError(e)) setMe(null);
+        else setFailed(true);
+      })
       .finally(() => setLoading(false));
   }, []);
 

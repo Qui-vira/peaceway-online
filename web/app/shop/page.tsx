@@ -6,10 +6,16 @@ import Link from "next/link";
 import { listCatalog, listCategories, type Product } from "@/lib/api/catalog";
 import { addToCart, getCart, type CartItem } from "@/lib/cart";
 import { AppShell } from "@/components/app/app-shell";
-import { Spinner, EmptyState, SectionLabel } from "@/components/app/ui";
+import { Spinner, EmptyState, LoadFailed, SectionLabel } from "@/components/app/ui";
 import { ProductCard } from "@/components/app/product-card";
 
-type State = { kind: "loading" } | { kind: "ready"; products: Product[] };
+// "failed" is not an empty catalogue. Rendering "No medicines found" because
+// the backend was unreachable tells a customer this pharmacy has no stock -
+// a claim about inventory made from a dropped packet.
+type State =
+  | { kind: "loading" }
+  | { kind: "failed" }
+  | { kind: "ready"; products: Product[] };
 
 const FOCUS =
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0b0c09]";
@@ -38,7 +44,7 @@ export default function ShopPage() {
       });
       setState({ kind: "ready", products });
     } catch {
-      setState({ kind: "ready", products: [] });
+      setState({ kind: "failed" });
     }
   }, [q, category]);
 
@@ -115,6 +121,10 @@ export default function ShopPage() {
         </div>
 
         {state.kind === "loading" && <Spinner />}
+
+        {state.kind === "failed" && (
+          <LoadFailed what="the catalogue" onRetry={load} />
+        )}
 
         {state.kind === "ready" && state.products.length === 0 && (
           <EmptyState

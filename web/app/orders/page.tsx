@@ -1,15 +1,23 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Package } from "lucide-react";
+import { isAuthError } from "@/lib/api";
 import { listOrders, type Order } from "@/lib/api/orders";
 import { AppShell } from "@/components/app/app-shell";
-import { EmptyState, GuestWall, SectionLabel, SkeletonCard } from "@/components/app/ui";
+import {
+  EmptyState,
+  GuestWall,
+  LoadFailed,
+  SectionLabel,
+  SkeletonCard,
+} from "@/components/app/ui";
 
 type State =
   | { kind: "loading" }
   | { kind: "guest" }
+  | { kind: "failed" }
   | { kind: "ready"; orders: Order[] };
 
 const STATUS_LABEL: Record<string, string> = {
@@ -53,11 +61,22 @@ export default function OrdersPage() {
   const router = useRouter();
   const [state, setState] = useState<State>({ kind: "loading" });
 
-  useEffect(() => {
+  // A 401 means the backend looked and said "not you" - that is real.
+  // Anything else (offline, timeout, 500) means nobody looked, so we must
+  // not render a guest wall and tell a signed-in customer their account
+  // is gone.
+  const load = useCallback(() => {
+    setState({ kind: "loading" });
     listOrders()
       .then((orders) => setState({ kind: "ready", orders }))
-      .catch(() => setState({ kind: "guest" }));
+      .catch((e) =>
+        setState(isAuthError(e) ? { kind: "guest" } : { kind: "failed" })
+      );
   }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
 
   return (
     <AppShell back={{ title: "My Orders", fallbackHref: "/app" }}>
@@ -72,6 +91,8 @@ export default function OrdersPage() {
         )}
 
         {state.kind === "guest" && <GuestWall />}
+
+        {state.kind === "failed" && <LoadFailed what="your orders" onRetry={load} />}
 
         {state.kind === "ready" && state.orders.length === 0 && (
           <EmptyState

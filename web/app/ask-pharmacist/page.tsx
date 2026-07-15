@@ -1,15 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { AlertTriangle, CheckCircle2, Clock, Loader2, MessageCircle, SendHorizontal } from "lucide-react";
 import {
   askQuestion,
   listQuestions,
   type PharmacistQuestion,
 } from "@/lib/api/ask";
-import type { ApiError } from "@/lib/api";
+import { isAuthError, type ApiError } from "@/lib/api";
 import { AppShell } from "@/components/app/app-shell";
-import { GuestWall, SectionLabel, Spinner } from "@/components/app/ui";
+import { GuestWall, LoadFailed, SectionLabel, Spinner } from "@/components/app/ui";
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("en-NG", {
@@ -21,15 +21,23 @@ function formatDate(iso: string): string {
 export default function AskPharmacistPage() {
   const [questions, setQuestions] = useState<PharmacistQuestion[] | null>(null);
   const [guest, setGuest] = useState(false);
+  const [failed, setFailed] = useState(false);
   const [question, setQuestion] = useState("");
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
 
-  useEffect(() => {
+  const load = useCallback(() => {
+    setGuest(false);
+    setFailed(false);
+    setQuestions(null);
     listQuestions()
       .then(setQuestions)
-      .catch(() => setGuest(true));
+      .catch((e) => (isAuthError(e) ? setGuest(true) : setFailed(true)));
   }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -68,9 +76,10 @@ export default function AskPharmacistPage() {
         </div>
 
         {guest && <GuestWall message="Create a profile so our pharmacist can reply to you." />}
-        {!guest && questions === null && <Spinner />}
+        {failed && <LoadFailed what="your questions" onRetry={load} />}
+        {!guest && !failed && questions === null && <Spinner />}
 
-        {!guest && questions !== null && (
+        {!guest && !failed && questions !== null && (
           <>
             {/* Compose card */}
             <form onSubmit={handleSubmit}>

@@ -1,12 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { Bell, Plus } from "lucide-react";
+import { isAuthError } from "@/lib/api";
 import { listReminders, type MedicationReminder } from "@/lib/api/reminders";
 import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/app/app-shell";
 import {
+  LoadFailed,
   EmptyState,
   GuestWall,
   MedCard,
@@ -18,6 +20,7 @@ import { GenericIcon } from "@/components/app/drug-icons";
 type State =
   | { kind: "loading" }
   | { kind: "guest" }
+  | { kind: "failed" }
   | { kind: "ready"; reminders: MedicationReminder[] };
 
 function todayStr(): string {
@@ -28,11 +31,22 @@ export default function RemindersPage() {
   const router = useRouter();
   const [state, setState] = useState<State>({ kind: "loading" });
 
-  useEffect(() => {
+  // A 401 means the backend looked and said "not you" - that is real.
+  // Anything else (offline, timeout, 500) means nobody looked, so we must
+  // not render a guest wall and tell a signed-in customer their account
+  // is gone.
+  const load = useCallback(() => {
+    setState({ kind: "loading" });
     listReminders()
       .then((reminders) => setState({ kind: "ready", reminders }))
-      .catch(() => setState({ kind: "guest" }));
+      .catch((e) =>
+        setState(isAuthError(e) ? { kind: "guest" } : { kind: "failed" })
+      );
   }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
 
   const today = todayStr();
   const todayReminders =
@@ -72,6 +86,8 @@ export default function RemindersPage() {
         )}
 
         {state.kind === "guest" && <GuestWall />}
+
+        {state.kind === "failed" && <LoadFailed what="your reminders" onRetry={load} />}
 
         {state.kind === "ready" && allReminders.length === 0 && (
           <EmptyState

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ChevronRight, UserPlus } from "lucide-react";
+import { ArrowLeft, ChevronRight, RefreshCw, UserPlus, WifiOff } from "lucide-react";
 import { DrugIcon } from "@/components/app/drug-icons";
 import { PeacewayLoader } from "@/components/app/peaceway-loader";
 import type { MedicationReminder } from "@/lib/api/reminders";
@@ -97,6 +97,46 @@ export function GuestWall({ message }: { message?: string }) {
       >
         ← Back to Home
       </Link>
+    </div>
+  );
+}
+
+/**
+ * Shown when a request failed and we therefore do NOT know the user's state.
+ *
+ * This is deliberately not `EmptyState` and not `GuestWall`. "We couldn't reach
+ * the pharmacy" is not "you have nothing" and it is certainly not "you have no
+ * account" - rendering either of those from a dropped packet tells the user
+ * something false about themselves. Unknown stays unknown, and the only action
+ * offered is the one that can actually resolve it: try again.
+ */
+export function LoadFailed({
+  what,
+  onRetry,
+  detail,
+}: {
+  /** The thing we failed to load, lowercase: "your reminders", "your orders". */
+  what: string;
+  onRetry: () => void;
+  detail?: string;
+}) {
+  return (
+    <div
+      role="alert"
+      className="flex flex-col items-center gap-4 rounded-2xl border border-white/8 bg-white/[0.03] px-5 py-8 text-center"
+    >
+      <span className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/5">
+        <WifiOff className="h-5 w-5 text-[#b1bdb0]" aria-hidden />
+      </span>
+      <div className="space-y-1.5">
+        <p className="text-[15px] font-semibold text-white">Couldn&apos;t load {what}</p>
+        <p className="mx-auto max-w-xs text-[13px] leading-relaxed text-[#b1bdb0]">
+          {detail ?? "Check your connection and try again. Nothing has changed."}
+        </p>
+      </div>
+      <button onClick={onRetry} className="pw-btn-sm">
+        <RefreshCw className="h-3.5 w-3.5" aria-hidden /> Try again
+      </button>
     </div>
   );
 }
