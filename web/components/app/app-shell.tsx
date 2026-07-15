@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { motion, useReducedMotion } from "framer-motion";
 import {
   ArrowLeft,
   Bell,
@@ -31,6 +32,31 @@ const FOCUS =
 
 function isActive(pathname: string, href: string): boolean {
   return pathname === href || (href !== "/app" && pathname.startsWith(href + "/"));
+}
+
+const MotionLink = motion.create(Link);
+
+/** Press physics shared by both navs, matching TactileButton's spring. */
+const NAV_SPRING = { type: "spring" as const, stiffness: 620, damping: 22, mass: 0.6 };
+/** Slower and heavier than the press: the pill carries distance, not a tap. */
+const PILL_SPRING = { type: "spring" as const, stiffness: 520, damping: 38, mass: 0.7 };
+
+/**
+ * The active-destination pill. `layoutId` is the whole point: framer-motion
+ * matches the two instances across a route change, so the pill *travels* from
+ * the old destination to the new one instead of vanishing and reappearing. That
+ * movement is what tells you the nav is one object and you moved within it.
+ * Under reduced-motion it simply appears, with no layout animation.
+ */
+function NavPill({ id, reduce }: { id: string; reduce: boolean | null }) {
+  if (reduce) return <span className="absolute inset-0 rounded-full bg-emerald-500/12" />;
+  return (
+    <motion.span
+      layoutId={id}
+      className="absolute inset-0 rounded-full bg-emerald-500/12"
+      transition={PILL_SPRING}
+    />
+  );
 }
 
 /** Live cart quantity; refreshes on navigation, tab focus, and cross-tab writes. */
@@ -66,6 +92,7 @@ function CartBadge({ count }: { count: number }) {
 
 /** Desktop top nav (hidden on mobile, where the bottom-nav takes over). */
 function TopNav({ pathname, cartCount }: { pathname: string; cartCount: number }) {
+  const reduce = useReducedMotion();
   return (
     <header className="sticky top-0 z-40 hidden border-b border-white/10 bg-[#0b0c09]/85 backdrop-blur-md md:block">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-8">
@@ -79,27 +106,33 @@ function TopNav({ pathname, cartCount }: { pathname: string; cartCount: number }
           {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
             const active = isActive(pathname, href);
             return (
-              <Link
+              <MotionLink
                 key={href}
                 href={href}
                 aria-current={active ? "page" : undefined}
+                whileTap={reduce ? undefined : { scale: 0.96 }}
+                transition={NAV_SPRING}
                 className={[
-                  "inline-flex min-h-[40px] items-center gap-2 rounded-full px-3.5 text-[13px] font-semibold transition-colors",
-                  active
-                    ? "bg-emerald-500/12 text-emerald-400"
-                    : "text-white/55 hover:bg-white/5 hover:text-white",
+                  "relative inline-flex min-h-[40px] items-center gap-2 rounded-full px-3.5 text-[13px] font-semibold transition-colors",
+                  active ? "text-emerald-400" : "text-white/55 hover:bg-white/5 hover:text-white",
                   FOCUS,
                 ].join(" ")}
               >
-                <Icon className="h-4 w-4" strokeWidth={active ? 2.4 : 2} />
-                {label}
-              </Link>
+                {/* Was a static `bg-emerald-500/12` on the active item, so the
+                    highlight teleported between destinations. Same pill, now
+                    carried by layoutId, so it travels. */}
+                {active && <NavPill id="nav-pill-desktop" reduce={reduce} />}
+                <Icon className="relative h-4 w-4" strokeWidth={active ? 2.4 : 2} />
+                <span className="relative">{label}</span>
+              </MotionLink>
             );
           })}
-          <Link
+          <MotionLink
             href="/cart"
             aria-label={`Cart${cartCount > 0 ? `, ${cartCount} item${cartCount === 1 ? "" : "s"}` : ""}`}
             aria-current={isActive(pathname, "/cart") ? "page" : undefined}
+            whileTap={reduce ? undefined : { scale: 0.96 }}
+            transition={NAV_SPRING}
             className={[
               "relative ml-1 inline-flex h-11 w-11 items-center justify-center rounded-full transition-colors",
               isActive(pathname, "/cart")
@@ -110,7 +143,7 @@ function TopNav({ pathname, cartCount }: { pathname: string; cartCount: number }
           >
             <ShoppingCart className="h-5 w-5" />
             <CartBadge count={cartCount} />
-          </Link>
+          </MotionLink>
         </nav>
       </div>
     </header>
@@ -142,8 +175,15 @@ function BackBar({ title, fallbackHref = "/app" }: { title?: string; fallbackHre
   );
 }
 
-/** Mobile bottom nav (hidden on desktop). */
+/**
+ * Mobile bottom nav (hidden on desktop). The most-tapped control in the product,
+ * so it carries the system's press: this used to be `transition-colors` and
+ * nothing else — a colour fade, which is the exact case DESIGN.md's
+ * Press-Is-Physical Rule bans by name ("never a colour flash, never nothing").
+ * On a phone there is no cursor, so press feedback IS the interaction.
+ */
 function BottomNav({ pathname }: { pathname: string }) {
+  const reduce = useReducedMotion();
   return (
     <nav
       aria-label="Primary"
@@ -153,19 +193,27 @@ function BottomNav({ pathname }: { pathname: string }) {
         {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
           const active = isActive(pathname, href);
           return (
-            <Link
+            <MotionLink
               key={href}
               href={href}
               aria-current={active ? "page" : undefined}
+              whileTap={reduce ? undefined : { scale: 0.94 }}
+              transition={NAV_SPRING}
               className={[
-                "flex min-h-[56px] min-w-[56px] flex-1 flex-col items-center justify-center gap-1 py-2.5 text-[10px] font-semibold uppercase tracking-wide transition-colors",
+                "flex min-h-[56px] min-w-[56px] flex-1 flex-col items-center justify-center gap-1 py-2.5 text-[11px] font-semibold uppercase tracking-wide transition-colors",
                 active ? "text-emerald-400" : "text-[#b1bdb0] hover:text-[#dcdddb]",
                 FOCUS,
               ].join(" ")}
             >
-              <Icon className="h-5 w-5" strokeWidth={active ? 2.4 : 2} />
+              {/* The pill sits behind the icon, not the whole item: a full-height
+                  fill on a 56px target reads as a selected row, not a
+                  destination. */}
+              <span className="relative inline-flex h-7 w-14 items-center justify-center">
+                {active && <NavPill id="nav-pill-mobile" reduce={reduce} />}
+                <Icon className="relative h-5 w-5" strokeWidth={active ? 2.4 : 2} />
+              </span>
               {label}
-            </Link>
+            </MotionLink>
           );
         })}
       </div>

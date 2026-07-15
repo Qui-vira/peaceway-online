@@ -31,6 +31,16 @@ const config: Config = {
           900: "#083b24"
         }
       },
+      // The codebase reaches for /12 in 31 places (bg-emerald-500/12 icon chips,
+      // border-white/12, the nav's active pill). 12 is not in Tailwind's default
+      // opacity scale (0,5,10,20,25,...), so every one of those utilities was
+      // silently dropped at build and painted nothing - the icon tint squares
+      // behind the dashboard icons have never existed. Adding the step is a
+      // one-line fix that honours what the author wrote, rather than rewriting
+      // 31 call sites to /10.
+      opacity: {
+        12: "0.12"
+      },
       fontFamily: {
         display: ["var(--font-syne)", "sans-serif"],
         sans: ["var(--font-dm-sans)", "sans-serif"]
