@@ -1559,13 +1559,6 @@ button:not(:disabled):not([aria-disabled="true"]),
     backdrop-filter: blur(1.5px);
     -webkit-backdrop-filter: blur(1.5px);
   }
-  /* House now shows through, so shadow the top copy for contrast over it. */
-  #s1 .htag {
-    text-shadow: 0 1px 10px rgba(242, 246, 241, 0.9);
-  }
-  #s1 .hs {
-    text-shadow: 0 1px 8px rgba(242, 246, 241, 0.85);
-  }
   #s1 .hh {
     background: linear-gradient(180deg, #15291d 0%, #0f673c 100%);
     -webkit-background-clip: text;
