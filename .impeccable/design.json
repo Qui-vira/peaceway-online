@@ -1,0 +1,186 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-07-15T00:00:00.000Z",
+  "title": "Design System: Peaceway Online",
+  "extensions": {
+    "colorMeta": {
+      "dispensary-green": {
+        "role": "primary",
+        "displayName": "Dispensary Green",
+        "canonical": "#0f673c",
+        "tonalRamp": ["#083b24", "#0b4f2f", "#0f673c", "#14803f", "#1aa35a", "#34d98a", "#74e2a6", "#d7f7e5"]
+      },
+      "dispensary-green-lit": {
+        "role": "primary",
+        "displayName": "Dispensary Green, Lit",
+        "canonical": "#1a8a50",
+        "tonalRamp": ["#083b24", "#0b4f2f", "#0f673c", "#14803f", "#1a8a50", "#1aa35a", "#34d98a", "#b7f3d0"]
+      },
+      "signal-green": {
+        "role": "primary",
+        "displayName": "Signal Green",
+        "canonical": "#34d98a",
+        "tonalRamp": ["#083b24", "#0b4f2f", "#0f673c", "#14803f", "#1aa35a", "#34d98a", "#74e2a6", "#d7f7e5"]
+      },
+      "cross-red": {
+        "role": "secondary",
+        "displayName": "Cross Red",
+        "canonical": "#a80b16",
+        "tonalRamp": ["#3d0408", "#5c060d", "#7a0810", "#a80b16", "#c8323c", "#e06068", "#f09aa0", "#fbd6d9"]
+      },
+      "counter-black": {
+        "role": "neutral",
+        "displayName": "Counter Black",
+        "canonical": "#0b0c09",
+        "tonalRamp": ["#0b0c09", "#191a17", "#2a2c28", "#3d3f3a", "#5c5f59", "#8a8d86", "#b1bdb0", "#dcdddb"]
+      },
+      "raised-surface": {
+        "role": "neutral",
+        "displayName": "Raised Surface",
+        "canonical": "#191a17",
+        "tonalRamp": ["#0b0c09", "#191a17", "#2a2c28", "#3d3f3a", "#5c5f59", "#8a8d86", "#b1bdb0", "#dcdddb"]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#dcdddb",
+        "tonalRamp": ["#0b0c09", "#191a17", "#2a2c28", "#3d3f3a", "#5c5f59", "#8a8d86", "#b1bdb0", "#dcdddb"]
+      },
+      "ink-muted": {
+        "role": "neutral",
+        "displayName": "Ink Muted",
+        "canonical": "#b1bdb0",
+        "tonalRamp": ["#0b0c09", "#191a17", "#2a2c28", "#3d3f3a", "#5c5f59", "#8a8d86", "#b1bdb0", "#dcdddb"]
+      },
+      "hairline": {
+        "role": "neutral",
+        "displayName": "Hairline",
+        "canonical": "rgba(255,255,255,0.08)",
+        "tonalRamp": ["rgba(255,255,255,0.02)", "rgba(255,255,255,0.04)", "rgba(255,255,255,0.06)", "rgba(255,255,255,0.08)", "rgba(255,255,255,0.12)", "rgba(255,255,255,0.16)", "rgba(255,255,255,0.24)", "rgba(255,255,255,0.44)"]
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Landing hero only. Syne 800, set very tight. One per page." },
+      "headline": { "displayName": "Headline", "purpose": "Section headings on the marketing surface. Syne 700." },
+      "body": { "displayName": "Body", "purpose": "All prose. DM Sans 400 at a 16px floor, 65-75ch measure." },
+      "label": { "displayName": "Label", "purpose": "Eyebrows and small caps labels. DM Sans 600, 0.2em tracking." }
+    },
+    "shadows": [
+      { "name": "tile-lip", "value": "0 4px 0 0 rgba(255,255,255,0.05), 0 10px 22px -12px rgba(0,0,0,0.6)", "purpose": "The default raised surface. First shadow is the edge catching light; second is the ground beneath it." },
+      { "name": "tile-pressed", "value": "0 1px 0 0 rgba(255,255,255,0.05), 0 5px 12px -8px rgba(0,0,0,0.6)", "purpose": "Paired with translateY(3px). The object under a finger." },
+      { "name": "green-glow", "value": "0 0 0 1px rgba(15,103,60,.25), 0 18px 60px rgba(0,0,0,.35)", "purpose": "Pointer hover and genuinely lit elements only." }
+    ],
+    "motion": [
+      { "name": "ease-standard", "value": "cubic-bezier(0.22, 0.61, 0.36, 1)", "purpose": "The system's out-curve. Every state transition uses it." },
+      { "name": "duration-press", "value": "120-140ms", "purpose": "Touch press feedback: scale(0.98) or a 3px depress." },
+      { "name": "duration-hover", "value": "150-300ms", "purpose": "Pointer hover: lift plus glow. Gated on (hover: hover) and (pointer: fine)." },
+      { "name": "duration-entrance", "value": "300-450ms", "purpose": "Copy entrances. Never gate the primary action behind a stagger." }
+    ],
+    "breakpoints": [
+      { "name": "phone", "value": "375px" },
+      { "name": "mobile-cutover", "value": "800px" },
+      { "name": "tablet", "value": "768px" },
+      { "name": "desktop", "value": "1024px" },
+      { "name": "wide", "value": "1440px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The marketing surface's primary action. Pill, lit green, physical lip.",
+      "html": "<button class=\"ds-btn-primary\">Order on Telegram</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; padding: 15px 32px; border-radius: 32px; background: linear-gradient(100deg, #23bd6a 0%, #0f673c 100%); color: #fff; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 700; letter-spacing: 0.06em; border: none; cursor: pointer; box-shadow: 0 5px 0 0 #0c5230, 0 8px 18px -6px rgba(15,103,60,0.4); transition: transform 0.2s cubic-bezier(0.22,0.61,0.36,1), box-shadow 0.2s ease; } .ds-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 0 0 #0c5230, 0 12px 26px -6px rgba(15,103,60,0.5); } .ds-btn-primary:active { transform: translateY(3px); box-shadow: 0 1px 0 0 #0c5230, 0 2px 6px rgba(15,103,60,0.35); } .ds-btn-primary:focus-visible { outline: none; box-shadow: 0 5px 0 0 #0c5230, 0 0 0 3px rgba(52,217,138,0.5); }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "The fallback action. Same size and shape as primary; only the weight of the invitation differs.",
+      "html": "<button class=\"ds-btn-secondary\">Check Product Availability</button>",
+      "css": ".ds-btn-secondary { display: inline-flex; align-items: center; justify-content: center; padding: 14px 32px; border-radius: 32px; background: transparent; border: 2px solid rgba(220,221,219,0.28); color: #dcdddb; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 700; letter-spacing: 0.06em; cursor: pointer; transition: border-color 0.2s ease, color 0.2s ease, transform 0.2s cubic-bezier(0.22,0.61,0.36,1); } .ds-btn-secondary:hover { border-color: rgba(52,217,138,0.75); color: #34d98a; transform: translateY(-2px); } .ds-btn-secondary:active { transform: translateY(1px); } .ds-btn-secondary:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(52,217,138,0.5); }"
+    },
+    {
+      "name": "App Button",
+      "kind": "button",
+      "refersTo": "button-app",
+      "description": "The in-app action. Softened rectangle, 44px touch target. Syne never appears here.",
+      "html": "<button class=\"ds-btn-app\">Add to cart</button>",
+      "css": ".ds-btn-app { display: inline-flex; align-items: center; justify-content: center; height: 44px; padding: 0 24px; border-radius: 16px; background: #1aa35a; color: #fff; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; border: none; cursor: pointer; transition: background-color 0.2s ease, transform 0.14s cubic-bezier(0.22,0.61,0.36,1); } .ds-btn-app:hover { background: #34d98a; color: #062b18; } .ds-btn-app:active { transform: scale(0.98); } .ds-btn-app:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(52,217,138,0.5); } .ds-btn-app:disabled { opacity: 0.4; cursor: not-allowed; }"
+    },
+    {
+      "name": "Tactile Tile",
+      "kind": "card",
+      "refersTo": "tile",
+      "description": "The signature surface. A raised object with a light edge and a grounding shadow - it depresses when pressed rather than fading.",
+      "html": "<div class=\"ds-tile\"><span class=\"ds-tile-icon\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#34d98a\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M10.5 20.5 10 21a5 5 0 0 1-7-7l7-7a5 5 0 0 1 7 7\"/><path d=\"m8.5 8.5 7 7\"/></svg></span><span class=\"ds-tile-title\">Check Availability</span><span class=\"ds-tile-sub\">Find a medicine</span></div>",
+      "css": ".ds-tile { display: flex; flex-direction: column; gap: 12px; padding: 20px; border: 1px solid rgba(255,255,255,0.09); border-radius: 16px; background: rgba(255,255,255,0.045); box-shadow: 0 4px 0 0 rgba(255,255,255,0.05), 0 10px 22px -12px rgba(0,0,0,0.6); cursor: pointer; transition: transform 0.14s cubic-bezier(0.22,0.61,0.36,1), box-shadow 0.18s ease, border-color 0.2s ease, background-color 0.2s ease; } .ds-tile:hover { border-color: rgba(255,255,255,0.16); box-shadow: 0 4px 0 0 rgba(255,255,255,0.09), 0 16px 30px -12px rgba(0,0,0,0.62); } .ds-tile:active { transform: translateY(3px); box-shadow: 0 1px 0 0 rgba(255,255,255,0.05), 0 5px 12px -8px rgba(0,0,0,0.6); } .ds-tile:focus-visible { outline: none; box-shadow: 0 4px 0 0 rgba(255,255,255,0.06), 0 0 0 3px rgba(52,217,138,0.5); } .ds-tile-icon { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 12px; background: rgba(26,163,90,0.12); } .ds-tile-title { font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; color: #dcdddb; } .ds-tile-sub { font-family: 'DM Sans', sans-serif; font-size: 12px; color: rgba(255,255,255,0.45); }"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "16px text is a floor, not a preference - smaller triggers iOS auto-zoom.",
+      "html": "<input class=\"ds-input\" type=\"text\" placeholder=\"Search for a medicine\" />",
+      "css": ".ds-input { width: 100%; height: 48px; padding: 0 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.09); background: rgba(255,255,255,0.03); color: #dcdddb; font-family: 'DM Sans', sans-serif; font-size: 16px; transition: border-color 0.2s ease, box-shadow 0.2s ease; } .ds-input::placeholder { color: #b1bdb0; } .ds-input:hover { border-color: rgba(255,255,255,0.16); } .ds-input:focus-visible { outline: none; border-color: rgba(52,217,138,0.6); box-shadow: 0 0 0 3px rgba(52,217,138,0.5); }"
+    },
+    {
+      "name": "Section Label",
+      "kind": "chip",
+      "refersTo": "label",
+      "description": "The small caps eyebrow. Signal Green, never Dispensary Green - it is text.",
+      "html": "<span class=\"ds-label\">Peaceway Online · Igando, Lagos, Nigeria</span>",
+      "css": ".ds-label { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: #4ade80; }"
+    },
+    {
+      "name": "App Navigation",
+      "kind": "nav",
+      "refersTo": "nav",
+      "description": "Five destinations. Sticky top bar on desktop, fixed bottom bar on mobile. Signal Green marks the active item.",
+      "html": "<nav class=\"ds-nav\"><a class=\"ds-nav-item is-active\" href=\"#\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\"/></svg>Home</a><a class=\"ds-nav-item\" href=\"#\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9\"/><path d=\"M10.3 21a1.94 1.94 0 0 0 3.4 0\"/></svg>Reminders</a></nav>",
+      "css": ".ds-nav { display: flex; align-items: center; gap: 4px; padding: 10px 12px; background: rgba(11,12,9,0.85); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; backdrop-filter: blur(12px); } .ds-nav-item { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 14px; border-radius: 999px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.55); text-decoration: none; transition: background-color 0.2s ease, color 0.2s ease; } .ds-nav-item:hover { background: rgba(255,255,255,0.05); color: #fff; } .ds-nav-item.is-active { background: rgba(26,163,90,0.12); color: #34d98a; } .ds-nav-item:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(52,217,138,0.5); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Counter at 3AM",
+    "overview": "A real dispensary counter, lit and staffed, while the rest of the street is dark. Every decision in this system follows from that image. The near-black base (#0b0c09) is night, not fashion. The green is the lit sign you can see from the road. The calm, unhurried tone is a competent pharmacist who is simply still open - not a brand performing urgency.\n\nThis matters because the product's real adversary is doubt. In a market where counterfeit medicine is a live fear, the interface either reads as evidence that a licensed pharmacy exists behind it, or it reads as another reseller. Specificity is how the system argues: a named street, a named delivery area, a real person answering. Ornament is not part of the argument.\n\nThe system is physical rather than flat. Surfaces are objects: a tile carries a solid bottom lip - a light edge catching the room - and a grounding shadow beneath it, and it depresses when pressed. That tactility is the personality. It is what keeps a dark interface from reading as a void.",
+    "keyCharacteristics": [
+      "Night-dark base, lit by a single green",
+      "Physical surfaces that respond to touch, not floating cards",
+      "Display type used sparingly and set very tight; DM Sans carries everything else",
+      "Restraint: the accent marks actions and state, never decorates",
+      "Legibility treated as a safety property, not a preference"
+    ],
+    "rules": [
+      { "name": "The Fills-Only Rule", "body": "Dispensary Green (#0f673c) is forbidden on text, small icons and focus rings. It fails WCAG AA against Counter Black - a legibility failure on a page where the words are drug names and dosages. Green type uses Signal Green (#34d98a) or #4ade80. No exceptions, and no \"it's only a label.\"", "section": "colors" },
+      { "name": "The Red Means Stop Rule", "body": "Cross Red never celebrates. If a red element is not an error, a warning or a destructive action, it is the wrong colour.", "section": "colors" },
+      { "name": "The One Light Rule", "body": "One green light in a dark room. If a screen has green competing with green, or the accent is doing decorative work, the screen has lost the metaphor.", "section": "colors" },
+      { "name": "The Signage-Only Rule", "body": "Syne is signage. It appears on the landing hero and section headings, and nowhere in the app - not on buttons, labels, table headers or data. A display font in a UI label is the fastest way to make a tool feel untrustworthy.", "section": "typography" },
+      { "name": "The 16px Floor Rule", "body": "Body and input text never drop below 16px on mobile. This is an accessibility floor and an iOS zoom guard at once.", "section": "typography" },
+      { "name": "The Objects-Not-Cards Rule", "body": "If a surface has a drop shadow and no edge, it is floating, and it is wrong. The lip is the system. A shadow alone is a card from another design system.", "section": "elevation" },
+      { "name": "The Press-Is-Physical Rule", "body": "Pressable things depress. Touch feedback is scale(0.98) or a 3px translate within 120-140ms - never a colour flash, never nothing.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do use Signal Green (#34d98a) for every green word, small icon and focus ring.",
+      "Do give every surface an edge. The lip is the system.",
+      "Do keep hover behind (hover: hover) and (pointer: fine), and give touch a press state instead.",
+      "Do hold body text at 16px minimum, at 4.5:1 or better, with a 65-75ch measure.",
+      "Do honour prefers-reduced-motion on every animation - motion here is state, not decoration.",
+      "Do show a skeleton for anything over 300ms. A spinner in the middle of content is an apology.",
+      "Do keep the three auth domains visually distinct. Customer, staff and partner surfaces should never be mistaken for one another."
+    ],
+    "donts": [
+      "Don't use Dispensary Green (#0f673c) for text or small icons. It fails AA on the dark base.",
+      "Don't rebuild this light. PRODUCT.md rejects a \"light, clinical, generic-healthcare theme\" by name, and tasks/DESIGN.md rejects a light theme explicitly. The dark base is settled.",
+      "Don't reach for a marketplace or discount-pharmacy look - the drop-shipper aesthetic is the exact suspicion this product exists to overcome.",
+      "Don't put Syne in the app. Display fonts in UI labels, buttons or data are prohibited.",
+      "Don't use neon, purple/pink gradients, or gradient text (background-clip: text). Emphasis comes from weight and size.",
+      "Don't use emoji as structural icons. lucide-react SVG only, one family, consistent stroke.",
+      "Don't ship a floating card: a drop shadow with no edge belongs to a different system.",
+      "Don't use Cross Red for anything that isn't an error, a warning or a destructive action.",
+      "Don't animate a section into visibility from a hidden default. If the animation never fires, the section ships blank.",
+      "Don't let a heading overflow its column. Test the copy at 375px, not just on a desktop."
+    ]
+  }
+}
