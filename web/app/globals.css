@@ -1262,9 +1262,6 @@ button:not(:disabled):not([aria-disabled="true"]),
   color: var(--m);
 }
 
-.pw-dots {
-  display: none;
-}
 
 /* s5 (How It Works) holds 10 steps + CTA - taller than 100vh on most
    viewports, so the pinned 100vh/overflow-hidden pattern clipped the
@@ -1298,10 +1295,14 @@ button:not(:disabled):not([aria-disabled="true"]),
 }
 
 @media (max-width: 800px) {
-  /* ── Landing carousel: manual horizontal slides ──────────────────────
-     Each scene (and the footer) is one full-screen slide; swipe left/right
-     to move between them, scroll vertically inside a slide when its content
-     is taller than the screen. Desktop keeps the cinematic scroll. */
+  /* ── Mobile = the desktop cinematic scroll, narrowed ──────────────────
+     Phones used to be a horizontal swipe carousel: every scene a fixed
+     100vh panel. That left no vertical travel for GSAP to scrub, so the
+     hero's building had to autoplay a loop instead of following scroll,
+     and the page read as a different site from desktop. Scenes now keep
+     their tall heights and pin exactly like desktop, so one code path
+     drives the sequence on every viewport. Only the layout *inside* a
+     scene is restacked for narrow screens - see the #s1 hero below. */
   #nav {
     position: fixed;
     top: 0;
@@ -1317,53 +1318,12 @@ button:not(:disabled):not([aria-disabled="true"]),
     );
   }
 
-  #lmain {
-    display: flex;
-    flex-direction: row;
-    height: 100vh;
-    height: 100svh;
-    overflow-x: auto;
-    overflow-y: hidden;
-    scroll-snap-type: x mandatory;
-    overscroll-behavior-x: contain;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-  }
-  #lmain::-webkit-scrollbar { display: none; }
-
-  #lmain .scene,
-  #lmain footer.ft {
-    flex: 0 0 100vw;
-    width: 100vw;
-    height: 100% !important;
-    scroll-snap-align: start;
-    scroll-snap-stop: always;
-    overflow: hidden;
-  }
-  .pw-sticky {
-    position: relative;
-    height: 100%;
-    min-height: 0;
-    overflow-y: auto;
-    overflow-x: hidden;
-  }
-  #s5 .pw-sticky,
-  #s8 .pw-sticky {
-    height: 100%;
-    min-height: 0;
-    overflow-y: auto;
-  }
-  .pw-sticky > .con,
-  .pw-sticky > .hcon {
-    height: auto;
-    min-height: 100%;
-  }
-  #lmain footer.ft {
-    overflow-y: auto;
-    padding-top: calc(88px + env(safe-area-inset-top));
-  }
+  /* No #lmain flex/scroll-snap, no fixed-height scenes and no .pw-sticky
+     overflow override: scenes keep their authored heights (190vh etc.) and
+     the pin stays `position: sticky` from the base rules, which is what
+     gives ScrollTrigger its scrub distance. */
   #spbar { display: none; }
-  .con { padding-bottom: calc(142px + env(safe-area-inset-bottom)); }
+  .con { padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
 
   .ov {
     background: rgba(7, 8, 6, 0.76);
@@ -1418,37 +1378,9 @@ button:not(:disabled):not([aria-disabled="true"]),
     z-index: 1;
   }
 
-  /* Slide dots (built by motion-effects.tsx) */
-  #lmain > .pw-dots {
-    position: fixed;
-    left: 50%;
-    transform: translateX(-50%);
-    bottom: calc(18px + env(safe-area-inset-bottom));
-    display: flex;
-    gap: 7px;
-    z-index: 9999;
-    padding: 8px 12px;
-    border-radius: 999px;
-    background: rgba(7, 8, 6, 0.86);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.08);
-  }
-  .pw-dot {
-    width: 9px;
-    height: 9px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.46);
-    border: none;
-    padding: 0;
-    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.2);
-    transition: background 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
-  }
-  .pw-dot.is-active {
-    background: #34d98a;
-    box-shadow: 0 0 12px rgba(52, 217, 138, 0.8);
-    transform: scale(1.28);
-  }
+  /* Slide dots removed with the carousel - there are no slides to page
+     between now, the page just scrolls. Markup gone from page.tsx and the
+     wiring gone from motion-effects.tsx. */
 
   .nlinks { display: none; }
   .ni, .hcon, .con, footer > div { padding-left: 20px !important; padding-right: 20px !important; }

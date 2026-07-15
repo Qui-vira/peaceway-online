@@ -15,18 +15,18 @@ const SIGNAGE_FADE = 0.18;
  */
 const ASSET_VER = "5";
 
-/** Mobile autoplay loads every Nth frame to keep the payload light. */
+/** Mobile loads every Nth frame to keep the payload light. */
 const MOBILE_STEP = 2;
 
 /**
  * Scroll-linked image sequence on a canvas (the Apple product-page technique).
  *
- * - Desktop: GSAP ScrollTrigger scrubs the whole sequence across the pinned
- *   hero as you scroll (assemble -> explode).
- * - Mobile: the landing is a horizontal scroll-snap carousel, so there's no
- *   vertical scroll to scrub. Instead the sequence AUTOPLAYS a gentle
- *   assemble -> explode -> reassemble loop, paused unless the hero slide is on
- *   screen. Frames are subsampled to keep the mobile payload small.
+ * - Every viewport: GSAP ScrollTrigger scrubs the whole sequence across the
+ *   pinned hero as you scroll (assemble -> explode). Phones used to be a
+ *   horizontal carousel with no vertical travel, which forced an autoplay
+ *   loop here; the carousel is gone, so mobile now shares desktop's control.
+ * - Mobile still subsamples frames and loads the smaller asset set to keep the
+ *   payload light - that's a bandwidth concern, not a behaviour difference.
  * - reduced-motion / save-data: a single static assembled frame, no animation.
  */
 export function ScrollSequence({ sceneId = "s1" }: { sceneId?: string }): JSX.Element {
@@ -46,7 +46,6 @@ export function ScrollSequence({ sceneId = "s1" }: { sceneId?: string }): JSX.El
       (navigator as unknown as { connection?: { saveData?: boolean } }).connection?.saveData
     );
     const staticMode = reduce || saveData; // respect motion/data prefs -> static frame
-    const mobileAuto = mobile && !staticMode; // no vertical scroll on mobile -> autoplay
     const dir = mobile || saveData ? "mobile" : "desktop";
 
     const scene = document.getElementById(sceneId);
@@ -55,8 +54,6 @@ export function ScrollSequence({ sceneId = "s1" }: { sceneId?: string }): JSX.El
     const images: Array<HTMLImageElement | undefined> = [];
     let disposed = false;
     let trigger: ScrollTrigger | undefined;
-    let tl: gsap.core.Timeline | undefined;
-    let io: IntersectionObserver | undefined;
 
     const frameSrc = (i: number): string =>
       `/sequence/${dir}/frame_${String(i + 1).padStart(4, "0")}.webp?v=${ASSET_VER}`;
@@ -112,7 +109,7 @@ export function ScrollSequence({ sceneId = "s1" }: { sceneId?: string }): JSX.El
       .then((r) => r.json())
       .then((m: Manifest) => {
         if (disposed || !scene) return;
-        const step = mobileAuto ? MOBILE_STEP : 1;
+        const step = mobile && !staticMode ? MOBILE_STEP : 1;
         const indices: number[] = [];
         for (let i = 0; i < m.count; i += step) indices.push(i);
         if (indices[indices.length - 1] !== m.count - 1) indices.push(m.count - 1);
@@ -129,48 +126,21 @@ export function ScrollSequence({ sceneId = "s1" }: { sceneId?: string }): JSX.El
         });
         resize();
 
-        if (mobileAuto) {
-          // Autoplay a gentle assemble -> explode -> reassemble loop; paused
-          // unless the hero slide is on screen (saves battery when swiped away).
-          const st = { p: 0 };
-          const render = (): void => {
-            displayed = st.p * (count - 1);
+        // Scrub the whole sequence across the scene's pinned range (the scene
+        // is ~190vh with a position:sticky child). Same on phone and desktop.
+        trigger = ScrollTrigger.create({
+          trigger: scene,
+          start: "top top",
+          end: () => "+=" + Math.max(1, scene.offsetHeight - window.innerHeight),
+          scrub: 0.5,
+          invalidateOnRefresh: true,
+          onUpdate: (self) => {
+            displayed = self.progress * (count - 1);
             draw(displayed);
-            setSignage(1 - st.p / SIGNAGE_FADE);
-          };
-          tl = gsap.timeline({ repeat: -1, paused: true });
-          tl.to(st, { p: 1, duration: 2.8, ease: "power1.inOut", onUpdate: render })
-            .to(st, { p: 1, duration: 1.1, onUpdate: render }) // hold exploded
-            .to(st, { p: 0, duration: 2.2, ease: "power1.inOut", onUpdate: render })
-            .to(st, { p: 0, duration: 1.0, onUpdate: render }); // hold assembled
-
-          io = new IntersectionObserver(
-            (entries) => {
-              for (const e of entries) {
-                if (e.isIntersecting) tl?.play();
-                else tl?.pause();
-              }
-            },
-            { threshold: 0.35 }
-          );
-          io.observe(scene);
-        } else {
-          // Desktop: scrub the whole sequence across the scene's pinned range
-          // (scene is ~190vh with a position:sticky child).
-          trigger = ScrollTrigger.create({
-            trigger: scene,
-            start: "top top",
-            end: () => "+=" + Math.max(1, scene.offsetHeight - window.innerHeight),
-            scrub: 0.5,
-            invalidateOnRefresh: true,
-            onUpdate: (self) => {
-              displayed = self.progress * (count - 1);
-              draw(displayed);
-              setSignage(1 - self.progress / SIGNAGE_FADE);
-            },
-          });
-          ScrollTrigger.refresh();
-        }
+            setSignage(1 - self.progress / SIGNAGE_FADE);
+          },
+        });
+        ScrollTrigger.refresh();
       })
       .catch(() => {
         /* no manifest = leave the dark fallback (.sv-fb) showing */
@@ -180,8 +150,6 @@ export function ScrollSequence({ sceneId = "s1" }: { sceneId?: string }): JSX.El
     return () => {
       disposed = true;
       trigger?.kill();
-      tl?.kill();
-      io?.disconnect();
       window.removeEventListener("resize", resize);
     };
   }, [sceneId]);

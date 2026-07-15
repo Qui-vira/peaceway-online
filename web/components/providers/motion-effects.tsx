@@ -85,72 +85,6 @@ function setupReveals(): (() => void) | undefined {
   };
 }
 
-/* Mobile landing carousel dots: one per slide, tracks swipe position.
-   Navigation, not decoration - runs even under prefers-reduced-motion. */
-function setupCarouselDots(reducedMotion: boolean): (() => void) | undefined {
-  if (!window.matchMedia("(max-width: 800px)").matches) return undefined;
-  const track = document.getElementById("lmain");
-  if (!track || !document.getElementById("s1")) return undefined;
-
-  const slides = Array.from(track.children).filter(
-    (child): child is HTMLElement =>
-      child instanceof HTMLElement &&
-      (child.classList.contains("scene") || child.matches("footer.ft"))
-  );
-  if (slides.length < 2) return undefined;
-
-  const dotsContainers = Array.from(document.querySelectorAll<HTMLElement>(".pw-dots"));
-  const existingDots =
-    dotsContainers.find((candidate) => candidate.parentElement === track) ??
-    dotsContainers[0];
-  dotsContainers.forEach((candidate) => {
-    if (candidate !== existingDots) candidate.remove();
-  });
-  const dots = existingDots ?? document.createElement("div");
-  dots.className = "pw-dots";
-  if (dots.querySelectorAll(".pw-dot").length !== slides.length) {
-    dots.textContent = "";
-    slides.forEach((_, i) => {
-      const b = document.createElement("button");
-      b.type = "button";
-      b.className = "pw-dot" + (i === 0 ? " is-active" : "");
-      b.setAttribute("aria-label", `Go to section ${i + 1}`);
-      dots.appendChild(b);
-    });
-  }
-
-  const buttons = Array.from(dots.querySelectorAll<HTMLButtonElement>(".pw-dot"));
-  const removeClickListeners = buttons.map((b, i) => {
-    const onClick = (): void => {
-      track.scrollTo({
-        left: i * track.clientWidth,
-        behavior: reducedMotion ? "auto" : "smooth",
-      });
-    };
-    b.addEventListener("click", onClick);
-    return () => b.removeEventListener("click", onClick);
-  });
-  if (dots.parentElement !== track) track.prepend(dots);
-
-  let raf = 0;
-  const update = (): void => {
-    raf = 0;
-    const active = Math.round(track.scrollLeft / Math.max(1, track.clientWidth));
-    buttons.forEach((b, i) => b.classList.toggle("is-active", i === active));
-  };
-  const onScroll = (): void => {
-    if (!raf) raf = window.requestAnimationFrame(update);
-  };
-  track.addEventListener("scroll", onScroll, { passive: true });
-
-  return () => {
-    track.removeEventListener("scroll", onScroll);
-    removeClickListeners.forEach((remove) => remove());
-    if (raf) window.cancelAnimationFrame(raf);
-    if (!existingDots) dots.remove();
-  };
-}
-
 /* Desktop parallax: the giant background section numbers (.snbg) drift against
    the pinned foreground content as each scene scrolls, adding depth (the
    article's "different speeds" parallax). Desktop only - mobile is a carousel;
@@ -233,20 +167,8 @@ export function MotionEffects(): JSX.Element | null {
 
     const cleanups: Array<() => void> = [];
 
-    // Carousel dots are navigation - they run even under reduced motion, and
-    // re-mount when the viewport crosses the mobile breakpoint (rotation,
-    // resize, or emulation applying after hydration).
-    const carouselMq = window.matchMedia("(max-width: 800px)");
-    let dotsCleanup = setupCarouselDots(reduceMotionQuery.matches);
-    const onCarouselMqChange = (): void => {
-      dotsCleanup?.();
-      dotsCleanup = setupCarouselDots(reduceMotionQuery.matches);
-    };
-    carouselMq.addEventListener("change", onCarouselMqChange);
-    cleanups.push(() => {
-      carouselMq.removeEventListener("change", onCarouselMqChange);
-      dotsCleanup?.();
-    });
+    // The mobile carousel is gone - phones scroll the scenes vertically like
+    // desktop - so there are no slides to page between and no dots to build.
 
     if (!reduceMotionQuery.matches) {
       const revealCleanup = setupReveals();
