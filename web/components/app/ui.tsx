@@ -91,8 +91,12 @@ export function GuestWall({ message }: { message?: string }) {
         Start Profile
         <ChevronRight className="h-4 w-4" />
       </Link>
+      {/* /app, not /. This wall only ever renders inside the app shell, where
+          the bottom nav labels /app as "Home" - sending the customer to the
+          marketing landing instead ejected them from the app they were using,
+          which is a dead end rather than a way back. */}
       <Link
-        href="/"
+        href="/app"
         className="text-[13px] text-[#b1bdb0] hover:text-[#dcdddb] transition"
       >
         ← Back to Home

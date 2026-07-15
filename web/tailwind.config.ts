@@ -31,14 +31,27 @@ const config: Config = {
           900: "#083b24"
         }
       },
-      // The codebase reaches for /12 in 31 places (bg-emerald-500/12 icon chips,
-      // border-white/12, the nav's active pill). 12 is not in Tailwind's default
-      // opacity scale (0,5,10,20,25,...), so every one of those utilities was
-      // silently dropped at build and painted nothing - the icon tint squares
-      // behind the dashboard icons have never existed. Adding the step is a
-      // one-line fix that honours what the author wrote, rather than rewriting
-      // 31 call sites to /10.
+      // Tailwind's opacity scale runs in steps of 5 (0,5,10,15,...,100). Every
+      // other step this codebase reaches for was silently dropped at build:
+      // the utility never compiled, so it painted nothing.
+      //
+      // /8 is the worst of them, and it is why bright lines appeared across the
+      // app. DESIGN.md defines Hairline as rgba(255,255,255,0.08) - "Borders and
+      // dividers. Structure by implication." - which is `border-white/8`, used
+      // in 71 places. It has never once rendered. Worse than invisible: `border-t`
+      // still sets a 1px solid border, so the *colour* fell through to Tailwind
+      // preflight's default of gray-200, painting a near-white rule across a
+      // near-black page - under every back bar and above every footer.
+      //
+      // /3, /4 and /6 are dead the same way, mostly as faint card fills.
+      //
+      // Adding the steps honours what the author and DESIGN.md both already
+      // specified, rather than rewriting 100+ call sites to approximations.
       opacity: {
+        3: "0.03",
+        4: "0.04",
+        6: "0.06",
+        8: "0.08",
         12: "0.12"
       },
       fontFamily: {

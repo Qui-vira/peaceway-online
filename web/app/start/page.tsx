@@ -500,7 +500,10 @@ export default function StartPage() {
         </div>
 
         <div className="text-center">
-          <Link href="/" className="text-xs text-[#b1bdb0] transition hover:text-white/60">
+          {/* Every route into /start comes from the app - the dashboard, the
+              GuestWall, or /track - so "home" here is the app, not the
+              marketing landing. */}
+          <Link href="/app" className="text-xs text-[#b1bdb0] transition hover:text-white/60">
             ← Back to home
           </Link>
         </div>
