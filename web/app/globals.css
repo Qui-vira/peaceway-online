@@ -25,26 +25,19 @@ a {
   color: inherit;
 }
 
+/* Static film grain. This used to jitter on a 0.5s infinite loop, which kept a
+   fixed, full-viewport composited layer transforming forever on every page of
+   the site - for a texture sitting at 2.2% opacity that nobody can see move.
+   The texture earns its place; the motion did not. Sized to the viewport now
+   that it no longer translates. */
 body::before {
   content: "";
   position: fixed;
-  inset: -50%;
-  width: 200%;
-  height: 200%;
+  inset: 0;
   background: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg'><filter id='g'><feTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='4'/></filter><rect width='100%' height='100%' filter='url(%23g)'/></svg>");
   opacity: 0.022;
   pointer-events: none;
   z-index: 9988;
-  animation: grain 0.5s steps(1) infinite;
-}
-
-@keyframes grain {
-  0% { transform: translate(0, 0); }
-  20% { transform: translate(-8%, -14%); }
-  40% { transform: translate(-12%, 8%); }
-  60% { transform: translate(6%, -8%); }
-  80% { transform: translate(10%, 4%); }
-  100% { transform: translate(0, 0); }
 }
 
 :root {
@@ -359,7 +352,10 @@ footer {
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  transition: all 0.3s;
+  /* Named properties, not `all`: hover only moves transform + box-shadow, and
+     `all` would animate anything else that ever changes here, off the GPU. */
+  transition: transform 0.2s cubic-bezier(0.22, 0.61, 0.36, 1),
+    box-shadow 0.2s cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 
 .htag {
@@ -1092,7 +1088,11 @@ button:not(:disabled):not([aria-disabled="true"]),
   gap: 24px;
   padding: 28px 34px;
   border-radius: 20px;
-  transition: all 0.35s;
+  /* Named properties, not `all`. 350ms also overshot the sub-300ms bound for a
+     hover response - the card felt like it lagged the cursor. */
+  transition: transform 0.2s cubic-bezier(0.22, 0.61, 0.36, 1),
+    border-color 0.2s cubic-bezier(0.22, 0.61, 0.36, 1),
+    box-shadow 0.2s cubic-bezier(0.22, 0.61, 0.36, 1);
   text-decoration: none;
 }
 
@@ -1279,7 +1279,11 @@ button:not(:disabled):not([aria-disabled="true"]),
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s;
+  /* Named properties, not `all`. */
+  transition: transform 0.16s cubic-bezier(0.22, 0.61, 0.36, 1),
+    border-color 0.16s cubic-bezier(0.22, 0.61, 0.36, 1),
+    color 0.16s cubic-bezier(0.22, 0.61, 0.36, 1),
+    box-shadow 0.16s cubic-bezier(0.22, 0.61, 0.36, 1);
   color: var(--m);
 }
 

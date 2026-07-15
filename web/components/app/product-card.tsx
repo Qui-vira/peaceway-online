@@ -45,11 +45,13 @@ export function ProductCard({
     if (reduce || !canHover) return; // touch/reduced-motion use the CSS :active/base state
 
     const ctx = gsap.context(() => {
-      // quickTo avoids re-creating tweens on every pointer event across the grid
-      const y = gsap.quickTo(card, "y", { duration: 0.35, ease: "power3.out" });
+      // quickTo avoids re-creating tweens on every pointer event across the grid.
+      // Hover feedback is held under ~200ms; at 350-400ms the card visibly
+      // trailed the cursor, which reads as lag rather than polish.
+      const y = gsap.quickTo(card, "y", { duration: 0.2, ease: "power3.out" });
       const shadow = (v: string) =>
-        gsap.to(card, { boxShadow: v, duration: 0.3, ease: "power2.out" });
-      const iconScale = gsap.quickTo(icon, "scale", { duration: 0.4, ease: "power2.out" });
+        gsap.to(card, { boxShadow: v, duration: 0.2, ease: "power2.out" });
+      const iconScale = gsap.quickTo(icon, "scale", { duration: 0.16, ease: "power2.out" });
       gsap.set(cta, { autoAlpha: 0, y: 6 });
 
       const enter = () => {
