@@ -1325,6 +1325,24 @@ button:not(:disabled):not([aria-disabled="true"]),
   #spbar { display: none; }
   .con { padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
 
+  /* Every scene except the hero flows at its natural height on phones.
+     Desktop's pattern - a 100vh `position: sticky` pin with overflow:hidden -
+     assumes the copy fits one viewport. It does at desktop widths; at 390px it
+     does not (s3's content measures 1015px against an 844px pin), so the pin
+     silently chopped the bottom off. Same trap #s5/#s8 were already exempted
+     from above. Height auto lets the box grow to its content, so overflow
+     stays hidden (keeping .snbg clipped) without cutting the copy. The hero is
+     excluded: its 190vh scene is the scroll distance that drives the building,
+     and its content is stacked to fit one viewport by design. */
+  .scene:not(#s1) {
+    height: auto !important;
+  }
+  .scene:not(#s1) .pw-sticky {
+    position: relative;
+    height: auto;
+    min-height: 100vh;
+  }
+
   .ov {
     background: rgba(7, 8, 6, 0.76);
   }
