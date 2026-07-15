@@ -95,13 +95,7 @@ function TopNav({ pathname, cartCount }: { pathname: string; cartCount: number }
   const reduce = useReducedMotion();
   return (
     <header className="sticky top-0 z-40 hidden border-b border-white/10 bg-[#0b0c09]/85 backdrop-blur-md md:block">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-8">
-        <Link href="/app" aria-label="Peaceway Online home" className={`rounded-lg ${FOCUS}`}>
-          <span className="inline-flex rounded-lg bg-white px-2.5 py-1 shadow-[0_2px_12px_rgba(0,0,0,0.22)]">
-            <Image src={media.logo} alt="Peaceway Pharmacy" width={110} height={36} className="h-8 w-auto" />
-          </span>
-        </Link>
-
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-center px-8">
         <nav aria-label="Primary" className="flex items-center gap-1">
           {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
             const active = isActive(pathname, href);
@@ -182,8 +176,9 @@ function BackBar({ title, fallbackHref = "/app" }: { title?: string; fallbackHre
  * Press-Is-Physical Rule bans by name ("never a colour flash, never nothing").
  * On a phone there is no cursor, so press feedback IS the interaction.
  */
-function BottomNav({ pathname }: { pathname: string }) {
+function BottomNav({ pathname, cartCount }: { pathname: string; cartCount: number }) {
   const reduce = useReducedMotion();
+  const cartActive = isActive(pathname, "/cart");
   return (
     <nav
       aria-label="Primary"
@@ -216,6 +211,30 @@ function BottomNav({ pathname }: { pathname: string }) {
             </MotionLink>
           );
         })}
+
+        {/* Cart lives here too. It used to exist only in the desktop TopNav, so
+            on a phone — the primary device for this product — there was no way
+            to reach the cart from the nav at all. Both navs now offer the same
+            destinations. */}
+        <MotionLink
+          href="/cart"
+          aria-label={`Cart${cartCount > 0 ? `, ${cartCount} item${cartCount === 1 ? "" : "s"}` : ""}`}
+          aria-current={cartActive ? "page" : undefined}
+          whileTap={reduce ? undefined : { scale: 0.94 }}
+          transition={NAV_SPRING}
+          className={[
+            "flex min-h-[56px] min-w-[56px] flex-1 flex-col items-center justify-center gap-1 py-2.5 text-[11px] font-semibold uppercase tracking-wide transition-colors",
+            cartActive ? "text-emerald-400" : "text-[#b1bdb0] hover:text-[#dcdddb]",
+            FOCUS,
+          ].join(" ")}
+        >
+          <span className="relative inline-flex h-7 w-14 items-center justify-center">
+            {cartActive && <NavPill id="nav-pill-mobile" reduce={reduce} />}
+            <ShoppingCart className="relative h-5 w-5" strokeWidth={cartActive ? 2.4 : 2} />
+            <CartBadge count={cartCount} />
+          </span>
+          Cart
+        </MotionLink>
       </div>
     </nav>
   );
@@ -280,7 +299,7 @@ export function AppShell({
       {backProps !== null && <BackBar {...backProps} />}
       <main className="flex-1">{children}</main>
       <Footer />
-      <BottomNav pathname={pathname} />
+      <BottomNav pathname={pathname} cartCount={cartCount} />
     </div>
   );
 }
