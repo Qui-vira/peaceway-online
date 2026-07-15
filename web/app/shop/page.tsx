@@ -95,7 +95,7 @@ export default function ShopPage() {
               className={`relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/5 transition hover:border-emerald-500/40 md:hidden ${FOCUS}`}
             >
               <ShoppingCart className="h-5 w-5 text-white/70" />
-              <span className="absolute -right-1 -top-1 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-emerald-500 px-1 text-[10px] font-bold text-black">
+              <span className="absolute -right-1 -top-1 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-emerald-500 px-1 text-[11px] font-bold text-black">
                 {cartCount}
               </span>
             </Link>

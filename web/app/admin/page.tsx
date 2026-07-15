@@ -367,9 +367,9 @@ function Dashboard({ admin }: { admin: AdminMe }) {
       <aside className="hidden w-[200px] shrink-0 flex-col gap-2 border-r border-white/8 bg-[#0a0b08] px-3 py-6 lg:flex">
         <div className="mb-4 px-3">
           <p className="font-syne text-[13px] font-bold text-white">Peaceway</p>
-          <p className="text-[10px] text-white/50">{admin.full_name ?? "Staff"}</p>
+          <p className="text-[11px] text-white/50">{admin.full_name ?? "Staff"}</p>
           {(admin.role_labels?.length ?? 0) > 0 && (
-            <p className="mt-0.5 text-[10px] font-medium text-emerald-400/80">
+            <p className="mt-0.5 text-[11px] font-medium text-emerald-400/80">
               {admin.role_labels!.join(" · ")}
             </p>
           )}
@@ -682,12 +682,12 @@ function CatalogTab() {
                     <div className="flex flex-wrap items-center gap-2">
                       <p className="truncate text-[14px] font-semibold text-white">{product.name}</p>
                       {product.is_listed ? (
-                        <span className="rounded-full border border-emerald-500/25 bg-emerald-500/12 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">Listed</span>
+                        <span className="rounded-full border border-emerald-500/25 bg-emerald-500/12 px-2 py-0.5 text-[11px] font-semibold text-emerald-400">Listed</span>
                       ) : (
-                        <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-semibold text-[#b1bdb0]">Hidden</span>
+                        <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[11px] font-semibold text-[#b1bdb0]">Hidden</span>
                       )}
                       {!product.is_in_stock && (
-                        <span className="rounded-full border border-red-500/25 bg-red-500/12 px-2 py-0.5 text-[10px] font-semibold text-red-300">Out</span>
+                        <span className="rounded-full border border-red-500/25 bg-red-500/12 px-2 py-0.5 text-[11px] font-semibold text-red-300">Out</span>
                       )}
                     </div>
                     <p className="mt-1 line-clamp-2 text-[11px] text-[#b1bdb0]">
@@ -699,7 +699,7 @@ function CatalogTab() {
                   </div>
 
                   <label className="space-y-1">
-                    <span className="text-[10px] uppercase tracking-[0.12em] text-[#b1bdb0]">Price</span>
+                    <span className="text-[11px] uppercase tracking-[0.12em] text-[#b1bdb0]">Price</span>
                     <input
                       inputMode="decimal"
                       value={draft.selling_price}
@@ -710,7 +710,7 @@ function CatalogTab() {
                   </label>
 
                   <label className="space-y-1">
-                    <span className="text-[10px] uppercase tracking-[0.12em] text-[#b1bdb0]">Stock</span>
+                    <span className="text-[11px] uppercase tracking-[0.12em] text-[#b1bdb0]">Stock</span>
                     <input
                       inputMode="numeric"
                       value={draft.stock_qty}
@@ -810,7 +810,7 @@ function OverviewTab({
           <div key={s.label} className="rounded-2xl border border-white/8 bg-white/4 p-4">
             <p className="text-[22px] font-bold text-white">{s.value}</p>
             <p className="text-[11px] text-[#b1bdb0] mt-0.5">{s.label}</p>
-            <p className={`text-[10px] mt-1 ${s.note === "Need attention" && pending > 0 ? "text-amber-400" : "text-emerald-400"}`}>
+            <p className={`text-[11px] mt-1 ${s.note === "Need attention" && pending > 0 ? "text-amber-400" : "text-emerald-400"}`}>
               {s.note}
             </p>
           </div>
@@ -868,7 +868,7 @@ function OverviewTab({
       </div>
       <div>
         <div className="flex items-center justify-between mb-3">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#b1bdb0]">Recent Requests</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#b1bdb0]">Recent Requests</p>
           <button onClick={() => onTab("requests")} className="text-[12px] text-emerald-400 hover:underline">View all</button>
         </div>
         <div className="rounded-2xl border border-white/8 bg-white/4 divide-y divide-white/6">
@@ -885,7 +885,7 @@ function OverviewTab({
                     {r.customer_phone} · {new Date(r.created_at).toLocaleTimeString("en-NG", { hour: "2-digit", minute: "2-digit" })}
                   </p>
                 </div>
-                <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold ${REQ_STATUS_COLOR[r.status] ?? "bg-white/8 text-white/50 border-white/12"}`}>
+                <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold ${REQ_STATUS_COLOR[r.status] ?? "bg-white/8 text-white/50 border-white/12"}`}>
                   {REQ_STATUS_LABEL[r.status] ?? r.status}
                 </span>
               </div>
@@ -916,7 +916,7 @@ function RequestsTab({ requests, loading }: { requests: AdminRequest[]; loading:
                   {r.customer_phone} · {new Date(r.created_at).toLocaleDateString("en-NG")}
                 </p>
               </div>
-              <span className={`shrink-0 inline-flex items-center rounded-full border px-2.5 py-0.5 text-[10px] font-semibold ${REQ_STATUS_COLOR[r.status] ?? "bg-white/8 text-white/50 border-white/12"}`}>
+              <span className={`shrink-0 inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${REQ_STATUS_COLOR[r.status] ?? "bg-white/8 text-white/50 border-white/12"}`}>
                 {REQ_STATUS_LABEL[r.status] ?? r.status}
               </span>
             </div>
@@ -969,11 +969,11 @@ function OrdersTab({ orders, loading }: { orders: AdminOrder[]; loading: boolean
                 )}
               </div>
               <div className="text-right">
-                <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[10px] font-semibold ${ORDER_STATUS_COLOR[o.status] ?? "bg-white/8 text-white/50 border-white/12"}`}>
+                <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${ORDER_STATUS_COLOR[o.status] ?? "bg-white/8 text-white/50 border-white/12"}`}>
                   {o.status}
                 </span>
                 {o.fulfillment_status && (
-                  <p className="mt-1 text-[10px] text-[#b1bdb0]">
+                  <p className="mt-1 text-[11px] text-[#b1bdb0]">
                     {FULFILLMENT_LABEL[o.fulfillment_status] ?? o.fulfillment_status}
                   </p>
                 )}

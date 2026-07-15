@@ -146,7 +146,7 @@ function TrackPageContent() {
 
             {result.fulfillment_status && (
               <div className="rounded-2xl border border-white/8 bg-white/4 px-4 py-4">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#b1bdb0] mb-2">Fulfilment</p>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#b1bdb0] mb-2">Fulfilment</p>
                 <p className="text-[14px] font-semibold text-white">
                   {FULFILLMENT_LABEL[result.fulfillment_status] ?? result.fulfillment_status}
                 </p>
@@ -158,7 +158,7 @@ function TrackPageContent() {
 
             {/* Items */}
             <div className="rounded-2xl border border-white/8 bg-white/4 px-4 py-4 space-y-2">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#b1bdb0] mb-3">Items</p>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#b1bdb0] mb-3">Items</p>
               {result.items.map((item, i) => (
                 <div key={i} className="flex justify-between text-[13px]">
                   <span className="text-white/70">{item.product_name} × {item.quantity}</span>
@@ -170,7 +170,7 @@ function TrackPageContent() {
             {/* Timeline */}
             {result.history.length > 0 && (
               <div className="rounded-2xl border border-white/8 bg-white/4 px-4 py-4 space-y-3">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#b1bdb0]">Timeline</p>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#b1bdb0]">Timeline</p>
                 {result.history.map((h, i) => (
                   <div key={i} className="flex items-start gap-3">
                     <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />

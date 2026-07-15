@@ -185,7 +185,7 @@ export default function ProductDetailPage() {
 
             {product.description && (
               <div className="space-y-2">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#b1bdb0]">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#b1bdb0]">
                   Description
                 </p>
                 <p className="text-sm leading-relaxed text-white/60">{product.description}</p>

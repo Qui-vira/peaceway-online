@@ -61,7 +61,7 @@ export default function PrescriptionPage() {
             </p>
           </div>
           <div className="w-full rounded-2xl border border-white/8 bg-white/4 px-4 py-4 text-left space-y-3">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#b1bdb0]">What happens next</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#b1bdb0]">What happens next</p>
             {[
               "Pharmacist reviews your prescription",
               "You'll receive a Telegram message with price and availability",
@@ -136,7 +136,7 @@ export default function PrescriptionPage() {
 
         {/* Description */}
         <div className="rounded-2xl border border-white/8 bg-white/4 px-4 py-4 space-y-2">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#b1bdb0]">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#b1bdb0]">
             Or describe your prescription
           </p>
           <textarea

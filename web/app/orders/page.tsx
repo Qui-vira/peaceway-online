@@ -131,11 +131,11 @@ export default function OrdersPage() {
                   </p>
                 </div>
                 <div className="shrink-0 text-right space-y-1">
-                  <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold ${STATUS_COLOR[order.status] ?? "bg-white/8 text-white/50 border-white/12"}`}>
+                  <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold ${STATUS_COLOR[order.status] ?? "bg-white/8 text-white/50 border-white/12"}`}>
                     {STATUS_LABEL[order.status] ?? order.status}
                   </span>
                   {order.fulfillment_status && (
-                    <p className="text-[10px] text-[#b1bdb0]">
+                    <p className="text-[11px] text-[#b1bdb0]">
                       {FULFILLMENT_LABEL[order.fulfillment_status] ?? order.fulfillment_status}
                     </p>
                   )}

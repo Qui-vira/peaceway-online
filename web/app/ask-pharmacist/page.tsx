@@ -149,7 +149,7 @@ export default function AskPharmacistPage() {
 
                     {q.is_answered && q.answer ? (
                       <div className="rounded-xl border border-emerald-500/15 bg-emerald-500/8 px-4 py-3">
-                        <p className="mb-1.5 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-widest text-emerald-400">
+                        <p className="mb-1.5 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-widest text-emerald-400">
                           <CheckCircle2 className="h-3 w-3" />
                           Pharmacist
                         </p>

@@ -179,7 +179,7 @@ function PartnerRowCard({ partner, onChanged }: { partner: PartnerRow; onChanged
           <div className="flex items-center gap-2">
             <p className="text-sm font-semibold text-white">{partner.name}</p>
             <span
-              className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
+              className={`rounded-full border px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${
                 partner.is_active
                   ? "border-emerald-500/25 bg-emerald-500/15 text-emerald-400"
                   : "border-white/10 bg-white/8 text-[#b1bdb0]"

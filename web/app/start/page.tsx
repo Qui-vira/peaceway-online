@@ -45,10 +45,10 @@ function FieldGroup({
 }) {
   return (
     <div className="space-y-1.5">
-      <label className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-widest text-[#b1bdb0]">
+      <label className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-widest text-[#b1bdb0]">
         {label}
         {optional && (
-          <span className="rounded-full bg-white/8 px-1.5 py-px text-[9px] normal-case tracking-normal font-normal text-[#b1bdb0]">
+          <span className="rounded-full bg-white/8 px-1.5 py-px text-[11px] normal-case tracking-normal font-normal text-[#b1bdb0]">
             optional
           </span>
         )}
@@ -333,7 +333,7 @@ export default function StartPage() {
           {step === 1 && (
             <form onSubmit={handleSendOtp} noValidate className="space-y-4">
               <div className="space-y-1">
-                <p className="text-[10px] font-semibold uppercase tracking-widest text-emerald-400">
+                <p className="text-[11px] font-semibold uppercase tracking-widest text-emerald-400">
                   {tab === "signup" ? "Get Started" : "Welcome Back"}
                 </p>
                 <h1 className="font-syne text-2xl font-bold leading-tight text-white">
@@ -428,7 +428,7 @@ export default function StartPage() {
           {step === 2 && (
             <div className="space-y-5">
               <div className="space-y-1">
-                <p className="text-[10px] font-semibold uppercase tracking-widest text-emerald-400">
+                <p className="text-[11px] font-semibold uppercase tracking-widest text-emerald-400">
                   Verify Email
                 </p>
                 <h1 className="font-syne text-2xl font-bold leading-tight text-white">

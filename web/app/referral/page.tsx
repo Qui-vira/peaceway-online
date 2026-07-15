@@ -84,7 +84,7 @@ export default function ReferralPage() {
           <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full border border-emerald-500/30 bg-emerald-500/15">
             <Gift className="h-5 w-5 text-emerald-400" />
           </div>
-          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-400/80 mb-2">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-400/80 mb-2">
             Your referral code
           </p>
           <p className="font-syne text-[28px] font-bold tracking-wider text-emerald-400">{code}</p>

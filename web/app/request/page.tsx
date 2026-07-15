@@ -41,7 +41,7 @@ function SectionCard({
 }) {
   return (
     <div className="space-y-4 rounded-2xl border border-white/8 bg-white/[0.03] px-5 py-5">
-      <p className="text-[10px] font-semibold uppercase tracking-widest text-[#b1bdb0]">
+      <p className="text-[11px] font-semibold uppercase tracking-widest text-[#b1bdb0]">
         {label}
       </p>
       {children}
@@ -62,10 +62,10 @@ function FieldWrap({
 }) {
   return (
     <div className="space-y-1.5">
-      <label className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-widest text-[#b1bdb0]">
+      <label className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-widest text-[#b1bdb0]">
         {label}
         {optional && (
-          <span className="rounded-full bg-white/8 px-1.5 py-px text-[9px] normal-case tracking-normal font-normal text-[#b1bdb0]">
+          <span className="rounded-full bg-white/8 px-1.5 py-px text-[11px] normal-case tracking-normal font-normal text-[#b1bdb0]">
             optional
           </span>
         )}
@@ -198,7 +198,7 @@ export default function RequestPage() {
             </div>
             <div className="rounded-xl border border-white/8 bg-white/3 px-5 py-4 text-left space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] uppercase tracking-widest font-semibold text-[#b1bdb0]">
+                <span className="text-[11px] uppercase tracking-widest font-semibold text-[#b1bdb0]">
                   Status
                 </span>
                 <StatusChip status={submitted.status} />

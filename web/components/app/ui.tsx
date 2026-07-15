@@ -177,7 +177,7 @@ export function EmptyState({
 
 export function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#b1bdb0]">
+    <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#b1bdb0]">
       {children}
     </p>
   );
@@ -254,7 +254,7 @@ export function ReminderStatusBadge({ status }: { status: string }) {
   const tone = cfg[status] ?? "bg-white/8 text-[#b1bdb0] border-white/10";
   return (
     <span
-      className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${tone}`}
+      className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${tone}`}
     >
       {labels[status] ?? status}
     </span>

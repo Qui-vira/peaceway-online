@@ -138,7 +138,7 @@ export default function OrderDetailPage() {
 
         {order.fulfillment_status && (
           <div className="mx-5 rounded-2xl border border-white/8 bg-white/4 px-4 py-4">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#b1bdb0] mb-2">Fulfilment</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#b1bdb0] mb-2">Fulfilment</p>
             <p className="text-[14px] font-semibold text-white">
               {FULFILLMENT_LABEL[order.fulfillment_status] ?? order.fulfillment_status}
             </p>
@@ -147,7 +147,7 @@ export default function OrderDetailPage() {
 
         {/* Progress */}
         <div className="mx-5 rounded-2xl border border-white/8 bg-white/4 px-4 py-4 space-y-3">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#b1bdb0]">Progress</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#b1bdb0]">Progress</p>
           <div className="space-y-3">
             {PROGRESS_STEPS.map((step, i) => {
               const done = i <= currentStep;

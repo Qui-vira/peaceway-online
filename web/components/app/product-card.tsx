@@ -92,7 +92,7 @@ export function ProductCard({
         {/* Hover CTA (fades in via GSAP on pointer devices; hidden otherwise) */}
         <span
           ref={ctaRef}
-          className="pointer-events-none absolute right-2 top-2 rounded-full bg-black/60 px-2.5 py-1 text-[10px] font-semibold text-white backdrop-blur-sm"
+          className="pointer-events-none absolute right-2 top-2 rounded-full bg-black/60 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur-sm"
         >
           View
         </span>

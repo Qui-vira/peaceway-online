@@ -33,7 +33,7 @@ function FieldShell({
 
 function Label({ children }: { children: React.ReactNode }) {
   return (
-    <label className="mb-2 block text-[10px] font-semibold uppercase tracking-widest text-[#b1bdb0]">
+    <label className="mb-2 block text-[11px] font-semibold uppercase tracking-widest text-[#b1bdb0]">
       {children}
     </label>
   );
