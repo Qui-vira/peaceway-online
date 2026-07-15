@@ -4,7 +4,9 @@ description: The 24/7 ordering and operations surface for a real, licensed Lagos
 colors:
   dispensary-green: "#0f673c"
   dispensary-green-lit: "#1a8a50"
+  dispensary-green-mid: "#1aa35a"
   dispensary-green-bright: "#23bd6a"
+  ink-on-green: "#05130b"
   signal-green: "#34d98a"
   signal-green-soft: "#4ade80"
   cross-red: "#a80b16"
@@ -88,11 +90,11 @@ components:
     rounded: "{rounded.pill}"
     padding: "14px 32px"
   button-app:
-    backgroundColor: "{colors.dispensary-green-lit}"
-    textColor: "#ffffff"
+    backgroundColor: "{colors.dispensary-green-mid}"
+    textColor: "{colors.ink-on-green}"
     rounded: "{rounded.surface}"
     padding: "0 24px"
-    height: "44px"
+    height: "48px"
   tile:
     backgroundColor: "#ffffff0b"
     textColor: "{colors.ink}"
@@ -140,8 +142,13 @@ A near-black room with one green light in it, and a red reserved for the cross.
 - **Signal Green** (#34d98a): The green that speaks. Every green *word*, small icon, and focus ring.
   Bright enough to survive the dark base.
 
-- **Dispensary Green, Bright** (#23bd6a): The top stop of the primary button's gradient body. Pairs
-  with #0f673c so a button reads as lit from above.
+- **Dispensary Green, Mid** (#1aa35a): The app button's body. Carries `#05130b` ink at 5.82:1 — the
+  one green/ink pairing in the system with real AA headroom, and the reason app buttons use dark ink
+  rather than white.
+- **Dispensary Green, Bright** (#23bd6a): The top stop of the primary button's gradient body, and the
+  app button's hover. Pairs with #0f673c so a button reads as lit from above.
+- **Ink on Green** (#05130b): Near-black with a green cast, for type sitting on a green fill. White
+  on green does not clear AA at these greens; this does.
 - **Signal Green, Soft** (#4ade80): Signal Green's sibling, used on labels and the typing caret. Both
   clear AA on the dark base; either is correct for green text.
 
@@ -257,9 +264,13 @@ hardware when you do.
 ### Buttons
 - **Shape:** Fully pill on the marketing surface (32px radius); softened rectangle in the app (16px
   radius). Two vocabularies, one per register — never mixed on a screen.
-- **Primary:** Dispensary Green Lit (#1a8a50) body, white text, 15px/32px padding, DM Sans 700 at
-  14px with 0.06em tracking. On the hero it takes a green gradient (#23bd6a → #0f673c) and a solid
-  green lip.
+- **Primary (marketing):** Dispensary Green Lit (#1a8a50) body, white text, 15px/32px padding, DM
+  Sans 700 at 14px with 0.06em tracking. On the hero it takes a green gradient (#23bd6a → #0f673c)
+  and a solid green lip. **Known defect:** white on #1a8a50 is **4.38:1**. At 14px bold this is not
+  WCAG large text (that needs 18.66px bold), so 4.5:1 applies and this fails — on the landing's
+  primary CTA. The app button solved this by going to dark ink; `.bp` has not been migrated.
+- **Primary (app):** Dispensary Green Mid (#1aa35a) body with Ink on Green (#05130b) text at
+  **5.82:1**, 48px min-height, 16px radius, hover to #23bd6a. This is the correct pattern.
 - **Secondary:** Transparent with a 2px hairline border (rgba(220,221,219,0.28)), Ink text, 14px/32px
   padding. Same size and shape as primary; only the weight of the invitation differs.
 - **Hover / Focus:** Hover is pointer-only — a 2px lift plus green glow over 150–300ms, gated behind

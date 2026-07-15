@@ -73,7 +73,7 @@ export default function ReferralPage() {
         {/* Referral card */}
         <div
           className="rounded-2xl border border-emerald-500/25 p-6 text-center"
-          style={{ background: "linear-gradient(135deg, rgba(16,185,129,0.12), rgba(16,185,129,0.04))" }}
+          style={{ background: "linear-gradient(135deg, rgba(52,217,138,0.12), rgba(52,217,138,0.04))" }}
         >
           <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full border border-emerald-500/30 bg-emerald-500/15">
             <Gift className="h-5 w-5 text-emerald-400" />

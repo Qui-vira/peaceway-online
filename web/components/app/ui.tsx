@@ -58,7 +58,7 @@ export function ActionCard({
       className="pw-tile pw-tile-press group flex items-center gap-4 px-5 hover:-translate-y-0.5 hover:border-emerald-500/40 motion-reduce:hover:transform-none"
       style={{ paddingTop: 18, paddingBottom: 18 }}
     >
-      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-500/12 text-emerald-400 transition-all duration-300 group-hover:bg-emerald-500/20 group-hover:shadow-[0_0_16px_rgba(16,185,129,0.35)]">
+      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-500/12 text-emerald-400 transition-all duration-300 group-hover:bg-emerald-500/20 group-hover:shadow-[0_0_16px_rgba(52,217,138,0.35)]">
         {icon}
       </span>
       <span className="min-w-0 flex-1">

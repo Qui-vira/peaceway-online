@@ -9,6 +9,7 @@ import { getMe } from "@/lib/api/customers";
 import { AppShell } from "@/components/app/app-shell";
 import { Spinner } from "@/components/app/ui";
 import { TactileButton } from "@/components/app/tactile-button";
+import { siteConfig } from "@/lib/constants";
 
 const FOCUS =
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0b0c09]";
@@ -28,9 +29,17 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(true);
   const [payMethod, setPayMethod] = useState<PayMethod>("BANK_TRANSFER");
   const [address, setAddress] = useState("");
+  const [addressTouched, setAddressTouched] = useState(false);
   const [note, setNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+
+  // Every order here is a delivery, so an address is required, not optional.
+  // This used to submit `address || undefined`, which let an order through with
+  // nowhere to send it: a refund, a phone call, and a customer who concludes the
+  // pharmacy isn't real.
+  const addressValid = address.trim().length > 0;
+  const showAddressError = addressTouched && !addressValid;
 
   useEffect(() => {
     const c = getCart();
@@ -45,13 +54,18 @@ export default function CheckoutPage() {
   }, [router]);
 
   async function handleSubmit() {
+    if (!addressValid) {
+      setAddressTouched(true);
+      document.getElementById("delivery-address")?.focus();
+      return;
+    }
     setError("");
     setSubmitting(true);
     try {
       const order = await createOrder({
         items: cart.map((c) => ({ product_id: c.product_id, quantity: c.quantity })),
-        delivery_address: address || undefined,
-        delivery_note: note || undefined,
+        delivery_address: address.trim(),
+        delivery_note: note.trim() || undefined,
         payment_method: payMethod,
       });
       clearCart();
@@ -78,7 +92,10 @@ export default function CheckoutPage() {
 
   const subtotal = cartTotal(cart);
   const total = subtotal + DELIVERY_FEE;
-  const inputCls = `w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-base text-white outline-none transition placeholder-white/30 focus:border-emerald-500/50 md:text-sm ${FOCUS}`;
+  // No `md:text-sm` here: dropping to 14px on desktop is harmless, but the same
+  // class ships to phones in other files and trips iOS auto-zoom. 16px is the
+  // documented floor, and placeholders need the same 4.5:1 as body text.
+  const inputCls = `w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-base text-white outline-none transition placeholder-[#b1bdb0] focus:border-emerald-500/50 ${FOCUS}`;
 
   return (
     <AppShell back={{ title: "Checkout", fallbackHref: "/cart" }}>
@@ -88,17 +105,33 @@ export default function CheckoutPage() {
           <div className="space-y-5">
             {/* Delivery address */}
             <section className="space-y-3 rounded-2xl border border-white/8 bg-white/[0.04] px-4 py-4">
-              <h2 className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/40">
+              <h2 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#b1bdb0]">
                 Delivery Address
               </h2>
               <textarea
+                id="delivery-address"
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
+                onBlur={() => setAddressTouched(true)}
                 placeholder="Your street address, area, Lagos..."
                 aria-label="Delivery address"
+                aria-required="true"
+                aria-invalid={showAddressError}
+                aria-describedby={showAddressError ? "delivery-address-error" : undefined}
                 rows={2}
-                className={`resize-none ${inputCls}`}
+                className={`resize-none ${inputCls} ${
+                  showAddressError ? "border-red-500/50" : ""
+                }`}
               />
+              {showAddressError && (
+                <p
+                  id="delivery-address-error"
+                  role="alert"
+                  className="text-[13px] text-red-400"
+                >
+                  We need an address to deliver to. Street and area is enough.
+                </p>
+              )}
               <input
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
@@ -110,23 +143,35 @@ export default function CheckoutPage() {
 
             {/* Payment method */}
             <section className="space-y-3 rounded-2xl border border-white/8 bg-white/[0.04] px-4 py-4">
-              <h2 className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/40">
+              <h2 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#b1bdb0]">
                 Payment Method
               </h2>
-              <div role="radiogroup" aria-label="Payment method" className="space-y-3">
+              {/* Native radios, not buttons wearing role="radio". The hand-rolled
+                  version announced "radio" to a screen reader but had no roving
+                  tabIndex and no arrow-key handler, so the keys that a radio group
+                  promises did nothing. The input is visually hidden; the tile is
+                  the label, so it looks identical and behaves correctly. */}
+              <fieldset className="space-y-3">
+                <legend className="sr-only">Payment method</legend>
                 {PAY_OPTIONS.map((opt) => {
                   const selected = payMethod === opt.value;
                   return (
-                    <button
+                    <label
                       key={opt.value}
-                      role="radio"
-                      aria-checked={selected}
-                      onClick={() => setPayMethod(opt.value)}
-                      className={`pw-tile pw-tile-press flex w-full items-start gap-3 p-3.5 text-left ${
+                      className={`pw-tile pw-tile-press flex w-full items-start gap-3 p-3.5 text-left has-[:focus-visible]:shadow-[0_4px_0_0_rgba(255,255,255,0.06),0_0_0_3px_rgba(52,217,138,0.5)] ${
                         selected ? "is-active" : ""
                       }`}
                     >
+                      <input
+                        type="radio"
+                        name="payment-method"
+                        value={opt.value}
+                        checked={selected}
+                        onChange={() => setPayMethod(opt.value)}
+                        className="sr-only"
+                      />
                       <span
+                        aria-hidden
                         className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ${
                           selected ? "border-emerald-500 bg-emerald-500" : "border-white/30"
                         }`}
@@ -134,25 +179,25 @@ export default function CheckoutPage() {
                         {selected && <span className="h-2 w-2 rounded-full bg-black" />}
                       </span>
                       <span>
-                        <span className="block text-[13px] font-semibold text-white">{opt.label}</span>
-                        <span className="block text-[11px] text-white/40">{opt.sub}</span>
+                        <span className="block text-[14px] font-semibold text-white">{opt.label}</span>
+                        <span className="block text-[11px] text-[#b1bdb0]">{opt.sub}</span>
                       </span>
-                    </button>
+                    </label>
                   );
                 })}
-              </div>
+              </fieldset>
             </section>
           </div>
 
           {/* Right: summary + place order (sticky on desktop) */}
           <div className="space-y-4 md:sticky md:top-24">
             <section className="space-y-2.5 rounded-2xl border border-white/8 bg-white/[0.04] px-4 py-4">
-              <h2 className="mb-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/40">
+              <h2 className="mb-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#b1bdb0]">
                 Order Summary
               </h2>
               {cart.map((item) => (
                 <div key={item.product_id} className="flex justify-between gap-2 text-[13px]">
-                  <span className="truncate text-white/60">
+                  <span className="truncate text-[#b1bdb0]">
                     {item.product_name} × {item.quantity}
                   </span>
                   <span className="shrink-0 text-white">
@@ -162,7 +207,7 @@ export default function CheckoutPage() {
               ))}
               <div className="mt-1 h-px bg-white/8" />
               <div className="flex justify-between text-[13px]">
-                <span className="text-white/50">Delivery</span>
+                <span className="text-[#b1bdb0]">Delivery</span>
                 <span className="text-white">₦{DELIVERY_FEE.toLocaleString()}</span>
               </div>
               <div className="flex justify-between font-semibold">
@@ -180,10 +225,39 @@ export default function CheckoutPage() {
               </p>
             )}
 
-            <TactileButton disabled={submitting} onClick={handleSubmit} className="w-full">
+            {/* Trust evidence, at the one moment it is actually needed. This was a
+                terms-of-service line at 11px / white-25 (~2.2:1) - fine print,
+                rendered invisible, at the exact point a customer commits money to
+                medicine they cannot inspect. Every claim below is a fact already in
+                the codebase; nothing here is decoration. */}
+            <section
+              aria-label="About this order"
+              className="space-y-2 rounded-2xl border border-emerald-500/20 bg-emerald-500/[0.06] px-4 py-3.5"
+            >
+              <p className="text-[14px] font-semibold text-white">
+                Dispensed by a licensed pharmacy
+              </p>
+              <p className="text-[13px] leading-relaxed text-[#b1bdb0]">
+                {siteConfig.address}. We verify stock and check your order before
+                confirming it — if anything is unavailable, a pharmacist contacts you
+                first.
+              </p>
+              {payMethod === "BANK_TRANSFER" && (
+                <p className="text-[13px] leading-relaxed text-[#b1bdb0]">
+                  Nothing is charged now. We send account details after you place the
+                  order.
+                </p>
+              )}
+            </section>
+
+            <TactileButton
+              disabled={submitting || !addressValid}
+              onClick={handleSubmit}
+              className="w-full"
+            >
               {submitting ? "Placing order…" : `Place Order · ₦${total.toLocaleString()}`}
             </TactileButton>
-            <p className="text-center text-[11px] text-white/25">
+            <p className="text-center text-[11px] text-[#b1bdb0]">
               By placing this order you agree to our terms of service.
             </p>
           </div>

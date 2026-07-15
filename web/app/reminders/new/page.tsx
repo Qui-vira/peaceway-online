@@ -273,11 +273,11 @@ export default function NewReminderPage() {
             <div className="rounded-2xl border border-white/8 bg-white/4 px-5 py-6 flex flex-col items-center gap-3 text-center">
               <span className="flex h-14 w-14 items-center justify-center rounded-2xl border border-emerald-500/25 bg-emerald-500/12">
                 <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
-                  <rect x="6" y="13" width="36" height="26" rx="4" fill="rgba(16,185,129,0.18)" stroke="#10b981" strokeWidth="2"/>
-                  <circle cx="17" cy="23" r="5" fill="rgba(16,185,129,0.45)" stroke="#10b981" strokeWidth="1.5"/>
-                  <circle cx="31" cy="23" r="5" fill="rgba(16,185,129,0.45)" stroke="#10b981" strokeWidth="1.5"/>
-                  <circle cx="17" cy="33" r="5" fill="rgba(16,185,129,0.45)" stroke="#10b981" strokeWidth="1.5"/>
-                  <circle cx="31" cy="33" r="5" fill="rgba(16,185,129,0.45)" stroke="#10b981" strokeWidth="1.5"/>
+                  <rect x="6" y="13" width="36" height="26" rx="4" fill="rgba(52,217,138,0.18)" stroke="#34d98a" strokeWidth="2"/>
+                  <circle cx="17" cy="23" r="5" fill="rgba(52,217,138,0.45)" stroke="#34d98a" strokeWidth="1.5"/>
+                  <circle cx="31" cy="23" r="5" fill="rgba(52,217,138,0.45)" stroke="#34d98a" strokeWidth="1.5"/>
+                  <circle cx="17" cy="33" r="5" fill="rgba(52,217,138,0.45)" stroke="#34d98a" strokeWidth="1.5"/>
+                  <circle cx="31" cy="33" r="5" fill="rgba(52,217,138,0.45)" stroke="#34d98a" strokeWidth="1.5"/>
                 </svg>
               </span>
               <div>

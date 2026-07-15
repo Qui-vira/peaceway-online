@@ -23,9 +23,9 @@ type FormErrors = Partial<Record<"full_name" | "phone" | "email" | "form", strin
 function PeacewayMark() {
   return (
     <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="20" cy="20" r="18" fill="rgba(16,185,129,0.15)" stroke="#10b981" strokeWidth="1.8"/>
-      <line x1="20" y1="8" x2="20" y2="32" stroke="#10b981" strokeWidth="2.2" strokeLinecap="round"/>
-      <line x1="8" y1="20" x2="32" y2="20" stroke="#10b981" strokeWidth="2.2" strokeLinecap="round"/>
+      <circle cx="20" cy="20" r="18" fill="rgba(52,217,138,0.15)" stroke="#34d98a" strokeWidth="1.8"/>
+      <line x1="20" y1="8" x2="20" y2="32" stroke="#34d98a" strokeWidth="2.2" strokeLinecap="round"/>
+      <line x1="8" y1="20" x2="32" y2="20" stroke="#34d98a" strokeWidth="2.2" strokeLinecap="round"/>
     </svg>
   );
 }

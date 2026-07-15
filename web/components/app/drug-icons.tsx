@@ -3,9 +3,9 @@ type IconProps = {
   className?: string;
 };
 
-const G = "#10b981";
-const GF = "rgba(16,185,129,0.18)";
-const GM = "rgba(16,185,129,0.45)";
+const G = "#34d98a";
+const GF = "rgba(52,217,138,0.18)";
+const GM = "rgba(52,217,138,0.45)";
 
 export function TabletIcon({ size = 48, className }: IconProps) {
   return (
