@@ -44,7 +44,10 @@ export function ProductCard({
     if (!card || !icon || !cta) return;
 
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const canHover = window.matchMedia("(hover: hover)").matches;
+    // `pointer: fine` as well as `hover: hover`: a touchscreen laptop reports
+    // hover-capable but its finger is a coarse pointer, and a pointer-driven
+    // lift has no meaning without a real pointer to drive it.
+    const canHover = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
     // Touch gets its press from `.pw-tile-press`-style CSS on the element below,
     // not from GSAP: a pointer-driven lift has no meaning without a pointer.
     // The card's own touch feedback is `active:scale-[0.98]` in the markup, which
