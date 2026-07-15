@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { motion, useReducedMotion, type Variants } from "framer-motion";
 import { siteConfig } from "@/lib/constants";
 
@@ -8,20 +9,40 @@ const HEADLINE = ["YOUR LAGOS", "PHARMACY", "IS NOW ONLINE"];
 const EASE = [0.22, 0.61, 0.36, 1] as const;
 
 /**
+ * Fine-pointer test for hover motion. The stylesheet gates its hover states on
+ * `(hover: hover) and (pointer: fine)`; Framer Motion's `whileHover` ignores
+ * that and fires on touch, where a "hover" lift has no meaning. Touch devices
+ * get their press feedback from `@media (hover: none)` in globals.css instead.
+ */
+function useFinePointer(): boolean {
+  const [fine, setFine] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(hover: hover) and (pointer: fine)");
+    const sync = (): void => setFine(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
+  return fine;
+}
+
+/**
  * Animated hero copy (Framer Motion): the tagline types in character by
  * character, the headline wipes up (clip-path, so the gradient text stays
  * intact), then the subtext and CTAs fade up. Static under reduced-motion.
  */
 export function HeroContent(): JSX.Element {
   const reduce = useReducedMotion();
+  const finePointer = useFinePointer();
 
-  const hover = reduce
-    ? {}
-    : {
-        whileHover: { y: -2, scale: 1.015 },
-        whileTap: { scale: 0.97 },
-        transition: { type: "spring" as const, stiffness: 420, damping: 24 },
-      };
+  const hover =
+    reduce || !finePointer
+      ? {}
+      : {
+          whileHover: { y: -2, scale: 1.015 },
+          whileTap: { scale: 0.97 },
+          transition: { type: "spring" as const, stiffness: 420, damping: 24 },
+        };
   const cta = (
     <>
       <motion.a
@@ -56,9 +77,13 @@ export function HeroContent(): JSX.Element {
     );
   }
 
+  /* Entrance budget: the CTA is settled by ~0.75s, not 2.3s. The copy no longer
+     queues behind the tagline typing - the headline starts almost immediately
+     and the tagline types alongside it. Stagger is decorative and must never
+     gate the primary action. */
   const tagWrap: Variants = {
     hidden: {},
-    show: { transition: { staggerChildren: 0.026, delayChildren: 0.2 } },
+    show: { transition: { staggerChildren: 0.012, delayChildren: 0.05 } },
   };
   const tagChar: Variants = {
     hidden: { opacity: 0 },
@@ -94,7 +119,7 @@ export function HeroContent(): JSX.Element {
               className="hh-line"
               initial={{ y: "110%" }}
               animate={{ y: "0%" }}
-              transition={{ duration: 0.8, ease: EASE, delay: 1.05 + i * 0.13 }}
+              transition={{ duration: 0.45, ease: EASE, delay: 0.12 + i * 0.07 }}
             >
               {line}
             </motion.span>
@@ -106,7 +131,7 @@ export function HeroContent(): JSX.Element {
         className="hs"
         initial={{ y: 18, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.6, ease: EASE, delay: 1.55 }}
+        transition={{ duration: 0.3, ease: EASE, delay: 0.34 }}
       >
         Genuine medicines, pharmacist guidance, and delivery across Lagos.
       </motion.p>
@@ -115,7 +140,7 @@ export function HeroContent(): JSX.Element {
         className="ctg"
         initial={{ y: 18, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.6, ease: EASE, delay: 1.72 }}
+        transition={{ duration: 0.3, ease: EASE, delay: 0.45 }}
       >
         {cta}
       </motion.div>

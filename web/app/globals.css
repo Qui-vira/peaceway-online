@@ -379,7 +379,17 @@ footer {
   margin-left: 3px;
   vertical-align: -0.12em;
   background: #4ade80;
-  animation: caret-blink 0.9s steps(1) infinite;
+  /* A caret means "still typing". The tagline finishes in ~0.55s, so blink
+     through that and stop - an endless blink on a permanently-visible element
+     is decoration competing with the headline for attention. */
+  animation: caret-blink 0.9s steps(1) 1 forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .type-caret {
+    animation: none;
+    opacity: 0;
+  }
 }
 
 @keyframes caret-blink {
