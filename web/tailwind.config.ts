@@ -55,7 +55,7 @@ const config: Config = {
         12: "0.12"
       },
       fontFamily: {
-        display: ["var(--font-syne)", "sans-serif"],
+        syne: ["var(--font-syne)", "sans-serif"],
         sans: ["var(--font-dm-sans)", "sans-serif"]
       },
       boxShadow: {

@@ -41,12 +41,29 @@ body::before {
 }
 
 :root {
+  /* Brand fills. These sit *under* white text; they are not text colours.
+     --g2 carries white at 5.02:1 - it used to double as a text colour on the
+     dark background, which pulled it in two directions at once and left it
+     failing both (4.48:1 as text, 4.38:1 as a fill). The two roles are split
+     now: fills below, text tokens further down. */
   --g: #0f673c;
-  --g2: #1a8a50;
+  --g2: #187f4a;
   --gl: rgba(15, 103, 60, 0.14);
   --r: #a80b16;
+
+  /* Text colours, all measured against --bgd (#0b0c09) at WCAG AA (4.5:1 for
+     body copy). Every value carries headroom so a small tweak cannot silently
+     drop a token below the line. */
   --t: #dcdddb;
   --m: #b1bdb0;
+  --m2: #868f85;
+  --g-text: #34d98a;
+  --r-text: #e04d57;
+  /* The hero is the one light surface on the site (--hero-bg #c5c6c1), so green
+     text there has to run *darker*, not lighter. Same hue and saturation as --g,
+     dropped to 20% lightness: 5.01:1 where plain --g managed 4.04:1. */
+  --g-on-light: #0d5733;
+
   --bg: #191a17;
   --bgd: #0b0c09;
   --bdr: rgba(255, 255, 255, 0.08);
@@ -295,7 +312,7 @@ footer {
   font-size: 11px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--r);
+  color: var(--r-text);
   font-family: var(--font-syne), sans-serif;
   font-weight: 700;
   margin-bottom: 10px;
@@ -526,7 +543,7 @@ footer {
   align-items: center;
 }
 .ft-marquee-dot {
-  color: var(--g2);
+  color: var(--g-text);
   margin-left: 3rem;
 }
 
@@ -595,7 +612,7 @@ footer {
     background: #c5c6c1;
   }
   #s1 .htag {
-    color: #0f673c;
+    color: var(--g-on-light);
   }
   #s1 .hh {
     font-size: clamp(30px, 3.1vw, 48px);
@@ -1020,7 +1037,7 @@ button:not(:disabled):not([aria-disabled="true"]),
   font-family: var(--font-syne), sans-serif;
   font-weight: 800;
   font-size: 14px;
-  color: var(--g);
+  color: var(--g-text);
   flex-shrink: 0;
 }
 
@@ -1092,7 +1109,7 @@ button:not(:disabled):not([aria-disabled="true"]),
 }
 
 .cpn {
-  color: var(--g);
+  color: var(--g-text);
   font-weight: 600;
   font-size: 12px;
   margin-bottom: 5px;
@@ -1220,7 +1237,7 @@ button:not(:disabled):not([aria-disabled="true"]),
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  color: var(--g);
+  color: var(--g-text);
 }
 
 .ctlb {
@@ -1228,7 +1245,7 @@ button:not(:disabled):not([aria-disabled="true"]),
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: rgba(177, 189, 176, 0.5);
+  color: var(--m2);
   margin-bottom: 3px;
   font-family: var(--font-syne), sans-serif;
   font-weight: 700;
@@ -1264,7 +1281,7 @@ button:not(:disabled):not([aria-disabled="true"]),
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: var(--g);
+  color: var(--g-text);
   margin-bottom: 16px;
 }
 
@@ -1287,8 +1304,14 @@ button:not(:disabled):not([aria-disabled="true"]),
 
 .fleg {
   font-size: 11.5px;
-  color: rgba(177, 189, 176, 0.4);
+  color: var(--m2);
   line-height: 1.7;
+  /* Unconstrained, these three lines ran the full width of the footer - about
+     150 characters, roughly double the point where the eye loses the start of
+     the next line. Legal copy is the text people are least motivated to read;
+     it does not also need to be the hardest. */
+  max-width: 68ch;
+  text-wrap: pretty;
 }
 
 .flogo {
@@ -1633,7 +1656,7 @@ button:not(:disabled):not([aria-disabled="true"]),
     filter: none;
   }
   #s1 .htag {
-    color: #0f673c;
+    color: var(--g-on-light);
     text-shadow: none;
   }
   #s1 .hs {
