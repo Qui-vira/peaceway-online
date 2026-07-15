@@ -20,7 +20,7 @@ function formatDateTime(iso: string): string {
 function DetailRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-baseline justify-between gap-4 py-3">
-      <span className="text-[10px] font-semibold uppercase tracking-widest text-white/35">
+      <span className="text-[10px] font-semibold uppercase tracking-widest text-[#b1bdb0]">
         {label}
       </span>
       <span className="text-right text-sm text-white/80">{value}</span>
@@ -48,7 +48,7 @@ export default function RequestDetailPage({
       <div className="px-5 pt-8 pb-2">
         <Link
           href="/requests"
-          className="inline-flex items-center gap-2 text-[10px] font-semibold uppercase tracking-widest text-white/40 transition hover:text-white/70"
+          className="inline-flex items-center gap-2 text-[10px] font-semibold uppercase tracking-widest text-[#b1bdb0] transition hover:text-white/70"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
           All Requests
@@ -108,7 +108,7 @@ export default function RequestDetailPage({
           {/* Message thread */}
           {req.thread.length > 0 && (
             <div className="space-y-4">
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-white/35">
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-[#b1bdb0]">
                 Updates
               </p>
               {req.thread.map((m) => (
@@ -122,7 +122,7 @@ export default function RequestDetailPage({
                   ].join(" ")}
                 >
                   <p className="text-sm leading-relaxed text-white/85">{m.message_text}</p>
-                  <p className="mt-1.5 text-[10px] text-white/30">
+                  <p className="mt-1.5 text-[10px] text-[#b1bdb0]">
                     {m.sender_type === "customer" ? "You" : "Peaceway"} ·{" "}
                     {formatDateTime(m.created_at)}
                   </p>

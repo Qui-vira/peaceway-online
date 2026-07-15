@@ -82,20 +82,20 @@ export default function ReferralPage() {
             Your referral code
           </p>
           <p className="font-syne text-[28px] font-bold tracking-wider text-emerald-400">{code}</p>
-          <p className="mt-2 text-[12px] text-white/40">Friends get ₦200 off their first order</p>
+          <p className="mt-2 text-[12px] text-[#b1bdb0]">Friends get ₦200 off their first order</p>
         </div>
 
         {/* Stats */}
         <div className="grid grid-cols-2 gap-3">
           <div className="rounded-2xl border border-white/8 bg-white/4 p-4 text-center">
             <p className="text-[22px] font-bold text-white">{me.referral_count ?? 0}</p>
-            <p className="text-[11px] text-white/40 mt-0.5">Friends referred</p>
+            <p className="text-[11px] text-[#b1bdb0] mt-0.5">Friends referred</p>
           </div>
           <div className="rounded-2xl border border-white/8 bg-white/4 p-4 text-center">
             <p className="text-[22px] font-bold text-emerald-400">
               ₦{((me.referral_rewards ?? 0) * 200).toLocaleString()}
             </p>
-            <p className="text-[11px] text-white/40 mt-0.5">Rewards earned</p>
+            <p className="text-[11px] text-[#b1bdb0] mt-0.5">Rewards earned</p>
           </div>
         </div>
 

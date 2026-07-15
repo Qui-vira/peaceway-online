@@ -159,7 +159,7 @@ function BottomNav({ pathname }: { pathname: string }) {
               aria-current={active ? "page" : undefined}
               className={[
                 "flex min-h-[56px] min-w-[56px] flex-1 flex-col items-center justify-center gap-1 py-2.5 text-[10px] font-semibold uppercase tracking-wide transition-colors",
-                active ? "text-emerald-400" : "text-white/40 hover:text-white/70",
+                active ? "text-emerald-400" : "text-[#b1bdb0] hover:text-[#dcdddb]",
                 FOCUS,
               ].join(" ")}
             >
@@ -183,7 +183,7 @@ function Footer() {
             <Image src={media.logo} alt="Peaceway Pharmacy" width={110} height={36} className="h-7 w-auto" />
           </span>
           <p className="leading-relaxed">{siteConfig.footerNote}</p>
-          <p className="text-white/35">{siteConfig.address}</p>
+          <p className="text-[#b1bdb0]">{siteConfig.address}</p>
         </div>
         <nav aria-label="Footer" className="flex flex-wrap gap-x-6 gap-y-2">
           <Link href="/shop" className={`rounded transition-colors hover:text-white ${FOCUS}`}>Shop</Link>
@@ -202,7 +202,7 @@ function Footer() {
           </a>
         </nav>
       </div>
-      <p className="mx-auto mt-8 max-w-6xl text-xs text-white/30">
+      <p className="mx-auto mt-8 max-w-6xl text-xs text-[#b1bdb0]">
         © {year} {siteConfig.name}. All rights reserved.
       </p>
     </footer>

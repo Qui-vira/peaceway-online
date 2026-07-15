@@ -109,7 +109,7 @@ export default function AdminSourcingPage() {
             <>
               <section className="rounded-3xl border border-white/8 bg-white/4 p-5">
                 <div className="mb-4">
-                  <p className="text-xs uppercase tracking-[0.18em] text-white/35">Network Partners</p>
+                  <p className="text-xs uppercase tracking-[0.18em] text-[#b1bdb0]">Network Partners</p>
                   <p className="mt-1 text-lg font-semibold">{partners.length} configured</p>
                 </div>
                 <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
@@ -119,7 +119,7 @@ export default function AdminSourcingPage() {
                       <p className="mt-1 text-xs text-white/45">
                         {partner.partner_type} · {partner.channel_type}
                       </p>
-                      <p className="mt-3 text-xs text-white/35">{partner.portal_contact ?? partner.key}</p>
+                      <p className="mt-3 text-xs text-[#b1bdb0]">{partner.portal_contact ?? partner.key}</p>
                     </div>
                   ))}
                   {state === "ready" && partners.length === 0 && (
@@ -132,7 +132,7 @@ export default function AdminSourcingPage() {
 
               <section className="rounded-3xl border border-white/8 bg-white/4 p-5">
                 <div className="mb-4">
-                  <p className="text-xs uppercase tracking-[0.18em] text-white/35">Sourcing Requests</p>
+                  <p className="text-xs uppercase tracking-[0.18em] text-[#b1bdb0]">Sourcing Requests</p>
                   <p className="mt-1 text-lg font-semibold">{rows.length} tracked orders</p>
                 </div>
                 <div className="space-y-3">

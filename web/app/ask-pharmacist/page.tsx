@@ -88,7 +88,7 @@ export default function AskPharmacistPage() {
                   placeholder="e.g. Can I take ibuprofen with my blood pressure medicine?"
                   value={question}
                   onChange={(e) => setQuestion(e.target.value)}
-                  className="w-full resize-none bg-transparent text-sm text-white placeholder-white/25 outline-none"
+                  className="w-full resize-none bg-transparent text-sm text-white placeholder-[#b1bdb0] outline-none"
                 />
                 <button
                   type="submit"
@@ -133,7 +133,7 @@ export default function AskPharmacistPage() {
                   >
                     <div className="flex items-start justify-between gap-3">
                       <p className="text-sm leading-relaxed text-white/85">{q.question}</p>
-                      <span className="shrink-0 text-[11px] text-white/30 mt-0.5">
+                      <span className="shrink-0 text-[11px] text-[#b1bdb0] mt-0.5">
                         {formatDate(q.created_at)}
                       </span>
                     </div>
@@ -160,11 +160,11 @@ export default function AskPharmacistPage() {
             {questions.length === 0 && (
               <div className="flex flex-col items-center gap-4 py-8 text-center">
                 <span className="inline-flex h-14 w-14 items-center justify-center rounded-full border border-white/10 bg-white/5">
-                  <MessageCircle className="h-6 w-6 text-white/30" />
+                  <MessageCircle className="h-6 w-6 text-[#b1bdb0]" />
                 </span>
                 <div className="space-y-1">
                   <p className="text-base font-semibold text-white">No questions yet</p>
-                  <p className="max-w-xs text-sm leading-relaxed text-white/40">
+                  <p className="max-w-xs text-sm leading-relaxed text-[#b1bdb0]">
                     Ask anything about your medicines above.
                   </p>
                 </div>

@@ -78,7 +78,7 @@ function TrackPageContent() {
         <Link href="/" className="inline-block">
           <span className="font-syne text-lg font-bold text-white">Peaceway Online</span>
         </Link>
-        <p className="mt-1 text-[12px] text-white/30">Igando, Lagos</p>
+        <p className="mt-1 text-[12px] text-[#b1bdb0]">Igando, Lagos</p>
       </div>
 
       <div className="mx-auto max-w-sm">
@@ -87,7 +87,7 @@ function TrackPageContent() {
             <Search className="h-6 w-6 text-white/50" />
           </div>
           <h1 className="font-syne text-[22px] font-bold text-white">Track Your Order</h1>
-          <p className="mt-1.5 text-[13px] text-white/40">No account needed</p>
+          <p className="mt-1.5 text-[13px] text-[#b1bdb0]">No account needed</p>
         </div>
 
         <div className="rounded-2xl border border-white/8 bg-white/4 p-5 space-y-4">
@@ -97,7 +97,7 @@ function TrackPageContent() {
               value={code}
               onChange={(e) => setCode(e.target.value)}
               placeholder="e.g. PW-2025-0042"
-              className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-white/30 outline-none focus:border-emerald-500/50"
+              className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-[#b1bdb0] outline-none focus:border-emerald-500/50"
             />
           </div>
           <div className="space-y-1.5">
@@ -107,7 +107,7 @@ function TrackPageContent() {
               onChange={(e) => setPhone(e.target.value)}
               placeholder="08012345678"
               type="tel"
-              className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-white/30 outline-none focus:border-emerald-500/50"
+              className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-[#b1bdb0] outline-none focus:border-emerald-500/50"
             />
           </div>
 
@@ -139,14 +139,14 @@ function TrackPageContent() {
                   {result.customer_facing_status}
                 </p>
               )}
-              <p className="text-[12px] text-white/40 mt-0.5">
+              <p className="text-[12px] text-[#b1bdb0] mt-0.5">
                 Placed {new Date(result.created_at).toLocaleDateString("en-NG", { day: "numeric", month: "long" })}
               </p>
             </div>
 
             {result.fulfillment_status && (
               <div className="rounded-2xl border border-white/8 bg-white/4 px-4 py-4">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/40 mb-2">Fulfilment</p>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#b1bdb0] mb-2">Fulfilment</p>
                 <p className="text-[14px] font-semibold text-white">
                   {FULFILLMENT_LABEL[result.fulfillment_status] ?? result.fulfillment_status}
                 </p>
@@ -158,7 +158,7 @@ function TrackPageContent() {
 
             {/* Items */}
             <div className="rounded-2xl border border-white/8 bg-white/4 px-4 py-4 space-y-2">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/40 mb-3">Items</p>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#b1bdb0] mb-3">Items</p>
               {result.items.map((item, i) => (
                 <div key={i} className="flex justify-between text-[13px]">
                   <span className="text-white/70">{item.product_name} × {item.quantity}</span>
@@ -170,7 +170,7 @@ function TrackPageContent() {
             {/* Timeline */}
             {result.history.length > 0 && (
               <div className="rounded-2xl border border-white/8 bg-white/4 px-4 py-4 space-y-3">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/40">Timeline</p>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#b1bdb0]">Timeline</p>
                 {result.history.map((h, i) => (
                   <div key={i} className="flex items-start gap-3">
                     <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
@@ -179,7 +179,7 @@ function TrackPageContent() {
                         {STATUS_LABEL[h.to_value] ?? h.to_value}
                       </p>
                       {h.note && <p className="text-[11px] text-white/50">{h.note}</p>}
-                      <p className="text-[11px] text-white/30">
+                      <p className="text-[11px] text-[#b1bdb0]">
                         {new Date(h.created_at).toLocaleString("en-NG", {
                           day: "numeric",
                           month: "short",
@@ -202,7 +202,7 @@ function TrackPageContent() {
           </div>
         )}
 
-        <p className="mt-8 text-center text-[12px] text-white/25">
+        <p className="mt-8 text-center text-[12px] text-[#b1bdb0]">
           <Link href="/" className="hover:text-white/50">← Back to home</Link>
         </p>
       </div>

@@ -65,7 +65,7 @@ export function ActionCard({
         <span className="block text-sm font-semibold text-white">{title}</span>
         <span className="block truncate text-xs text-white/45">{description}</span>
       </span>
-      <ChevronRight className="h-4 w-4 shrink-0 text-white/30 transition-all duration-300 group-hover:translate-x-1 group-hover:text-emerald-400 motion-reduce:transform-none" />
+      <ChevronRight className="h-4 w-4 shrink-0 text-[#b1bdb0] transition-all duration-300 group-hover:translate-x-1 group-hover:text-emerald-400 motion-reduce:transform-none" />
     </Link>
   );
 }
@@ -78,7 +78,7 @@ export function GuestWall({ message }: { message?: string }) {
   return (
     <div className="flex flex-col items-center gap-6 px-5 py-16 text-center">
       <span className="inline-flex h-16 w-16 items-center justify-center rounded-full border border-white/10 bg-white/5">
-        <UserPlus className="h-8 w-8 text-white/40" />
+        <UserPlus className="h-8 w-8 text-[#b1bdb0]" />
       </span>
       <div className="space-y-2">
         <h2 className="text-xl font-bold text-white">Create your profile first</h2>
@@ -93,7 +93,7 @@ export function GuestWall({ message }: { message?: string }) {
       </Link>
       <Link
         href="/"
-        className="text-[13px] text-white/35 hover:text-white/60 transition"
+        className="text-[13px] text-[#b1bdb0] hover:text-[#dcdddb] transition"
       >
         ← Back to Home
       </Link>
@@ -116,7 +116,7 @@ export function EmptyState({
 }) {
   return (
     <div className="flex flex-col items-center gap-5 px-5 py-14 text-center">
-      <span className="inline-flex h-14 w-14 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/40">
+      <span className="inline-flex h-14 w-14 items-center justify-center rounded-full border border-white/10 bg-white/5 text-[#b1bdb0]">
         {icon}
       </span>
       <div className="space-y-1.5">
@@ -137,7 +137,7 @@ export function EmptyState({
 
 export function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/40">
+    <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#b1bdb0]">
       {children}
     </p>
   );
@@ -187,7 +187,7 @@ export function TimeChip({
     status === "missed"
       ? "bg-red-500/15 text-red-400 border-red-500/25"
       : status === "sent"
-      ? "bg-white/8 text-white/40 border-white/10"
+      ? "bg-white/8 text-[#b1bdb0] border-white/10"
       : "bg-emerald-500/15 text-emerald-400 border-emerald-500/25";
   return (
     <span
@@ -203,7 +203,7 @@ export function ReminderStatusBadge({ status }: { status: string }) {
     ACTIVE: "bg-emerald-500/15 text-emerald-400 border-emerald-500/25",
     PAUSED: "bg-amber-500/15 text-amber-400 border-amber-500/25",
     STOPPED: "bg-red-500/15 text-red-400 border-red-500/25",
-    COMPLETED: "bg-white/8 text-white/40 border-white/10",
+    COMPLETED: "bg-white/8 text-[#b1bdb0] border-white/10",
   };
   const labels: Record<string, string> = {
     ACTIVE: "Active",
@@ -211,7 +211,7 @@ export function ReminderStatusBadge({ status }: { status: string }) {
     STOPPED: "Stopped",
     COMPLETED: "Completed",
   };
-  const tone = cfg[status] ?? "bg-white/8 text-white/40 border-white/10";
+  const tone = cfg[status] ?? "bg-white/8 text-[#b1bdb0] border-white/10";
   return (
     <span
       className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${tone}`}
@@ -250,7 +250,7 @@ export function MedCard({
             <TimeChip key={t} time={t} />
           ))}
           {reminder.times.length > 3 && (
-            <span className="text-xs text-white/30">
+            <span className="text-xs text-[#b1bdb0]">
               +{reminder.times.length - 3} more
             </span>
           )}
@@ -258,7 +258,7 @@ export function MedCard({
       </span>
       <span className="flex shrink-0 flex-col items-end gap-2">
         <ReminderStatusBadge status={reminder.status} />
-        <ChevronRight className="h-4 w-4 text-white/25" />
+        <ChevronRight className="h-4 w-4 text-[#b1bdb0]" />
       </span>
     </button>
   );

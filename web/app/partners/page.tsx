@@ -93,7 +93,7 @@ function PartnerOtpGate({ onLogin }: { onLogin: (me: PartnerMe) => void }) {
       <div className="w-full max-w-md space-y-6">
         <div className="text-center">
           <p className="font-syne text-[20px] font-bold text-white">Partner Portal</p>
-          <p className="mt-1 text-[13px] text-white/40">Approved wholesalers and suppliers only</p>
+          <p className="mt-1 text-[13px] text-[#b1bdb0]">Approved wholesalers and suppliers only</p>
         </div>
         <div className="rounded-2xl border border-white/8 bg-white/4 p-6 space-y-4">
           <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/8 px-4 py-3 text-[12px] text-white/75">
@@ -114,9 +114,9 @@ function PartnerOtpGate({ onLogin }: { onLogin: (me: PartnerMe) => void }) {
                   onChange={(e) => setEmail(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSendCode()}
                   placeholder="sourcing@partner.com"
-                  className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-white/30 outline-none focus:border-emerald-500/50"
+                  className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-[#b1bdb0] outline-none focus:border-emerald-500/50"
                 />
-                <p className="text-[11px] text-white/30">Use the email linked to your approved Peaceway partner account.</p>
+                <p className="text-[11px] text-[#b1bdb0]">Use the email linked to your approved Peaceway partner account.</p>
               </div>
               {error && <p className="text-[13px] text-red-400">{error}</p>}
               <Button onClick={handleSendCode} disabled={loading || !email.trim()} className="w-full">
@@ -135,10 +135,10 @@ function PartnerOtpGate({ onLogin }: { onLogin: (me: PartnerMe) => void }) {
                   onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
                   onKeyDown={(e) => e.key === "Enter" && handleVerify()}
                   placeholder="000000"
-                  className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm tracking-[0.3em] text-white placeholder-white/30 outline-none focus:border-emerald-500/50"
+                  className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm tracking-[0.3em] text-white placeholder-[#b1bdb0] outline-none focus:border-emerald-500/50"
                   autoFocus
                 />
-                <p className="text-[11px] text-white/30">Check your email inbox. The code expires in 5 minutes.</p>
+                <p className="text-[11px] text-[#b1bdb0]">Check your email inbox. The code expires in 5 minutes.</p>
               </div>
               {error && <p className="text-[13px] text-red-400">{error}</p>}
               <Button onClick={handleVerify} disabled={loading || code.trim().length !== 6} className="w-full">
@@ -150,7 +150,7 @@ function PartnerOtpGate({ onLogin }: { onLogin: (me: PartnerMe) => void }) {
                   setCode("");
                   setError("");
                 }}
-                className="w-full text-center text-[12px] text-white/30 hover:text-white/60"
+                className="w-full text-center text-[12px] text-[#b1bdb0] hover:text-[#dcdddb]"
               >
                 ← Resend / use different email
               </button>
@@ -379,7 +379,7 @@ function PartnerDashboard({ me }: { me: PartnerMe }) {
       <div className="mx-auto max-w-5xl space-y-6">
         <div className="flex flex-col gap-4 rounded-3xl border border-white/8 bg-white/4 p-6 md:flex-row md:items-start md:justify-between">
           <div>
-            <p className="text-[11px] uppercase tracking-[0.18em] text-white/35">Peaceway Partner Portal</p>
+            <p className="text-[11px] uppercase tracking-[0.18em] text-[#b1bdb0]">Peaceway Partner Portal</p>
             <p className="mt-2 font-syne text-3xl font-bold">{me.name}</p>
             <p className="mt-2 text-sm text-white/55">
               Confirm sourcing requests, prepare verified packs, and hand off cleanly into Peaceway dispatch tracking.
@@ -407,15 +407,15 @@ function PartnerDashboard({ me }: { me: PartnerMe }) {
         <div className="grid gap-3 md:grid-cols-3">
           <div className="rounded-2xl border border-white/8 bg-white/4 p-4">
             <p className="text-[22px] font-bold text-white">{rows.length}</p>
-            <p className="mt-1 text-[11px] text-white/40">Assigned sourcing requests</p>
+            <p className="mt-1 text-[11px] text-[#b1bdb0]">Assigned sourcing requests</p>
           </div>
           <div className="rounded-2xl border border-white/8 bg-white/4 p-4">
             <p className="text-[22px] font-bold text-white">{dispatchReady.length}</p>
-            <p className="mt-1 text-[11px] text-white/40">Pack-ready or dispatched</p>
+            <p className="mt-1 text-[11px] text-[#b1bdb0]">Pack-ready or dispatched</p>
           </div>
           <div className="rounded-2xl border border-white/8 bg-white/4 p-4">
             <p className="truncate text-[15px] font-semibold text-white">{me.portal_login_email ?? me.key}</p>
-            <p className="mt-1 text-[11px] text-white/40">Signed in as</p>
+            <p className="mt-1 text-[11px] text-[#b1bdb0]">Signed in as</p>
           </div>
         </div>
 

@@ -97,7 +97,7 @@ export default function OrdersPage() {
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="text-[13px] font-semibold text-white">{order.code}</p>
-                  <p className="truncate text-[11px] text-white/40">
+                  <p className="truncate text-[11px] text-[#b1bdb0]">
                     {order.items.map((i) => i.product_name).join(", ")}
                   </p>
                   {order.customer_facing_status && (
@@ -105,7 +105,7 @@ export default function OrdersPage() {
                       {order.customer_facing_status}
                     </p>
                   )}
-                  <p className="mt-0.5 text-[11px] text-white/30">
+                  <p className="mt-0.5 text-[11px] text-[#b1bdb0]">
                     {new Date(order.created_at).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })}
                   </p>
                 </div>
@@ -114,7 +114,7 @@ export default function OrdersPage() {
                     {STATUS_LABEL[order.status] ?? order.status}
                   </span>
                   {order.fulfillment_status && (
-                    <p className="text-[10px] text-white/35">
+                    <p className="text-[10px] text-[#b1bdb0]">
                       {FULFILLMENT_LABEL[order.fulfillment_status] ?? order.fulfillment_status}
                     </p>
                   )}

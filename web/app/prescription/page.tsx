@@ -61,7 +61,7 @@ export default function PrescriptionPage() {
             </p>
           </div>
           <div className="w-full rounded-2xl border border-white/8 bg-white/4 px-4 py-4 text-left space-y-3">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/40">What happens next</p>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#b1bdb0]">What happens next</p>
             {[
               "Pharmacist reviews your prescription",
               "You'll receive a Telegram message with price and availability",
@@ -69,7 +69,7 @@ export default function PrescriptionPage() {
             ].map((step, i) => (
               <div key={i} className="flex items-start gap-2.5">
                 <span className={`mt-1 h-2 w-2 shrink-0 rounded-full ${i === 0 ? "bg-emerald-500" : "bg-white/20"}`} />
-                <p className={`text-[13px] ${i === 0 ? "text-white/80" : "text-white/40"}`}>{step}</p>
+                <p className={`text-[13px] ${i === 0 ? "text-white/80" : "text-[#b1bdb0]"}`}>{step}</p>
               </div>
             ))}
           </div>
@@ -97,7 +97,7 @@ export default function PrescriptionPage() {
           </Link>
           <div>
             <h1 className="font-syne text-[20px] font-bold text-white">Upload Prescription</h1>
-            <p className="text-[12px] text-white/40">Send us your script</p>
+            <p className="text-[12px] text-[#b1bdb0]">Send us your script</p>
           </div>
         </div>
 
@@ -110,16 +110,16 @@ export default function PrescriptionPage() {
               : "border-white/15 bg-white/3 hover:border-white/25"
           }`}
         >
-          <Upload className={`h-7 w-7 ${file ? "text-emerald-400" : "text-white/30"}`} />
+          <Upload className={`h-7 w-7 ${file ? "text-emerald-400" : "text-[#b1bdb0]"}`} />
           {file ? (
             <>
               <p className="text-[13px] font-semibold text-emerald-400">{file.name}</p>
-              <p className="text-[11px] text-white/40">Tap to change</p>
+              <p className="text-[11px] text-[#b1bdb0]">Tap to change</p>
             </>
           ) : (
             <>
               <p className="text-[13px] font-semibold text-white">Tap to upload</p>
-              <p className="text-[11px] text-white/35">JPG, PNG or PDF · max 10 MB</p>
+              <p className="text-[11px] text-[#b1bdb0]">JPG, PNG or PDF · max 10 MB</p>
             </>
           )}
         </button>
@@ -136,7 +136,7 @@ export default function PrescriptionPage() {
 
         {/* Description */}
         <div className="rounded-2xl border border-white/8 bg-white/4 px-4 py-4 space-y-2">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/40">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#b1bdb0]">
             Or describe your prescription
           </p>
           <textarea
@@ -144,7 +144,7 @@ export default function PrescriptionPage() {
             onChange={(e) => setDescription(e.target.value)}
             placeholder="e.g. Amoxicillin 500mg, 10 tablets - prescribed by Dr. Adeyemi"
             rows={3}
-            className="w-full resize-none rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-white/30 outline-none focus:border-emerald-500/50"
+            className="w-full resize-none rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-[#b1bdb0] outline-none focus:border-emerald-500/50"
           />
         </div>
 

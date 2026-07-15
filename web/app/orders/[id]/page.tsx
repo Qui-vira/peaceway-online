@@ -91,7 +91,7 @@ export default function OrderDetailPage() {
           >
             <ArrowLeft className="h-4 w-4 text-white/70" />
           </Link>
-          <p className="text-[13px] text-white/40">My Orders</p>
+          <p className="text-[13px] text-[#b1bdb0]">My Orders</p>
         </div>
 
         {/* Placed banner */}
@@ -107,21 +107,21 @@ export default function OrderDetailPage() {
 
         {/* Code + status */}
         <div className="px-5">
-          <p className="text-[11px] text-white/30 mb-1">{order.code}</p>
+          <p className="text-[11px] text-[#b1bdb0] mb-1">{order.code}</p>
           <h1 className="font-syne text-[22px] font-bold text-white">
             {STATUS_LABEL[order.status] ?? order.status}
           </h1>
           {order.customer_facing_status && (
             <p className="text-[12px] text-emerald-300/80 mt-1">{order.customer_facing_status}</p>
           )}
-          <p className="text-[12px] text-white/40 mt-0.5">
+          <p className="text-[12px] text-[#b1bdb0] mt-0.5">
             Placed {new Date(order.created_at).toLocaleDateString("en-NG", { day: "numeric", month: "long", year: "numeric" })}
           </p>
         </div>
 
         {order.fulfillment_status && (
           <div className="mx-5 rounded-2xl border border-white/8 bg-white/4 px-4 py-4">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/40 mb-2">Fulfilment</p>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#b1bdb0] mb-2">Fulfilment</p>
             <p className="text-[14px] font-semibold text-white">
               {FULFILLMENT_LABEL[order.fulfillment_status] ?? order.fulfillment_status}
             </p>
@@ -130,7 +130,7 @@ export default function OrderDetailPage() {
 
         {/* Progress */}
         <div className="mx-5 rounded-2xl border border-white/8 bg-white/4 px-4 py-4 space-y-3">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/40">Progress</p>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#b1bdb0]">Progress</p>
           <div className="space-y-3">
             {PROGRESS_STEPS.map((step, i) => {
               const done = i <= currentStep;
@@ -142,7 +142,7 @@ export default function OrderDetailPage() {
                       done ? "bg-emerald-500" : "bg-white/15"
                     }`}
                   />
-                  <span className={`text-[13px] ${done ? "font-medium text-white" : "text-white/35"}`}>
+                  <span className={`text-[13px] ${done ? "font-medium text-white" : "text-[#b1bdb0]"}`}>
                     {step.label}
                   </span>
                 </div>
@@ -157,14 +157,14 @@ export default function OrderDetailPage() {
             <div key={i} className="flex justify-between px-4 py-3">
               <div>
                 <p className="text-[13px] font-medium text-white">{item.product_name}</p>
-                <p className="text-[11px] text-white/40">Qty {item.quantity} × ₦{Number(item.unit_price).toLocaleString()}</p>
+                <p className="text-[11px] text-[#b1bdb0]">Qty {item.quantity} × ₦{Number(item.unit_price).toLocaleString()}</p>
               </div>
               <p className="text-[13px] font-semibold text-white">₦{Number(item.line_total).toLocaleString()}</p>
             </div>
           ))}
           <div className="px-4 py-3 space-y-1.5">
             <div className="flex justify-between text-[13px]">
-              <span className="text-white/40">Delivery</span>
+              <span className="text-[#b1bdb0]">Delivery</span>
               <span className="text-white">₦{Number(order.delivery_fee).toLocaleString()}</span>
             </div>
             <div className="flex justify-between font-semibold">

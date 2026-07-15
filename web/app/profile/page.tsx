@@ -25,7 +25,7 @@ function FieldShell({
 }) {
   return (
     <div className="flex min-w-0 items-center gap-3 rounded-xl border border-white/10 bg-white/4 px-4 py-3.5 backdrop-blur-sm transition-colors focus-within:border-emerald-500/50">
-      <span className="shrink-0 text-white/30">{icon}</span>
+      <span className="shrink-0 text-[#b1bdb0]">{icon}</span>
       {children}
     </div>
   );
@@ -33,7 +33,7 @@ function FieldShell({
 
 function Label({ children }: { children: React.ReactNode }) {
   return (
-    <label className="mb-2 block text-[10px] font-semibold uppercase tracking-widest text-white/40">
+    <label className="mb-2 block text-[10px] font-semibold uppercase tracking-widest text-[#b1bdb0]">
       {children}
     </label>
   );
@@ -121,7 +121,7 @@ export default function ProfilePage() {
                   <p className="text-sm text-white/45">{me.phone}</p>
                 )}
                 {me.delivery_area && (
-                  <p className="text-xs text-white/35">{me.delivery_area}</p>
+                  <p className="text-xs text-[#b1bdb0]">{me.delivery_area}</p>
                 )}
               </div>
             </div>
@@ -141,7 +141,7 @@ export default function ProfilePage() {
                       type="text"
                       value={form.full_name}
                       onChange={(e) => setForm((f) => ({ ...f, full_name: e.target.value }))}
-                      className="flex-1 bg-transparent text-sm text-white placeholder-white/25 outline-none"
+                      className="flex-1 bg-transparent text-sm text-white placeholder-[#b1bdb0] outline-none"
                       autoComplete="name"
                     />
                   </FieldShell>
@@ -152,7 +152,7 @@ export default function ProfilePage() {
                   <FieldShell icon={<Phone className="h-4 w-4" />}>
                     <span className="flex-1 text-sm text-white/50">{me.phone ?? "Not set"}</span>
                   </FieldShell>
-                  <p className="mt-1.5 pl-1 text-xs text-white/30">
+                  <p className="mt-1.5 pl-1 text-xs text-[#b1bdb0]">
                     Phone is your login. Contact us to change it.
                   </p>
                 </div>
@@ -165,7 +165,7 @@ export default function ProfilePage() {
                       placeholder="For receipts and updates"
                       value={form.email}
                       onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-                      className="flex-1 bg-transparent text-sm text-white placeholder-white/25 outline-none"
+                      className="flex-1 bg-transparent text-sm text-white placeholder-[#b1bdb0] outline-none"
                       autoComplete="email"
                     />
                   </FieldShell>
@@ -241,7 +241,7 @@ export default function ProfilePage() {
                 >
                   <div>
                     <p className="text-[13px] font-medium text-white">{link.label}</p>
-                    <p className="text-[11px] text-white/40">{link.sub}</p>
+                    <p className="text-[11px] text-[#b1bdb0]">{link.sub}</p>
                   </div>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.25)" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
                 </a>
@@ -266,7 +266,7 @@ export default function ProfilePage() {
                 Sign Out
               </button>
 
-              <p className="text-center text-[11px] leading-relaxed text-white/30">
+              <p className="text-center text-[11px] leading-relaxed text-[#b1bdb0]">
                 Signing out ends your session on this device. Your requests and profile stay safe
                 and come back when you sign in with your phone number again.
               </p>

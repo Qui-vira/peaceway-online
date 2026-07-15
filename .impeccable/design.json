@@ -372,9 +372,9 @@
       "name": "Primary Button",
       "kind": "button",
       "refersTo": "button-primary",
-      "description": "The marketing surface's primary action. Pill, lit green, physical lip.",
+      "description": "The marketing surface primary action. Pill, dark ink on light green (5.82:1), physical lip.",
       "html": "<button class=\"ds-btn-primary\">Order on Telegram</button>",
-      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; padding: 15px 32px; border-radius: 32px; background: linear-gradient(100deg, #23bd6a 0%, #0f673c 100%); color: #fff; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 700; letter-spacing: 0.06em; border: none; cursor: pointer; box-shadow: 0 5px 0 0 #0c5230, 0 8px 18px -6px rgba(15,103,60,0.4); transition: transform 0.2s cubic-bezier(0.22,0.61,0.36,1), box-shadow 0.2s ease; } .ds-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 0 0 #0c5230, 0 12px 26px -6px rgba(15,103,60,0.5); } .ds-btn-primary:active { transform: translateY(3px); box-shadow: 0 1px 0 0 #0c5230, 0 2px 6px rgba(15,103,60,0.35); } .ds-btn-primary:focus-visible { outline: none; box-shadow: 0 5px 0 0 #0c5230, 0 0 0 3px rgba(52,217,138,0.5); }"
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; padding: 15px 32px; border-radius: 32px; background: linear-gradient(100deg, #23bd6a 0%, #1aa35a 100%); color: #05130b; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 700; letter-spacing: 0.06em; border: none; cursor: pointer; box-shadow: 0 5px 0 0 #0c5230, 0 8px 18px -6px rgba(15,103,60,0.4); transition: transform 0.2s cubic-bezier(0.22,0.61,0.36,1), box-shadow 0.2s ease; } .ds-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 0 0 #0c5230, 0 12px 26px -6px rgba(15,103,60,0.5); } .ds-btn-primary:active { transform: translateY(3px); box-shadow: 0 1px 0 0 #0c5230, 0 2px 6px rgba(15,103,60,0.35); } .ds-btn-primary:focus-visible { outline: none; box-shadow: 0 5px 0 0 #0c5230, 0 0 0 3px rgba(52,217,138,0.5); }"
     },
     {
       "name": "Secondary Button",
@@ -452,6 +452,11 @@
         "section": "colors"
       },
       {
+        "name": "The No Alpha Text Rule",
+        "body": "Text never uses text-white/NN. Muted type is Ink Muted (#b1bdb0), full stop. Alpha reads as a dimmer knob and it lies: on Counter Black, white/40 is 3.78:1, white/35 is 3.15:1, white/30 is 2.62:1 - all failing, and all indistinguishable from each other while you write them. Two tokens carry every line of type: Ink for primary, Ink Muted for everything else.",
+        "section": "colors"
+      },
+      {
         "name": "The One Stage Rule",
         "body": "The Studio Stage belongs to #s1 and nothing else. A second light surface anywhere in the product breaks the metaphor: the counter is lit because the street is dark. On the stage the contrast rules invert - Stage Ink, never Ink; Dispensary Green becomes legible as type there (4.7:1 on Stage) but Signal Green does not.",
         "section": "colors"
@@ -501,7 +506,8 @@
       "Don't ship a floating card: a drop shadow with no edge belongs to a different system.",
       "Don't use Cross Red for anything that isn't an error, a warning or a destructive action.",
       "Don't animate a section into visibility from a hidden default. If the animation never fires, the section ships blank.",
-      "Don't let a heading overflow its column. Test the copy at 375px, not just on a desktop."
+      "Don't let a heading overflow its column. Test the copy at 375px, not just on a desktop.",
+      "Don't use text-white/NN for type. white/40 is 3.78:1 and white/30 is 2.62:1 on Counter Black - use Ink Muted (#b1bdb0)."
     ]
   }
 }

@@ -83,16 +83,16 @@ export default function RequestsPage() {
                   <span className="block truncate text-[15px] font-semibold text-white">
                     {r.product_name}
                     {r.strength && (
-                      <span className="ml-1.5 font-normal text-white/40">· {r.strength}</span>
+                      <span className="ml-1.5 font-normal text-[#b1bdb0]">· {r.strength}</span>
                     )}
                   </span>
                   <span className="flex items-center gap-2">
                     <StatusChip status={r.status} />
-                    <span className="text-[11px] text-white/35">{formatDate(r.created_at)}</span>
+                    <span className="text-[11px] text-[#b1bdb0]">{formatDate(r.created_at)}</span>
                   </span>
                 </span>
 
-                <ChevronRight className="h-4 w-4 shrink-0 text-white/25" />
+                <ChevronRight className="h-4 w-4 shrink-0 text-[#b1bdb0]" />
               </Link>
             ))}
           </div>

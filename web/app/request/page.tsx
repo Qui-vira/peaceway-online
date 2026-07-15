@@ -41,7 +41,7 @@ function SectionCard({
 }) {
   return (
     <div className="space-y-4 rounded-2xl border border-white/8 bg-white/[0.03] px-5 py-5">
-      <p className="text-[10px] font-semibold uppercase tracking-widest text-white/40">
+      <p className="text-[10px] font-semibold uppercase tracking-widest text-[#b1bdb0]">
         {label}
       </p>
       {children}
@@ -62,10 +62,10 @@ function FieldWrap({
 }) {
   return (
     <div className="space-y-1.5">
-      <label className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-widest text-white/40">
+      <label className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-widest text-[#b1bdb0]">
         {label}
         {optional && (
-          <span className="rounded-full bg-white/8 px-1.5 py-px text-[9px] normal-case tracking-normal font-normal text-white/25">
+          <span className="rounded-full bg-white/8 px-1.5 py-px text-[9px] normal-case tracking-normal font-normal text-[#b1bdb0]">
             optional
           </span>
         )}
@@ -148,7 +148,7 @@ export default function RequestPage() {
     return (
       <AppShell>
         <div className="flex min-h-[60vh] items-center justify-center">
-          <Loader2 className="h-6 w-6 animate-spin text-white/30" />
+          <Loader2 className="h-6 w-6 animate-spin text-[#b1bdb0]" />
         </div>
       </AppShell>
     );
@@ -180,7 +180,7 @@ export default function RequestPage() {
             </div>
             <div className="rounded-xl border border-white/8 bg-white/3 px-5 py-4 text-left space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] uppercase tracking-widest font-semibold text-white/40">
+                <span className="text-[10px] uppercase tracking-widest font-semibold text-[#b1bdb0]">
                   Status
                 </span>
                 <StatusChip status={submitted.status} />
@@ -252,13 +252,13 @@ export default function RequestPage() {
           {/* Card 1 - What are you looking for? */}
           <SectionCard label="What are you looking for?">
             <FieldWrap label="Product / Medicine Name" error={errors.product_name}>
-              <Package className="h-4 w-4 shrink-0 text-white/30" />
+              <Package className="h-4 w-4 shrink-0 text-[#b1bdb0]" />
               <input
                 type="text"
                 placeholder="e.g. Amoxicillin, Vitamin C, Panadol"
                 value={form.product_name}
                 onChange={(e) => setForm((f) => ({ ...f, product_name: e.target.value }))}
-                className="flex-1 bg-transparent text-sm text-white placeholder-white/25 outline-none"
+                className="flex-1 bg-transparent text-sm text-white placeholder-[#b1bdb0] outline-none"
                 autoFocus
               />
             </FieldWrap>
@@ -269,7 +269,7 @@ export default function RequestPage() {
                   placeholder="e.g. 500mg"
                   value={form.strength}
                   onChange={(e) => setForm((f) => ({ ...f, strength: e.target.value }))}
-                  className="flex-1 bg-transparent text-sm text-white placeholder-white/25 outline-none"
+                  className="flex-1 bg-transparent text-sm text-white placeholder-[#b1bdb0] outline-none"
                 />
               </FieldWrap>
               <FieldWrap label="Form" optional error={errors.form}>
@@ -278,7 +278,7 @@ export default function RequestPage() {
                   placeholder="e.g. Tablet"
                   value={form.form_type}
                   onChange={(e) => setForm((f) => ({ ...f, form_type: e.target.value }))}
-                  className="flex-1 bg-transparent text-sm text-white placeholder-white/25 outline-none"
+                  className="flex-1 bg-transparent text-sm text-white placeholder-[#b1bdb0] outline-none"
                 />
               </FieldWrap>
             </div>
@@ -288,7 +288,7 @@ export default function RequestPage() {
                 placeholder="e.g. 2 packs, 1 bottle"
                 value={form.quantity}
                 onChange={(e) => setForm((f) => ({ ...f, quantity: e.target.value }))}
-                className="flex-1 bg-transparent text-sm text-white placeholder-white/25 outline-none"
+                className="flex-1 bg-transparent text-sm text-white placeholder-[#b1bdb0] outline-none"
               />
             </FieldWrap>
           </SectionCard>
@@ -321,7 +321,7 @@ export default function RequestPage() {
                   >
                     {opt.label}
                   </span>
-                  <span className="mt-0.5 text-[11px] text-white/35 leading-tight">
+                  <span className="mt-0.5 text-[11px] text-[#b1bdb0] leading-tight">
                     {opt.sub}
                   </span>
                 </button>
@@ -337,11 +337,11 @@ export default function RequestPage() {
                 placeholder="Brand preference, diagnosis, any other details…"
                 value={form.note}
                 onChange={(e) => setForm((f) => ({ ...f, note: e.target.value }))}
-                className="w-full resize-none bg-transparent text-sm text-white placeholder-white/25 outline-none"
+                className="w-full resize-none bg-transparent text-sm text-white placeholder-[#b1bdb0] outline-none"
                 maxLength={1000}
               />
             </div>
-            <p className="text-[11px] text-white/30">
+            <p className="text-[11px] text-[#b1bdb0]">
               Optional - helps us find the right product faster
             </p>
           </SectionCard>
@@ -371,7 +371,7 @@ export default function RequestPage() {
             )}
           </button>
 
-          <p className="text-center text-[11px] leading-relaxed text-white/30">
+          <p className="text-center text-[11px] leading-relaxed text-[#b1bdb0]">
             A Peaceway pharmacist will review your request and contact you to confirm availability.
           </p>
         </form>

@@ -172,7 +172,9 @@ product, and it exists to make the building legible.
 - **Counter Black** (#0b0c09): The page. The dark street the counter is lit against.
 - **Raised Surface** (#191a17): The tier above the page — panels and raised regions.
 - **Ink** (#dcdddb): Primary text. Reads at 4.5:1+ on Counter Black.
-- **Ink Muted** (#b1bdb0): Secondary and supporting text. Never body copy at small sizes.
+- **Ink Muted** (#b1bdb0): Secondary and supporting text — every muted line in the product. Reads
+  10.06:1 on Counter Black. This is the *only* muted value; `text-white/40` and below are banned
+  (see The No Alpha Text Rule).
 - **Hairline** (rgba(255,255,255,0.08)): Borders and dividers. Structure by implication.
 
 ### Named Rules
@@ -187,6 +189,12 @@ or a destructive action, it is the wrong colour.
 
 **The One Light Rule.** One green light in a dark room. If a screen has green competing with green,
 or the accent is doing decorative work, the screen has lost the metaphor.
+
+**The No Alpha Text Rule.** Text never uses `text-white/NN`. Muted type is Ink Muted (#b1bdb0),
+full stop. Alpha reads as a dimmer knob and it lies: on Counter Black, `white/40` is 3.78:1,
+`white/35` is 3.15:1, `white/30` is 2.62:1 — all failing, and all indistinguishable from each other
+while you write them. Only `white/45` and up clear the bar, which is a coincidence, not a system.
+Two tokens carry every line of type in this product: Ink for primary, Ink Muted for everything else.
 
 **The One Stage Rule.** The Studio Stage belongs to #s1 and nothing else. A second light surface
 anywhere in the product breaks the metaphor: the counter is lit *because* the street is dark. On the
@@ -264,13 +272,18 @@ hardware when you do.
 ### Buttons
 - **Shape:** Fully pill on the marketing surface (32px radius); softened rectangle in the app (16px
   radius). Two vocabularies, one per register — never mixed on a screen.
-- **Primary (marketing):** Dispensary Green Lit (#1a8a50) body, white text, 15px/32px padding, DM
-  Sans 700 at 14px with 0.06em tracking. On the hero it takes a green gradient (#23bd6a → #0f673c)
-  and a solid green lip. **Known defect:** white on #1a8a50 is **4.38:1**. At 14px bold this is not
-  WCAG large text (that needs 18.66px bold), so 4.5:1 applies and this fails — on the landing's
-  primary CTA. The app button solved this by going to dark ink; `.bp` has not been migrated.
-- **Primary (app):** Dispensary Green Mid (#1aa35a) body with Ink on Green (#05130b) text at
-  **5.82:1**, 48px min-height, 16px radius, hover to #23bd6a. This is the correct pattern.
+- **Primary (marketing):** Dispensary Green Mid (#1aa35a) body with Ink on Green (#05130b) at
+  **5.82:1**, 15px/32px padding, DM Sans 700 at 14px with 0.06em tracking, and a solid green lip. On
+  the hero it takes a gradient from #23bd6a to #1aa35a — **7.75:1 at the light stop, 5.82:1 at the
+  dark one**.
+- **Primary (app):** the same pairing at 48px min-height and 16px radius, hover to #23bd6a.
+
+Both buttons carry dark ink on a light green, and that is not a style choice. This was white on
+Dispensary Green Lit (#1a8a50) at **4.38:1** — a fail on the landing's primary CTA — and the hero
+gradient ran #23bd6a → #0f673c, where white measured **2.45:1** over the light stop. Dark ink alone
+would not have saved it: #1a8a50 is a mid-tone where nothing clears 4.5 (black itself reaches only
+4.8), and a gradient that wide fails at one end whichever ink you pick. The green had to move and
+the gradient had to narrow.
 - **Secondary:** Transparent with a 2px hairline border (rgba(220,221,219,0.28)), Ink text, 14px/32px
   padding. Same size and shape as primary; only the weight of the invitation differs.
 - **Hover / Focus:** Hover is pointer-only — a 2px lift plus green glow over 150–300ms, gated behind

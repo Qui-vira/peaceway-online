@@ -45,10 +45,10 @@ function FieldGroup({
 }) {
   return (
     <div className="space-y-1.5">
-      <label className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-widest text-white/40">
+      <label className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-widest text-[#b1bdb0]">
         {label}
         {optional && (
-          <span className="rounded-full bg-white/8 px-1.5 py-px text-[9px] normal-case tracking-normal font-normal text-white/25">
+          <span className="rounded-full bg-white/8 px-1.5 py-px text-[9px] normal-case tracking-normal font-normal text-[#b1bdb0]">
             optional
           </span>
         )}
@@ -62,7 +62,7 @@ function FieldGroup({
             : "border-white/10 focus-within:border-emerald-500/50",
         ].join(" ")}
       >
-        <span className="shrink-0 text-white/30">{icon}</span>
+        <span className="shrink-0 text-[#b1bdb0]">{icon}</span>
         {children}
       </div>
       {error && <p className="pl-1 text-xs text-red-400">{error}</p>}
@@ -241,7 +241,7 @@ export default function StartPage() {
   if (checkingAuth) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#0b0c09]">
-        <Loader2 className="h-6 w-6 animate-spin text-white/30" />
+        <Loader2 className="h-6 w-6 animate-spin text-[#b1bdb0]" />
       </main>
     );
   }
@@ -294,7 +294,7 @@ export default function StartPage() {
           <PeacewayMark />
           <div>
             <p className="font-syne text-lg font-bold text-white">Peaceway Online</p>
-            <p className="text-xs text-white/40">Igando · Lagos · Licensed Pharmacy</p>
+            <p className="text-xs text-[#b1bdb0]">Igando · Lagos · Licensed Pharmacy</p>
           </div>
         </div>
 
@@ -358,7 +358,7 @@ export default function StartPage() {
                       placeholder="e.g. Amaka Johnson"
                       value={form.full_name}
                       onChange={(e) => updateField("full_name", e.target.value)}
-                      className="flex-1 bg-transparent text-sm text-white placeholder-white/25 outline-none"
+                      className="flex-1 bg-transparent text-sm text-white placeholder-[#b1bdb0] outline-none"
                       autoComplete="name"
                     />
                   </FieldGroup>
@@ -374,7 +374,7 @@ export default function StartPage() {
                     placeholder="e.g. 08012345678"
                     value={form.phone}
                     onChange={(e) => updateField("phone", e.target.value)}
-                    className="flex-1 bg-transparent text-sm text-white placeholder-white/25 outline-none"
+                    className="flex-1 bg-transparent text-sm text-white placeholder-[#b1bdb0] outline-none"
                     autoComplete="tel"
                   />
                 </FieldGroup>
@@ -390,7 +390,7 @@ export default function StartPage() {
                       placeholder="For your verification code"
                       value={form.email}
                       onChange={(e) => updateField("email", e.target.value)}
-                      className="flex-1 bg-transparent text-sm text-white placeholder-white/25 outline-none"
+                      className="flex-1 bg-transparent text-sm text-white placeholder-[#b1bdb0] outline-none"
                       autoComplete="email"
                     />
                   </FieldGroup>
@@ -451,7 +451,7 @@ export default function StartPage() {
               {/* Resend */}
               <div className="text-center">
                 {resendCooldown > 0 ? (
-                  <p className="text-xs text-white/30">
+                  <p className="text-xs text-[#b1bdb0]">
                     Resend in {resendCooldown}s
                   </p>
                 ) : (
@@ -491,7 +491,7 @@ export default function StartPage() {
                   setOtpError("");
                   setResendCooldown(0);
                 }}
-                className="flex w-full items-center justify-center text-xs text-white/40 transition hover:text-white/70"
+                className="flex w-full items-center justify-center text-xs text-[#b1bdb0] transition hover:text-white/70"
               >
                 ← Back
               </button>
@@ -500,7 +500,7 @@ export default function StartPage() {
         </div>
 
         <div className="text-center">
-          <Link href="/" className="text-xs text-white/30 transition hover:text-white/60">
+          <Link href="/" className="text-xs text-[#b1bdb0] transition hover:text-white/60">
             ← Back to home
           </Link>
         </div>

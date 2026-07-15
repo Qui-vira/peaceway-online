@@ -182,7 +182,7 @@ function PartnerRowCard({ partner, onChanged }: { partner: PartnerRow; onChanged
               className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
                 partner.is_active
                   ? "border-emerald-500/25 bg-emerald-500/15 text-emerald-400"
-                  : "border-white/10 bg-white/8 text-white/40"
+                  : "border-white/10 bg-white/8 text-[#b1bdb0]"
               }`}
             >
               {partner.is_active ? "Active" : "Disabled"}
@@ -314,7 +314,7 @@ export default function AdminPartnersPage() {
             <>
               <CreatePartnerForm onCreated={load} />
               <section className="rounded-3xl border border-white/8 bg-white/4 p-5">
-                <p className="mb-4 text-xs uppercase tracking-[0.18em] text-white/35">{rows.length} partners</p>
+                <p className="mb-4 text-xs uppercase tracking-[0.18em] text-[#b1bdb0]">{rows.length} partners</p>
                 <div className="space-y-3">
                   {rows.map((partner) => (
                     <PartnerRowCard key={partner.id} partner={partner} onChanged={load} />

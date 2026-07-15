@@ -100,11 +100,11 @@ export function ProductCard({
       <div className="flex flex-1 flex-col gap-1.5 p-3">
         <Link href={`/shop/${p.id}`} className={`rounded ${FOCUS}`}>
           <p className="line-clamp-2 text-[13px] font-semibold leading-snug text-white">{p.name}</p>
-          {p.strength && <p className="text-[11px] text-white/40">{p.strength}</p>}
+          {p.strength && <p className="text-[11px] text-[#b1bdb0]">{p.strength}</p>}
         </Link>
         <p className="text-[13px] font-bold text-emerald-400">{fmt(p.selling_price)}</p>
         {!p.is_in_stock ? (
-          <span className="mt-auto text-[11px] text-white/30">Out of stock</span>
+          <span className="mt-auto text-[11px] text-[#b1bdb0]">Out of stock</span>
         ) : added ? (
           <div className="mt-auto inline-flex min-h-[40px] w-full items-center justify-center gap-1.5 rounded-xl bg-emerald-500/20 text-[12px] font-bold text-emerald-400">
             <Check className="h-3.5 w-3.5" /> Added

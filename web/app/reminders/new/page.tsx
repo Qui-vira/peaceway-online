@@ -111,7 +111,7 @@ export default function NewReminderPage() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g. Paracetamol 500mg"
-                  className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-white/30 outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/20"
+                  className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-[#b1bdb0] outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/20"
                 />
               </div>
 
@@ -124,7 +124,7 @@ export default function NewReminderPage() {
                   onChange={(e) => setInstructions(e.target.value)}
                   placeholder="e.g. Take with food, twice daily"
                   rows={3}
-                  className="w-full resize-none rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-white/30 outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/20"
+                  className="w-full resize-none rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-[#b1bdb0] outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/20"
                 />
               </div>
             </div>
@@ -296,7 +296,7 @@ export default function NewReminderPage() {
                   </span>
                 ))}
               </div>
-              <p className="text-[12px] text-white/40">
+              <p className="text-[12px] text-[#b1bdb0]">
                 From {startDate}
                 {hasEnd && endDate ? ` → ${endDate}` : " · Ongoing"}
               </p>
@@ -317,7 +317,7 @@ export default function NewReminderPage() {
 
             <button
               onClick={() => setStep(2)}
-              className="block w-full text-center text-[13px] text-white/40 hover:text-white/60"
+              className="block w-full text-center text-[13px] text-[#b1bdb0] hover:text-[#dcdddb]"
             >
               ← Edit Schedule
             </button>

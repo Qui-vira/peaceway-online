@@ -60,11 +60,11 @@ function TodayMedsSection() {
       ) : reminders.length === 0 ? (
         <div className="flex items-center gap-4 rounded-2xl border border-white/8 bg-white/3 px-5 py-4">
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/6">
-            <Bell className="h-5 w-5 text-white/30" />
+            <Bell className="h-5 w-5 text-[#b1bdb0]" />
           </span>
           <div className="min-w-0 flex-1">
             <p className="text-sm font-medium text-white/70">No reminders today</p>
-            <p className="text-xs text-white/35">Track your medications easily</p>
+            <p className="text-xs text-[#b1bdb0]">Track your medications easily</p>
           </div>
           <Link
             href="/reminders/new"
@@ -96,8 +96,8 @@ function TodayMedsSection() {
             href="/reminders"
             className="flex shrink-0 w-16 flex-col items-center justify-center rounded-2xl border border-white/8 bg-white/3 gap-1"
           >
-            <ChevronRight className="h-5 w-5 text-white/30" />
-            <span className="text-[10px] text-white/30">All</span>
+            <ChevronRight className="h-5 w-5 text-[#b1bdb0]" />
+            <span className="text-[10px] text-[#b1bdb0]">All</span>
           </Link>
         </div>
       )}
@@ -126,10 +126,10 @@ export default function AppDashboard() {
           {/* Greeting */}
           <div className="px-5 pt-10 pb-2">
             <div className="flex items-center justify-between">
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-white/35">
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-[#b1bdb0]">
                 Peaceway Online
               </p>
-              {me && <p className="text-[10px] text-white/30">{todayLabel()}</p>}
+              {me && <p className="text-[10px] text-[#b1bdb0]">{todayLabel()}</p>}
             </div>
             <h1 className="mt-1 font-syne text-[26px] font-bold leading-tight text-white">
               {me ? `Hello, ${me.full_name?.split(" ")[0] ?? "there"}.` : "Welcome to Peaceway."}
@@ -259,11 +259,11 @@ export default function AppDashboard() {
                 <span className="block text-sm font-semibold text-white/75">
                   Order faster on Telegram
                 </span>
-                <span className="block text-xs text-white/35">
+                <span className="block text-xs text-[#b1bdb0]">
                   Full ordering & delivery tracking in the bot
                 </span>
               </span>
-              <ChevronRight className="h-4 w-4 shrink-0 text-white/20" />
+              <ChevronRight className="h-4 w-4 shrink-0 text-[#b1bdb0]" />
             </a>
           </div>
 

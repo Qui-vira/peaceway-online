@@ -157,7 +157,7 @@ export default function ProductDetailPage() {
               <div className="divide-y divide-white/6 rounded-2xl border border-white/8 bg-white/[0.04]">
                 {detailRows.map((r) => (
                   <div key={r.label} className="flex justify-between gap-4 px-4 py-3">
-                    <span className="text-[12px] text-white/40">{r.label}</span>
+                    <span className="text-[12px] text-[#b1bdb0]">{r.label}</span>
                     <span className="text-right text-[13px] text-white/80">{r.value}</span>
                   </div>
                 ))}
@@ -166,7 +166,7 @@ export default function ProductDetailPage() {
 
             {product.description && (
               <div className="space-y-2">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/40">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#b1bdb0]">
                   Description
                 </p>
                 <p className="text-sm leading-relaxed text-white/60">{product.description}</p>

@@ -199,7 +199,7 @@ function StaffOtpGate({ onLogin }: { onLogin: (admin: AdminMe) => void }) {
       <div className="w-full max-w-md space-y-6">
         <div className="text-center">
           <p className="font-syne text-[20px] font-bold text-white">Peaceway Staff</p>
-          <p className="mt-1 text-[13px] text-white/40">Internal team access for Peaceway staff and admins</p>
+          <p className="mt-1 text-[13px] text-[#b1bdb0]">Internal team access for Peaceway staff and admins</p>
         </div>
         <div className="rounded-2xl border border-white/8 bg-white/4 p-6 space-y-4">
           <div className="rounded-2xl border border-amber-500/20 bg-amber-500/8 px-4 py-3 text-[12px] text-amber-100/85">
@@ -255,9 +255,9 @@ function StaffOtpGate({ onLogin }: { onLogin: (admin: AdminMe) => void }) {
                     onChange={(e) => setTelegramId(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && handleSendCode()}
                     placeholder="e.g. 123456789"
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-white/30 outline-none focus:border-emerald-500/50"
+                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-[#b1bdb0] outline-none focus:border-emerald-500/50"
                   />
-                  <p className="text-[11px] text-white/30">
+                  <p className="text-[11px] text-[#b1bdb0]">
                     Send <code>/myid</code> to the Peaceway bot to find your ID.
                   </p>
                 </div>
@@ -271,9 +271,9 @@ function StaffOtpGate({ onLogin }: { onLogin: (admin: AdminMe) => void }) {
                     onChange={(e) => setEmail(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && handleSendCode()}
                     placeholder="operations@company.com"
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-white/30 outline-none focus:border-emerald-500/50"
+                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-[#b1bdb0] outline-none focus:border-emerald-500/50"
                   />
-                  <p className="text-[11px] text-white/30">
+                  <p className="text-[11px] text-[#b1bdb0]">
                     Use the email assigned to your Peaceway operations account.
                   </p>
                 </div>
@@ -299,10 +299,10 @@ function StaffOtpGate({ onLogin }: { onLogin: (admin: AdminMe) => void }) {
                   onChange={(e) => setCode(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleVerify()}
                   placeholder="000000"
-                  className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-white/30 outline-none focus:border-emerald-500/50 tracking-[0.3em]"
+                  className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-[#b1bdb0] outline-none focus:border-emerald-500/50 tracking-[0.3em]"
                   autoFocus
                 />
-                <p className="text-[11px] text-white/30">
+                <p className="text-[11px] text-[#b1bdb0]">
                   {channel === "telegram"
                     ? "Check your Telegram - the code expires in 5 minutes."
                     : "Check your email inbox - the code expires in 5 minutes."}
@@ -318,7 +318,7 @@ function StaffOtpGate({ onLogin }: { onLogin: (admin: AdminMe) => void }) {
               </button>
               <button
                 onClick={() => { setStep("identifier"); setCode(""); setError(""); }}
-                className="w-full text-center text-[12px] text-white/30 hover:text-white/60"
+                className="w-full text-center text-[12px] text-[#b1bdb0] hover:text-[#dcdddb]"
               >
                 ← Resend / use a different sign-in method
               </button>
@@ -380,7 +380,7 @@ function Dashboard({ admin }: { admin: AdminMe }) {
             className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium transition ${
               tab === item.key
                 ? "bg-emerald-500/12 text-emerald-400"
-                : "text-white/40 hover:text-white/70"
+                : "text-[#b1bdb0] hover:text-[#dcdddb]"
             }`}
           >
             <item.icon className="h-4 w-4" />
@@ -390,7 +390,7 @@ function Dashboard({ admin }: { admin: AdminMe }) {
         <div className="mt-auto">
           <button
             onClick={signOut}
-            className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] text-white/30 hover:text-white/60"
+            className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] text-[#b1bdb0] hover:text-[#dcdddb]"
           >
             <LogOut className="h-4 w-4" />
             Sign out
@@ -407,7 +407,7 @@ function Dashboard({ admin }: { admin: AdminMe }) {
             className={`shrink-0 flex items-center gap-1.5 rounded-lg px-3 py-2 text-[11px] font-medium transition ${
               tab === item.key
                 ? "bg-emerald-500/15 text-emerald-400"
-                : "text-white/40"
+                : "text-[#b1bdb0]"
             }`}
           >
             <item.icon className="h-3.5 w-3.5" />
@@ -428,10 +428,10 @@ function Dashboard({ admin }: { admin: AdminMe }) {
           <OrdersTab orders={orders} loading={loading} />
         )}
         {tab === "customers" && (
-          <div className="py-10 text-center text-white/40">Customer list - coming soon</div>
+          <div className="py-10 text-center text-[#b1bdb0]">Customer list - coming soon</div>
         )}
         {tab === "payments" && (
-          <div className="py-10 text-center text-white/40">Payment records - coming soon</div>
+          <div className="py-10 text-center text-[#b1bdb0]">Payment records - coming soon</div>
         )}
         {tab === "catalog" && (
           <CatalogTab />
@@ -597,7 +597,7 @@ function CatalogTab() {
       <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <h2 className="font-syne text-[18px] font-bold text-white">Catalog Inventory</h2>
-          <p className="mt-1 text-[12px] text-white/40">
+          <p className="mt-1 text-[12px] text-[#b1bdb0]">
             Search all imported products. Price, stock, and listing changes update the shop immediately.
           </p>
         </div>
@@ -620,7 +620,7 @@ function CatalogTab() {
           ].map(([label, value]) => (
             <div key={label} className="rounded-2xl border border-white/8 bg-white/4 p-4">
               <p className="text-[20px] font-bold text-white">{value}</p>
-              <p className="mt-0.5 text-[11px] text-white/40">{label}</p>
+              <p className="mt-0.5 text-[11px] text-[#b1bdb0]">{label}</p>
             </div>
           ))}
         </div>
@@ -628,12 +628,12 @@ function CatalogTab() {
 
       <div className="grid gap-3 lg:grid-cols-[1fr_190px]">
         <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/4 px-4 py-3">
-          <Search className="h-4 w-4 shrink-0 text-white/30" />
+          <Search className="h-4 w-4 shrink-0 text-[#b1bdb0]" />
           <input
             value={q}
             onChange={(event) => setQ(event.target.value)}
             placeholder="Search medicine, brand, generic name, NAFDAC..."
-            className="flex-1 bg-transparent text-sm text-white placeholder-white/30 outline-none"
+            className="flex-1 bg-transparent text-sm text-white placeholder-[#b1bdb0] outline-none"
           />
         </div>
         <select
@@ -658,17 +658,17 @@ function CatalogTab() {
 
       <div className="overflow-hidden rounded-2xl border border-white/8 bg-white/4">
         <div className="flex items-center justify-between border-b border-white/6 px-4 py-3">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/40">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#b1bdb0]">
             {loading ? "Loading products" : `${data?.total.toLocaleString("en-NG") ?? 0} matching products`}
           </p>
-          <p className="text-[11px] text-white/30">Showing first 100</p>
+          <p className="text-[11px] text-[#b1bdb0]">Showing first 100</p>
         </div>
 
         {loading && (
-          <div className="px-4 py-10 text-center text-[13px] text-white/30">Loading catalog…</div>
+          <div className="px-4 py-10 text-center text-[13px] text-[#b1bdb0]">Loading catalog…</div>
         )}
         {!loading && data?.items.length === 0 && (
-          <div className="px-4 py-10 text-center text-[13px] text-white/30">No products found</div>
+          <div className="px-4 py-10 text-center text-[13px] text-[#b1bdb0]">No products found</div>
         )}
         {!loading && data && data.items.length > 0 && (
           <div className="divide-y divide-white/6">
@@ -683,13 +683,13 @@ function CatalogTab() {
                       {product.is_listed ? (
                         <span className="rounded-full border border-emerald-500/25 bg-emerald-500/12 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">Listed</span>
                       ) : (
-                        <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-semibold text-white/35">Hidden</span>
+                        <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-semibold text-[#b1bdb0]">Hidden</span>
                       )}
                       {!product.is_in_stock && (
                         <span className="rounded-full border border-red-500/25 bg-red-500/12 px-2 py-0.5 text-[10px] font-semibold text-red-300">Out</span>
                       )}
                     </div>
-                    <p className="mt-1 line-clamp-2 text-[11px] text-white/40">
+                    <p className="mt-1 line-clamp-2 text-[11px] text-[#b1bdb0]">
                       {product.generic_name}
                       {product.strength ? ` · ${product.strength}` : ""}
                       {product.category ? ` · ${product.category}` : ""}
@@ -698,7 +698,7 @@ function CatalogTab() {
                   </div>
 
                   <label className="space-y-1">
-                    <span className="text-[10px] uppercase tracking-[0.12em] text-white/35">Price</span>
+                    <span className="text-[10px] uppercase tracking-[0.12em] text-[#b1bdb0]">Price</span>
                     <input
                       inputMode="decimal"
                       value={draft.selling_price}
@@ -709,7 +709,7 @@ function CatalogTab() {
                   </label>
 
                   <label className="space-y-1">
-                    <span className="text-[10px] uppercase tracking-[0.12em] text-white/35">Stock</span>
+                    <span className="text-[10px] uppercase tracking-[0.12em] text-[#b1bdb0]">Stock</span>
                     <input
                       inputMode="numeric"
                       value={draft.stock_qty}
@@ -795,7 +795,7 @@ function OverviewTab({
     <div className="space-y-6">
       <div>
         <h1 className="font-syne text-[20px] font-bold text-white">Overview</h1>
-        <p className="text-[12px] text-white/40 mt-0.5">
+        <p className="text-[12px] text-[#b1bdb0] mt-0.5">
           {new Date().toLocaleDateString("en-NG", { weekday: "long", day: "numeric", month: "long" })}
         </p>
       </div>
@@ -808,7 +808,7 @@ function OverviewTab({
         ].map((s) => (
           <div key={s.label} className="rounded-2xl border border-white/8 bg-white/4 p-4">
             <p className="text-[22px] font-bold text-white">{s.value}</p>
-            <p className="text-[11px] text-white/40 mt-0.5">{s.label}</p>
+            <p className="text-[11px] text-[#b1bdb0] mt-0.5">{s.label}</p>
             <p className={`text-[10px] mt-1 ${s.note === "Need attention" && pending > 0 ? "text-amber-400" : "text-emerald-400"}`}>
               {s.note}
             </p>
@@ -867,20 +867,20 @@ function OverviewTab({
       </div>
       <div>
         <div className="flex items-center justify-between mb-3">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/40">Recent Requests</p>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#b1bdb0]">Recent Requests</p>
           <button onClick={() => onTab("requests")} className="text-[12px] text-emerald-400 hover:underline">View all</button>
         </div>
         <div className="rounded-2xl border border-white/8 bg-white/4 divide-y divide-white/6">
           {loading ? (
-            <div className="px-4 py-6 text-center text-[13px] text-white/30">Loading…</div>
+            <div className="px-4 py-6 text-center text-[13px] text-[#b1bdb0]">Loading…</div>
           ) : requests.slice(0, 5).length === 0 ? (
-            <div className="px-4 py-6 text-center text-[13px] text-white/30">No requests yet</div>
+            <div className="px-4 py-6 text-center text-[13px] text-[#b1bdb0]">No requests yet</div>
           ) : (
             requests.slice(0, 5).map((r) => (
               <div key={r.id} className="flex items-center justify-between px-4 py-3">
                 <div>
                   <p className="text-[13px] font-medium text-white">{r.product_name}</p>
-                  <p className="text-[11px] text-white/40">
+                  <p className="text-[11px] text-[#b1bdb0]">
                     {r.customer_phone} · {new Date(r.created_at).toLocaleTimeString("en-NG", { hour: "2-digit", minute: "2-digit" })}
                   </p>
                 </div>
@@ -903,15 +903,15 @@ function RequestsTab({ requests, loading }: { requests: AdminRequest[]; loading:
       <h2 className="font-syne text-[18px] font-bold text-white">All Requests</h2>
       <div className="rounded-2xl border border-white/8 bg-white/4 divide-y divide-white/6">
         {loading ? (
-          <div className="px-4 py-8 text-center text-[13px] text-white/30">Loading…</div>
+          <div className="px-4 py-8 text-center text-[13px] text-[#b1bdb0]">Loading…</div>
         ) : requests.length === 0 ? (
-          <div className="px-4 py-8 text-center text-[13px] text-white/30">No requests</div>
+          <div className="px-4 py-8 text-center text-[13px] text-[#b1bdb0]">No requests</div>
         ) : (
           requests.map((r) => (
             <div key={r.id} className="flex items-center justify-between px-4 py-4">
               <div className="min-w-0 flex-1 mr-3">
                 <p className="text-[14px] font-semibold text-white truncate">{r.product_name}</p>
-                <p className="text-[11px] text-white/40 mt-0.5">
+                <p className="text-[11px] text-[#b1bdb0] mt-0.5">
                   {r.customer_phone} · {new Date(r.created_at).toLocaleDateString("en-NG")}
                 </p>
               </div>
@@ -952,15 +952,15 @@ function OrdersTab({ orders, loading }: { orders: AdminOrder[]; loading: boolean
       <h2 className="font-syne text-[18px] font-bold text-white">All Orders</h2>
       <div className="rounded-2xl border border-white/8 bg-white/4 divide-y divide-white/6">
         {loading ? (
-          <div className="px-4 py-8 text-center text-[13px] text-white/30">Loading…</div>
+          <div className="px-4 py-8 text-center text-[13px] text-[#b1bdb0]">Loading…</div>
         ) : orders.length === 0 ? (
-          <div className="px-4 py-8 text-center text-[13px] text-white/30">No orders yet</div>
+          <div className="px-4 py-8 text-center text-[13px] text-[#b1bdb0]">No orders yet</div>
         ) : (
           orders.map((o) => (
             <div key={o.id} className="flex items-center justify-between px-4 py-4">
               <div>
                 <p className="text-[14px] font-semibold text-white">{o.code}</p>
-                <p className="text-[11px] text-white/40 mt-0.5">
+                <p className="text-[11px] text-[#b1bdb0] mt-0.5">
                   ₦{Number(o.total).toLocaleString()} · {new Date(o.created_at).toLocaleDateString("en-NG")}
                 </p>
                 {o.customer_facing_status && (
@@ -972,7 +972,7 @@ function OrdersTab({ orders, loading }: { orders: AdminOrder[]; loading: boolean
                   {o.status}
                 </span>
                 {o.fulfillment_status && (
-                  <p className="mt-1 text-[10px] text-white/40">
+                  <p className="mt-1 text-[10px] text-[#b1bdb0]">
                     {FULFILLMENT_LABEL[o.fulfillment_status] ?? o.fulfillment_status}
                   </p>
                 )}

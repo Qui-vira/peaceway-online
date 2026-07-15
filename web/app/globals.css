@@ -573,7 +573,11 @@ footer {
     max-width: 440px;
   }
   #s1 .bp {
-    background: linear-gradient(100deg, #23bd6a 0%, #0f673c 100%);
+    /* Narrowed from #23bd6a -> #0f673c. That span was too wide for any single
+       ink: white measured 2.45:1 over the light end, dark ink 2.74:1 over the
+       dark end. Ending on #1aa35a keeps the lit-from-above read while both
+       stops clear AA with Ink on Green (7.75 and 5.82). */
+    background: linear-gradient(100deg, #23bd6a 0%, #1aa35a 100%);
     box-shadow: 0 5px 0 0 #0c5230, 0 8px 18px -6px rgba(15, 103, 60, 0.4);
   }
   #s1 .bp:hover {
@@ -623,8 +627,13 @@ footer {
   justify-content: center;
   padding: 15px 32px;
   border-radius: 32px;
-  background: var(--g2);
-  color: #fff;
+  /* Ink on Green over Dispensary Green Mid = 5.82:1. This was white on --g2
+     (#1a8a50) at 4.38:1 - a fail on the landing's primary CTA. Dark ink alone
+     would not have fixed it: #1a8a50 is a mid-tone where nothing clears 4.5
+     (black itself only reaches 4.8). The green had to move too. #1aa35a is the
+     value the app button already uses for exactly this reason. */
+  background: #1aa35a;
+  color: #05130b;
   font-size: 14px;
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -1571,7 +1580,11 @@ button:not(:disabled):not([aria-disabled="true"]),
     text-shadow: none;
   }
   #s1 .bp {
-    background: linear-gradient(100deg, #23bd6a 0%, #0f673c 100%);
+    /* Narrowed from #23bd6a -> #0f673c. That span was too wide for any single
+       ink: white measured 2.45:1 over the light end, dark ink 2.74:1 over the
+       dark end. Ending on #1aa35a keeps the lit-from-above read while both
+       stops clear AA with Ink on Green (7.75 and 5.82). */
+    background: linear-gradient(100deg, #23bd6a 0%, #1aa35a 100%);
     box-shadow: 0 10px 26px -8px rgba(15, 103, 60, 0.5);
   }
   #s1 .bg2 {

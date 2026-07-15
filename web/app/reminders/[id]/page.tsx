@@ -132,7 +132,7 @@ export default function ReminderDetailPage() {
           >
             <ArrowLeft className="h-4 w-4 text-white/70" />
           </Link>
-          <p className="flex-1 truncate text-[13px] text-white/40">My Medications</p>
+          <p className="flex-1 truncate text-[13px] text-[#b1bdb0]">My Medications</p>
         </div>
 
         {/* Hero */}
@@ -184,7 +184,7 @@ export default function ReminderDetailPage() {
               <TimeChip key={t} time={t} status="upcoming" />
             ))}
           </div>
-          <p className="text-[12px] text-white/40">
+          <p className="text-[12px] text-[#b1bdb0]">
             From {reminder.start_date}
             {reminder.end_date ? ` → ${reminder.end_date}` : " · Ongoing"}
           </p>
@@ -277,7 +277,7 @@ export default function ReminderDetailPage() {
         {/* Danger zone - delete */}
         <div className="px-5">
           <div className="rounded-2xl border border-white/6 bg-white/3 px-4 py-4">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-white/30 mb-3">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-[#b1bdb0] mb-3">
               Danger Zone
             </p>
             <button

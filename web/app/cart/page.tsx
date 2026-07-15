@@ -63,7 +63,7 @@ export default function CartPage() {
                         <p className="break-words text-[13px] font-semibold leading-snug text-white">
                           {item.product_name}
                         </p>
-                        <p className="mt-0.5 text-[11px] text-white/40">{fmt(item.selling_price)} each</p>
+                        <p className="mt-0.5 text-[11px] text-[#b1bdb0]">{fmt(item.selling_price)} each</p>
                       </div>
                       <p className="shrink-0 text-right text-[13px] font-bold text-emerald-400">
                         {fmt(line)}

@@ -73,13 +73,13 @@ export default function ShopPage() {
         {/* Search + mobile cart (desktop cart lives in the top nav) */}
         <div className="flex items-center gap-3 pt-5">
           <div className={`flex flex-1 items-center gap-3 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 focus-within:border-emerald-500/40 focus-within:ring-2 focus-within:ring-emerald-400/40`}>
-            <Search className="h-4 w-4 shrink-0 text-white/30" />
+            <Search className="h-4 w-4 shrink-0 text-[#b1bdb0]" />
             <input
               value={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder="Search medicines..."
               aria-label="Search medicines"
-              className="min-w-0 flex-1 bg-transparent text-base text-white outline-none placeholder-white/30 md:text-sm"
+              className="min-w-0 flex-1 bg-transparent text-base text-white outline-none placeholder-[#b1bdb0] md:text-sm"
             />
           </div>
           {cartCount > 0 && (
