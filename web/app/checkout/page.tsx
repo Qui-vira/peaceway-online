@@ -122,11 +122,9 @@ export default function CheckoutPage() {
                       role="radio"
                       aria-checked={selected}
                       onClick={() => setPayMethod(opt.value)}
-                      className={`flex w-full items-start gap-3 rounded-xl border p-3.5 text-left transition-all duration-200 active:scale-[0.99] motion-reduce:transform-none ${
-                        selected
-                          ? "border-emerald-500/40 bg-emerald-500/[0.08] shadow-[0_0_24px_-8px_rgba(26,163,90,0.5)]"
-                          : "border-white/10 hover:border-white/20"
-                      } ${FOCUS}`}
+                      className={`pw-tile pw-tile-press flex w-full items-start gap-3 p-3.5 text-left ${
+                        selected ? "is-active" : ""
+                      }`}
                     >
                       <span
                         className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ${

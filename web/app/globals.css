@@ -641,6 +641,15 @@ footer {
   box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.06);
 }
 
+/* Every enabled control shows the pointer cursor (DESIGN.md: cursor-pointer on
+   all clickables). Native buttons default to the arrow, which read as "not
+   clickable" on tiles/steppers/chips. */
+button:not(:disabled):not([aria-disabled="true"]),
+[role="button"]:not([aria-disabled="true"]),
+[role="radio"]:not([aria-disabled="true"]) {
+  cursor: pointer;
+}
+
 /* Hero CTA group: lay the buttons out with a real gap so their solid bottom
    edges never crowd/gum together (row on desktop, wrapping to a column). */
 .ctg {
@@ -747,6 +756,53 @@ footer {
   .pw-btn:active,
   .pw-btn-sm:active,
   .pw-btn-2:active {
+    transform: none;
+  }
+}
+
+/* ── Tactile tiles ──────────────────────────────────────────────────────────
+   Cards/tiles get a solid bottom "lip" so they read as raised, physical
+   surfaces (like the buttons). On the dark theme the lip is a faint light edge
+   (a raised surface catching light) plus a grounding shadow. `.pw-tile-press`
+   makes interactive tiles show a pointer and depress on tap; `.is-active` gives
+   selected tiles the green edge. */
+.pw-tile {
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.045);
+  box-shadow: 0 4px 0 0 rgba(255, 255, 255, 0.05), 0 10px 22px -12px rgba(0, 0, 0, 0.6);
+  transition: transform 0.14s cubic-bezier(0.22, 0.61, 0.36, 1),
+    box-shadow 0.18s ease, border-color 0.2s ease, background-color 0.2s ease;
+}
+.pw-tile-press {
+  cursor: pointer;
+}
+.pw-tile-press:hover {
+  border-color: rgba(255, 255, 255, 0.16);
+  box-shadow: 0 4px 0 0 rgba(255, 255, 255, 0.09), 0 16px 30px -12px rgba(0, 0, 0, 0.62);
+}
+.pw-tile-press:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.05), 0 5px 12px -8px rgba(0, 0, 0, 0.6);
+}
+.pw-tile-press:focus-visible {
+  outline: none;
+  box-shadow: 0 4px 0 0 rgba(255, 255, 255, 0.06), 0 0 0 3px rgba(52, 217, 138, 0.5);
+}
+.pw-tile.is-active,
+.pw-tile-press.is-active {
+  border-color: rgba(52, 217, 138, 0.42);
+  background: rgba(26, 163, 90, 0.1);
+  box-shadow: 0 4px 0 0 #0f673c, 0 14px 28px -12px rgba(15, 103, 60, 0.5);
+}
+.pw-tile.is-active:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 0 #0f673c, 0 5px 12px -8px rgba(15, 103, 60, 0.5);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pw-tile-press:active,
+  .pw-tile.is-active:active {
     transform: none;
   }
 }

@@ -139,7 +139,7 @@ export default function ShopPage() {
               {state.products.map((p) => (
                 <div
                   key={p.id}
-                  className="group flex flex-col overflow-hidden rounded-2xl border border-white/8 bg-white/[0.04] transition duration-300 ease-out hover:-translate-y-1 hover:border-emerald-500/40 hover:shadow-[0_18px_44px_rgba(0,0,0,0.45)] focus-within:border-emerald-500/40 motion-reduce:transition-none motion-reduce:hover:transform-none"
+                  className="pw-tile group flex flex-col overflow-hidden ease-out hover:-translate-y-1 focus-within:border-emerald-500/40 motion-reduce:hover:transform-none"
                 >
                   <Link
                     href={`/shop/${p.id}`}

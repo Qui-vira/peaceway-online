@@ -54,10 +54,7 @@ export default function CartPage() {
               {cart.map((item) => {
                 const line = item.selling_price * item.quantity;
                 return (
-                  <li
-                    key={item.product_id}
-                    className="rounded-2xl border border-white/8 bg-white/[0.04] p-3.5"
-                  >
+                  <li key={item.product_id} className="pw-tile p-3.5">
                     <div className="flex min-w-0 items-start gap-3">
                       <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-emerald-500/20 bg-emerald-500/10">
                         <DrugIcon size={26} />
@@ -109,7 +106,7 @@ export default function CartPage() {
 
             {/* Summary + CTA (sticky on desktop) */}
             <div className="space-y-4 md:sticky md:top-24">
-              <div className="space-y-3 rounded-2xl border border-white/8 bg-white/[0.04] px-4 py-4">
+              <div className="pw-tile space-y-3 px-4 py-4">
                 <div className="flex justify-between text-[13px]">
                   <span className="text-white/50">Subtotal</span>
                   <span className="text-white">{fmt(subtotal)}</span>
