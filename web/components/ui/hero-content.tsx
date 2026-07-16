@@ -97,8 +97,11 @@ export function HeroContent(): JSX.Element {
         variants={tagWrap}
         initial="hidden"
         animate="show"
-        aria-label={TAG}
       >
+        {/* Real accessible name; aria-label on a roleless div is ignored by
+            some AT and flagged prohibited (axe). The typed characters below
+            stay aria-hidden so only this is announced. */}
+        <span className="sr-only">{TAG}</span>
         {TAG.split("").map((c, i) => (
           <motion.span key={i} variants={tagChar} aria-hidden>
             {c === " " ? " " : c}
