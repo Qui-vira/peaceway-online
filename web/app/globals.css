@@ -59,9 +59,9 @@ body::before {
   --m: #b1bdb0;
   --m2: #868f85;
   --g-text: #34d98a;
-  /* The hero is the site's one light surface (--stage #c5c6c1). DESIGN.md
-     already named the ink for it, so this is that token rather than a new one:
-     8.94:1, where the brand green managed 4.04:1. */
+  /* The hero is the site's one light surface (--stage, now near-white #ecede8).
+     DESIGN.md already named the ink for it, so this is that token rather than a
+     new one: 13:1 on the white stage, where the brand green managed 4.04:1. */
   --stage-ink: #15291d;
 
   --bg: #191a17;
@@ -415,6 +415,22 @@ footer {
   margin-bottom: 20px;
 }
 
+/* Editorial overline, not a chip. A short leading rule anchors the eyebrow the
+   way a magazine standfirst does - it reads as typography, not as a badge or
+   capsule around the text. Uses currentColor so it tracks the eyebrow across
+   the light hero (Stage Ink) without a second token. Decorative, so it carries
+   no semantics and sits before the typed characters. */
+.htag::before {
+  content: "";
+  display: inline-block;
+  width: 26px;
+  height: 1px;
+  margin-right: 14px;
+  vertical-align: middle;
+  background: currentColor;
+  opacity: 0.6;
+}
+
 /* Blinking caret for the typewriter tagline (Framer Motion types the chars). */
 .type-caret {
   display: inline-block;
@@ -594,11 +610,28 @@ footer {
   #s1 .vign {
     display: none;
   }
+  /* White-dominant hero. The building frames are cut-outs whose baked
+     surroundings are a light warm grey (~rgb 212-225); the stage sat *darker*
+     than that (#c5c6c1 -> #b7b8b3, rgb 207-183), so the image read as a lighter
+     rectangle inside a greyer field. Lifting the stage to near-white puts it at
+     or above the image's own background, so the photo dissolves into the white
+     instead of sitting on grey. Scoped to #s1 only; the ::after below still
+     fades the base to #0b0c09 so nothing bleeds into the next section. */
   #s1 .sv-fb {
-    background: linear-gradient(180deg, #cfd0cb 0%, #c5c6c1 55%, #b7b8b3 100%);
+    background: linear-gradient(180deg, #f4f5f1 0%, #ecede8 54%, #e4e5e0 100%);
   }
   #s1 .pw-sticky {
-    background: #c5c6c1;
+    /* Solid near-white base, plus a soft white bloom centred on the building so
+       its immediate surroundings read as white rather than grey. */
+    background:
+      radial-gradient(ellipse 58% 62% at 62% 44%, #ffffff 0%, rgba(255, 255, 255, 0) 62%),
+      #ecede8;
+  }
+  /* Nudge the frame's baked light-grey background up toward the white stage so
+     the two meet as one surface; the building itself only gains a slight, airy
+     lift. Brightness alone, so hues are untouched. */
+  #s1 .pw-seq-canvas {
+    filter: brightness(1.06);
   }
   #s1 .htag {
     color: var(--stage-ink);
@@ -1050,13 +1083,14 @@ button:not(:disabled):not([aria-disabled="true"]),
   transition: opacity 0.45s ease;
 }
 #s5.pw-steplit .sstep {
-  /* 0.46 read as "off" but also as unreadable: it dropped the step number to
-     3.02:1 and the description to 3.53:1 against the section backdrop, and with
-     nine of ten steps inactive at any scroll point, most of the list sat below
-     AA most of the time. 0.72 still de-emphasises clearly against the active
-     step at 1, but keeps the number at 5.77:1 and the copy at 7.01:1. The
-     reveal should dim what you're not reading, not hide it. */
-  opacity: 0.72;
+  /* The reveal de-emphasises the steps you are not reading, but nine of ten are
+     inactive at any scroll point, so "inactive" is most steps most of the time
+     and must stay comfortably legible - not merely scrape past AA. 0.46 hid
+     them (number 3.02:1); 0.72 passed but still read as dim; 0.88 keeps every
+     inactive step fully readable (number ~7.6:1, copy ~9:1) while the active
+     step still leads through its filled badge, scale and glow rather than by
+     making its neighbours hard to read. */
+  opacity: 0.88;
 }
 #s5.pw-steplit .sstep.is-active {
   opacity: 1;
@@ -1291,6 +1325,33 @@ button:not(:disabled):not([aria-disabled="true"]),
   transition: color 0.2s;
 }
 
+/* Unavailable footer entries. These were `<a href="#">` dimmed to opacity 0.45,
+   which failed contrast at 2.26:1 and pretended to be links that went nowhere.
+   Now non-link spans that stay readable (--m2, 5.87:1) and carry their status
+   three ways instead of by dimming: the "Soon" tag, the colour, and a
+   not-allowed cursor, with aria-disabled for assistive tech. */
+.fl-soon {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--m2);
+  cursor: not-allowed;
+}
+.fl-soon:hover {
+  color: var(--m2);
+}
+.soon-tag {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--m2);
+  border: 1px solid var(--bdr);
+  border-radius: 5px;
+  padding: 1px 7px;
+  line-height: 1.45;
+}
+
 .fdiv {
   height: 1px;
   background: var(--bdr);
@@ -1301,11 +1362,13 @@ button:not(:disabled):not([aria-disabled="true"]),
   font-size: 11.5px;
   color: var(--m2);
   line-height: 1.7;
-  /* Unconstrained, these three lines ran the full width of the footer - about
-     150 characters, roughly double the point where the eye loses the start of
-     the next line. Legal copy is the text people are least motivated to read;
-     it does not also need to be the hardest. */
-  max-width: 68ch;
+  /* Cap the measure so legal copy - the text people are least motivated to
+     read - is not also the widest. This was 68ch, which looked safe and was
+     not: DM Sans's "0" glyph is ~7.9px here but its average character is
+     ~5.4px, so 68ch resolved to 535px and held ~100 real characters per line,
+     well past the ~75 the eye tracks comfortably. A px-based measure sidesteps
+     the glyph-width trap entirely - 21rem is ~63 characters in this font. */
+  max-width: 21rem;
   text-wrap: pretty;
 }
 
@@ -1590,11 +1653,17 @@ button:not(:disabled):not([aria-disabled="true"]),
   #s1 .vign {
     display: none;
   }
+  /* White-dominant hero, matching desktop: lift the stage above the frame's
+     baked light-grey background so the building dissolves into white instead of
+     sitting on grey. #s1 only; the dark sections below are untouched. */
   #s1 .pw-sticky {
-    background: linear-gradient(180deg, #cfd0cb 0%, #c5c6c1 52%, #bcbdb8 100%);
+    background: linear-gradient(180deg, #f4f5f1 0%, #ecede8 52%, #e4e5e0 100%);
   }
   #s1 .sv-fb {
-    background: linear-gradient(180deg, #cfd0cb 0%, #c5c6c1 55%, #b7b8b3 100%);
+    background: linear-gradient(180deg, #f4f5f1 0%, #ecede8 55%, #e4e5e0 100%);
+  }
+  #s1 .pw-seq-canvas {
+    filter: brightness(1.06);
   }
   /* Stacked hero. Desktop splits copy/building left-right (`#s1 .pw-seq` sits
      at left:40%), which won't fit a phone, so split top-bottom instead. The pin

@@ -22,9 +22,14 @@ colors:
   # token instead, so the next dimmer label cannot be invented at the call site.
   ink-subtle: "#868f85"
   hairline: "#ffffff14"
-  stage-light: "#cfd0cb"
-  stage: "#c5c6c1"
-  stage-deep: "#bcbdb8"
+  # The hero stage. Was a light-grey ramp (#cfd0cb / #c5c6c1 / #bcbdb8), which
+  # sat darker than the building frames' own baked light-grey background, so the
+  # cut-out photo read as a lighter rectangle on grey. Lifted to near-white so
+  # the image dissolves into the stage; the building frames get a +6% brightness
+  # nudge to meet it. Hero (#s1) only - every other surface stays counter-black.
+  stage-light: "#f4f5f1"
+  stage: "#ecede8"
+  stage-deep: "#e4e5e0"
   stage-ink: "#15291d"
   stage-ink-muted: "#33403a"
 typography:

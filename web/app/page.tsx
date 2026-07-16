@@ -360,8 +360,8 @@ export default function Page(): JSX.Element {
               <a className="fl" href={siteConfig.telegramBotUrl} target="_blank" rel="noreferrer noopener">Telegram Bot</a>
               <a className="fl" href={siteConfig.telegramChannelUrl} target="_blank" rel="noreferrer noopener">Telegram Channel</a>
               <a className="fl" href={siteConfig.instagramUrl} target="_blank" rel="noreferrer noopener">Instagram</a>
-              <a className="fl" href="#" style={{ opacity: 0.45 }}>WhatsApp [Soon]</a>
-              <a className="fl" href="#" style={{ opacity: 0.45 }}>Facebook [Soon]</a>
+              <span className="fl fl-soon">WhatsApp<span className="soon-tag">Soon</span></span>
+              <span className="fl fl-soon">Facebook<span className="soon-tag">Soon</span></span>
             </div>
             <div>
               <div className="fct">Legal</div>
