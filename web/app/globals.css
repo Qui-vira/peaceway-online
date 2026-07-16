@@ -1301,11 +1301,13 @@ button:not(:disabled):not([aria-disabled="true"]),
   font-size: 11.5px;
   color: var(--m2);
   line-height: 1.7;
-  /* Unconstrained, these three lines ran the full width of the footer - about
-     150 characters, roughly double the point where the eye loses the start of
-     the next line. Legal copy is the text people are least motivated to read;
-     it does not also need to be the hardest. */
-  max-width: 68ch;
+  /* Cap the measure so legal copy - the text people are least motivated to
+     read - is not also the widest. This was 68ch, which looked safe and was
+     not: DM Sans's "0" glyph is ~7.9px here but its average character is
+     ~5.4px, so 68ch resolved to 535px and held ~100 real characters per line,
+     well past the ~75 the eye tracks comfortably. A px-based measure sidesteps
+     the glyph-width trap entirely - 21rem is ~63 characters in this font. */
+  max-width: 21rem;
   text-wrap: pretty;
 }
 
