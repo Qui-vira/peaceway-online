@@ -3,7 +3,10 @@ name: Peaceway Online
 description: The 24/7 ordering and operations surface for a real, licensed Lagos pharmacy.
 colors:
   dispensary-green: "#0f673c"
-  dispensary-green-lit: "#1a8a50"
+  # Was #1a8a50, which no text could sit on: 4.38:1 under white and 4.34:1
+  # under ink-on-green, so the palette had no legal pairing for it. Lowered to
+  # 29.7% lightness (hue and saturation unchanged) to carry white at 5.02:1.
+  dispensary-green-lit: "#187f4a"
   dispensary-green-mid: "#1aa35a"
   dispensary-green-bright: "#23bd6a"
   ink-on-green: "#05130b"
@@ -14,6 +17,10 @@ colors:
   raised-surface: "#191a17"
   ink: "#dcdddb"
   ink-muted: "#b1bdb0"
+  # The dimmer muted tier. Previously expressed as ink-muted at 0.4-0.55 alpha,
+  # which landed at 2.5-3.7:1; the minimum alpha that clears AA is 0.63. A named
+  # token instead, so the next dimmer label cannot be invented at the call site.
+  ink-subtle: "#868f85"
   hairline: "#ffffff14"
   stage-light: "#cfd0cb"
   stage: "#c5c6c1"

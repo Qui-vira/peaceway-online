@@ -41,28 +41,28 @@ body::before {
 }
 
 :root {
-  /* Brand fills. These sit *under* white text; they are not text colours.
-     --g2 carries white at 5.02:1 - it used to double as a text colour on the
-     dark background, which pulled it in two directions at once and left it
-     failing both (4.48:1 as text, 4.38:1 as a fill). The two roles are split
-     now: fills below, text tokens further down. */
+  /* Names track DESIGN.md. Fills sit *under* text and are never text colours
+     themselves - the split is the whole point. --g2 (dispensary-green-lit) was
+     #1a8a50, which carries nothing at AA: 4.38:1 under white and 4.34:1 under
+     the palette's own ink-on-green. There was no text colour that worked on it,
+     so the value moved rather than the pairing. DESIGN.md now records #187f4a. */
   --g: #0f673c;
   --g2: #187f4a;
   --gl: rgba(15, 103, 60, 0.14);
   --r: #a80b16;
 
-  /* Text colours, all measured against --bgd (#0b0c09) at WCAG AA (4.5:1 for
-     body copy). Every value carries headroom so a small tweak cannot silently
-     drop a token below the line. */
+  /* Text colours, measured against --bgd (#0b0c09) at WCAG AA, each with
+     headroom so a later tweak cannot silently drop one under the line.
+     PRODUCT.md already states the rule these encode: --g is for fills and large
+     shapes only, and text on the dark base uses the bright ramp. */
   --t: #dcdddb;
   --m: #b1bdb0;
   --m2: #868f85;
   --g-text: #34d98a;
-  --r-text: #e04d57;
-  /* The hero is the one light surface on the site (--hero-bg #c5c6c1), so green
-     text there has to run *darker*, not lighter. Same hue and saturation as --g,
-     dropped to 20% lightness: 5.01:1 where plain --g managed 4.04:1. */
-  --g-on-light: #0d5733;
+  /* The hero is the site's one light surface (--stage #c5c6c1). DESIGN.md
+     already named the ink for it, so this is that token rather than a new one:
+     8.94:1, where the brand green managed 4.04:1. */
+  --stage-ink: #15291d;
 
   --bg: #191a17;
   --bgd: #0b0c09;
@@ -305,17 +305,6 @@ footer {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-}
-
-.stag {
-  display: inline-block;
-  font-size: 11px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--r-text);
-  font-family: var(--font-syne), sans-serif;
-  font-weight: 700;
-  margin-bottom: 10px;
 }
 
 .shead {
@@ -612,7 +601,7 @@ footer {
     background: #c5c6c1;
   }
   #s1 .htag {
-    color: var(--g-on-light);
+    color: var(--stage-ink);
   }
   #s1 .hh {
     font-size: clamp(30px, 3.1vw, 48px);
@@ -1539,14 +1528,6 @@ button:not(:disabled):not([aria-disabled="true"]),
     color: #86efac;
     text-shadow: 0 2px 14px rgba(0, 0, 0, 0.85);
   }
-  .stag {
-    color: #ff6f7a;
-    background: rgba(7, 8, 6, 0.72);
-    border: 1px solid rgba(255, 111, 122, 0.22);
-    border-radius: 999px;
-    padding: 6px 10px;
-    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.8);
-  }
   .hs {
     max-width: 86vw;
     color: rgba(255, 255, 255, 0.86);
@@ -1656,7 +1637,7 @@ button:not(:disabled):not([aria-disabled="true"]),
     filter: none;
   }
   #s1 .htag {
-    color: var(--g-on-light);
+    color: var(--stage-ink);
     text-shadow: none;
   }
   #s1 .hs {
