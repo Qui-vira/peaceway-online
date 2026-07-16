@@ -1823,7 +1823,10 @@ button:not(:disabled):not([aria-disabled="true"]),
     );
   }
   .hcon {
-    padding: calc(80px + env(safe-area-inset-top)) 20px 100px;
+    /* 80px sat the headline 8px under the nav once the eyebrow (which used to
+       hold this gap open) was removed. 120px gives the headline real air below
+       the bar; safe-area keeps it clear of the notch. */
+    padding: calc(120px + env(safe-area-inset-top)) 20px 100px;
     justify-content: center;
   }
 }
