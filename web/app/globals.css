@@ -1050,7 +1050,13 @@ button:not(:disabled):not([aria-disabled="true"]),
   transition: opacity 0.45s ease;
 }
 #s5.pw-steplit .sstep {
-  opacity: 0.46;
+  /* 0.46 read as "off" but also as unreadable: it dropped the step number to
+     3.02:1 and the description to 3.53:1 against the section backdrop, and with
+     nine of ten steps inactive at any scroll point, most of the list sat below
+     AA most of the time. 0.72 still de-emphasises clearly against the active
+     step at 1, but keeps the number at 5.77:1 and the copy at 7.01:1. The
+     reveal should dim what you're not reading, not hide it. */
+  opacity: 0.72;
 }
 #s5.pw-steplit .sstep.is-active {
   opacity: 1;
