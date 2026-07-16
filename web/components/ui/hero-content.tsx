@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion, useReducedMotion, type Variants } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { siteConfig } from "@/lib/constants";
 
-const TAG = "Peaceway Online · Igando, Lagos, Nigeria";
-const HEADLINE = ["YOUR LAGOS", "PHARMACY", "IS NOW ONLINE"];
+const HEADLINE_LINES = ["YOUR LAGOS", "PHARMACY", "IS NOW ONLINE"];
+const HEADLINE = HEADLINE_LINES.join("\n");
+const HEADLINE_LABEL = "Your Lagos pharmacy is now online";
+const TYPE_MS = 62; // per-character cadence
 const EASE = [0.22, 0.61, 0.36, 1] as const;
 
 /**
@@ -27,13 +29,36 @@ function useFinePointer(): boolean {
 }
 
 /**
- * Animated hero copy (Framer Motion): the tagline types in character by
- * character, the headline wipes up (clip-path, so the gradient text stays
- * intact), then the subtext and CTAs fade up. Static under reduced-motion.
+ * Hero copy. The headline types in character by character; the subtext and CTAs
+ * fade up after. Under reduced-motion everything is static and complete.
+ *
+ * The typewriter overlays an invisible full-text "ghost" that reserves the
+ * headline's final three-line box, so the copy below never reflows as the
+ * characters appear. The accessible name comes from the h1's aria-label (valid
+ * on a heading) with the animated characters aria-hidden, so assistive tech
+ * hears the finished line, not a stream of partial words.
  */
 export function HeroContent(): JSX.Element {
   const reduce = useReducedMotion();
   const finePointer = useFinePointer();
+  const [typed, setTyped] = useState("");
+
+  useEffect(() => {
+    if (reduce) return;
+    setTyped("");
+    let i = 0;
+    const id = window.setInterval(() => {
+      i += 1;
+      setTyped(HEADLINE.slice(0, i));
+      if (i >= HEADLINE.length) window.clearInterval(id);
+    }, TYPE_MS);
+    return () => window.clearInterval(id);
+  }, [reduce]);
+
+  // reduce short-circuits to the full line with no dependence on the effect, so
+  // there is never a flash of empty headline for motion-averse users.
+  const shown = reduce ? HEADLINE : typed;
+  const typingDone = shown.length >= HEADLINE.length;
 
   const hover =
     reduce || !finePointer
@@ -60,75 +85,33 @@ export function HeroContent(): JSX.Element {
     </>
   );
 
+  const headline = (
+    <h1 className="hh" aria-label={HEADLINE_LABEL}>
+      <span className="hh-ghost" aria-hidden>
+        {HEADLINE}
+      </span>
+      <span className="hh-type" aria-hidden>
+        {shown}
+        {!reduce && (
+          <span className={`type-caret${typingDone ? " is-done" : ""}`} />
+        )}
+      </span>
+    </h1>
+  );
+
   if (reduce) {
     return (
       <div className="hcon">
-        <div className="htag">{TAG}</div>
-        <h1 className="hh">
-          YOUR LAGOS
-          <br />
-          PHARMACY
-          <br />
-          IS NOW ONLINE
-        </h1>
+        {headline}
         <p className="hs">Genuine medicines, pharmacist guidance, and delivery across Lagos.</p>
         <div className="ctg">{cta}</div>
       </div>
     );
   }
 
-  /* Entrance budget: the CTA is settled by ~0.75s, not 2.3s. The copy no longer
-     queues behind the tagline typing - the headline starts almost immediately
-     and the tagline types alongside it. Stagger is decorative and must never
-     gate the primary action. */
-  const tagWrap: Variants = {
-    hidden: {},
-    show: { transition: { staggerChildren: 0.012, delayChildren: 0.05 } },
-  };
-  const tagChar: Variants = {
-    hidden: { opacity: 0 },
-    show: { opacity: 1, transition: { duration: 0.01 } },
-  };
-
   return (
     <div className="hcon">
-      <motion.div
-        className="htag"
-        variants={tagWrap}
-        initial="hidden"
-        animate="show"
-      >
-        {/* Real accessible name; aria-label on a roleless div is ignored by
-            some AT and flagged prohibited (axe). The typed characters below
-            stay aria-hidden so only this is announced. */}
-        <span className="sr-only">{TAG}</span>
-        {TAG.split("").map((c, i) => (
-          <motion.span key={i} variants={tagChar} aria-hidden>
-            {c === " " ? " " : c}
-          </motion.span>
-        ))}
-        <span className="type-caret" aria-hidden />
-      </motion.div>
-
-      {/* The wipe is an overflow mask + translate, not an animated clip-path.
-          clip-path interpolation is the least reliable way to do this, and a
-          line that fails to animate stays clipped to nothing - i.e. an
-          invisible headline. A transform is the same animation the subtext and
-          CTAs below already use, so it fails the same way they do: never. */}
-      <h1 className="hh" aria-label="Your Lagos pharmacy is now online">
-        {HEADLINE.map((line, i) => (
-          <span key={line} className="hh-mask" aria-hidden>
-            <motion.span
-              className="hh-line"
-              initial={{ y: "110%" }}
-              animate={{ y: "0%" }}
-              transition={{ duration: 0.45, ease: EASE, delay: 0.12 + i * 0.07 }}
-            >
-              {line}
-            </motion.span>
-          </span>
-        ))}
-      </h1>
+      {headline}
 
       <motion.p
         className="hs"

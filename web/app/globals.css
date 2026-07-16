@@ -406,43 +406,25 @@ footer {
     box-shadow 0.2s cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 
-.htag {
-  font-size: 12px;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: #4ade80;
-  font-weight: 600;
-  margin-bottom: 20px;
-}
-
-/* Editorial overline, not a chip. A short leading rule anchors the eyebrow the
-   way a magazine standfirst does - it reads as typography, not as a badge or
-   capsule around the text. Uses currentColor so it tracks the eyebrow across
-   the light hero (Stage Ink) without a second token. Decorative, so it carries
-   no semantics and sits before the typed characters. */
-.htag::before {
-  content: "";
-  display: inline-block;
-  width: 26px;
-  height: 1px;
-  margin-right: 14px;
-  vertical-align: middle;
-  background: currentColor;
-  opacity: 0.6;
-}
-
-/* Blinking caret for the typewriter tagline (Framer Motion types the chars). */
+/* Blinking caret for the headline typewriter (JS types the characters). */
 .type-caret {
   display: inline-block;
-  width: 2px;
-  height: 1em;
-  margin-left: 3px;
-  vertical-align: -0.12em;
-  background: #4ade80;
-  /* A caret means "still typing". The tagline finishes in ~0.55s, so blink
-     through that and stop - an endless blink on a permanently-visible element
-     is decoration competing with the headline for attention. */
-  animation: caret-blink 0.9s steps(1) 1 forwards;
+  width: 4px;
+  height: 0.78em;
+  margin-left: 8px;
+  vertical-align: -0.02em;
+  /* currentColor so the caret is the headline's ink (Stage Ink on the light
+     hero), not a fixed green that would wash out on white. */
+  background: currentColor;
+  /* Blinks while the headline types, then settles: a caret means "still
+     typing", so once the line is complete it fades rather than blinking on
+     forever and competing with the headline for attention. */
+  animation: caret-blink 1s steps(1) infinite;
+}
+.type-caret.is-done {
+  animation: none;
+  opacity: 0;
+  transition: opacity 0.45s ease 0.4s;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -565,17 +547,21 @@ footer {
      comes from weight and size. */
   color: #dcdddb;
   margin-bottom: 22px;
+  /* Typewriter headline. `pre-line` turns the three explicit line breaks into
+     rows; the ghost reserves the full three-row height so the copy below never
+     reflows as characters type in. */
+  position: relative;
+  white-space: pre-line;
 }
-
-/* Headline wipe: each line is masked by an overflow:hidden block and slides up
-   from below. Kept as plain elements (no clip-path) so a line can never end up
-   permanently clipped out of sight. */
-.hh-mask {
-  display: block;
-  overflow: hidden;
+/* Full headline, painted invisible - it only reserves the box. Its identical
+   text and wrapping mean each typed character lands exactly where it will rest. */
+.hh-ghost {
+  visibility: hidden;
 }
-.hh-line {
-  display: block;
+/* The characters as they type, overlaid on the reserved box. */
+.hh-type {
+  position: absolute;
+  inset: 0;
 }
 
 .hs {
@@ -633,9 +619,6 @@ footer {
   #s1 .pw-seq-canvas {
     filter: brightness(1.06);
   }
-  #s1 .htag {
-    color: var(--stage-ink);
-  }
   #s1 .hh {
     font-size: clamp(30px, 3.1vw, 48px);
     max-width: 440px;
@@ -648,7 +631,6 @@ footer {
   #s1 .hs {
     color: #33403a;
   }
-  #s1 .htag,
   #s1 .hs,
   #s1 .ctg {
     max-width: 440px;
@@ -1586,17 +1568,6 @@ button:not(:disabled):not([aria-disabled="true"]),
     color: #f4f7f2;
     text-shadow: 0 3px 18px rgba(0, 0, 0, 0.9);
   }
-  .htag {
-    max-width: 68vw;
-    /* Was 9.5px. DESIGN.md: "nothing renders below 11px". This line names the
-       physical pharmacy - it is the trust claim, not decoration - and it was
-       the smallest text on a phone. Tracking is reduced so it still fits. */
-    font-size: 11px;
-    letter-spacing: 0.14em;
-    line-height: 1.5;
-    color: #86efac;
-    text-shadow: 0 2px 14px rgba(0, 0, 0, 0.85);
-  }
   .hs {
     max-width: 86vw;
     color: rgba(255, 255, 255, 0.86);
@@ -1710,10 +1681,6 @@ button:not(:disabled):not([aria-disabled="true"]),
     -webkit-text-fill-color: currentColor;
     color: #15291d;
     filter: none;
-  }
-  #s1 .htag {
-    color: var(--stage-ink);
-    text-shadow: none;
   }
   #s1 .hs {
     color: #33403a;
