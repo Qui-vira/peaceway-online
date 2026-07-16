@@ -7,7 +7,7 @@ import { siteConfig } from "@/lib/constants";
 const HEADLINE_LINES = ["YOUR LAGOS", "PHARMACY", "IS NOW ONLINE"];
 const HEADLINE = HEADLINE_LINES.join("\n");
 const HEADLINE_LABEL = "Your Lagos pharmacy is now online";
-const TYPE_MS = 62; // per-character cadence
+const TYPE_MS = 35; // per-character cadence
 const EASE = [0.22, 0.61, 0.36, 1] as const;
 
 /**
