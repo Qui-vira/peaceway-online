@@ -79,7 +79,6 @@ export default function Page(): JSX.Element {
             <div className="vign" />
             <div className="snbg" aria-hidden="true">02</div>
             <div className="con">
-              <TextFX as="div" effect="slide-left" className="stag">The Problem</TextFX>
               <SplitText as="h2" effect="mask-words" className="shead" style={{ maxWidth: "700px" }} text="Buying medicine should not feel like guessing." />
               <p className="ssub">In Lagos, getting the right medicine can feel risky. Wrong advice, fake products, and unnecessary movement should not be part of healthcare.</p>
               <div className="g3">
@@ -111,7 +110,6 @@ export default function Page(): JSX.Element {
             <div className="vign" />
             <div className="snbg" aria-hidden="true">03</div>
             <div className="con">
-              <TextFX as="div" effect="slide-right" className="stag">What We Do</TextFX>
               <SplitText as="h2" effect="lines" className="shead" text={"Order medicine. Ask a pharmacist.\nGet it delivered."} />
               <div className="g3" style={{ marginTop: "8px" }}>
                 <div className="gc"><div className="ic-g">+</div><div className="cn2">OTC Medicine Delivery</div><div className="cd">Order over-the-counter medicines directly through Telegram. Availability confirmed before you pay.</div></div>
@@ -138,7 +136,6 @@ export default function Page(): JSX.Element {
                   <Image className="phimg" src={media.pharmacyPhoto} alt="Peaceway Pharmacy, Igando Lagos" width={1400} height={900} />
                 </div>
                 <div>
-                  <TextFX as="div" effect="fade-up" className="stag">Why Trust Us</TextFX>
                   <TextFX as="h2" effect="blur" className="shead">A real pharmacy behind the online service.</TextFX>
                   <p style={{ fontSize: 14, color: "var(--m)", lineHeight: 1.7, marginBottom: 20 }}>Peaceway Online is not a startup guessing at healthcare. It is a real, physical pharmacy extending its service online.</p>
                   <div className="titem"><div className="tdot"><div className="tdi" /></div><div><div className="tt">Physical pharmacy in Igando/Agodo Ikotun</div><div className="tb">A real building, real address, real staff.</div></div></div>
@@ -160,7 +157,6 @@ export default function Page(): JSX.Element {
             <div className="vign" />
             <div className="snbg" aria-hidden="true">05</div>
             <div className="con">
-              <TextFX as="div" effect="scale-up" className="stag">How It Works</TextFX>
               <SplitText as="h2" effect="letters" className="shead" text="From message to delivery." />
               <p className="ssub">Ten steps. No complicated apps. Just Telegram, a pharmacist, and your door.</p>
               <div className="sgrid">
@@ -197,7 +193,6 @@ export default function Page(): JSX.Element {
             <div className="con">
               <div className="g2">
                 <div>
-                  <TextFX as="div" effect="slide-left" className="stag">Ask a Pharmacist</TextFX>
                   <SplitText as="h2" effect="flip" className="shead" text="Need help before you buy?" />
                   <p style={{ fontSize: 15, color: "var(--m)", lineHeight: 1.75, maxWidth: 420, marginBottom: 20 }}>Our pharmacist is available through the Telegram bot. Ask questions about medicines, dosage, interactions, or side effects before you order.</p>
                   <p style={{ fontSize: 13, color: "var(--m2)", maxWidth: 380, lineHeight: 1.65, marginBottom: 32 }}>Prescription-only products require review before supply. This is how we keep you safe.</p>
@@ -224,7 +219,6 @@ export default function Page(): JSX.Element {
             <div className="con">
               <div className="g2" style={{ alignItems: "flex-start" }}>
                 <div>
-                  <TextFX as="div" effect="scale-down" className="stag">Delivery Areas</TextFX>
                   <SplitText as="h2" effect="lines" className="shead" text={"Delivery across Lagos,\nstarting from Igando."} />
                   <p style={{ fontSize: 15, color: "var(--m)", lineHeight: 1.7, maxWidth: 420, marginBottom: 32 }}>We deliver to communities around our pharmacy first. Coverage is expanding. If your area is not listed, ask us.</p>
                   <div className="ag">
@@ -271,7 +265,6 @@ export default function Page(): JSX.Element {
             <div className="grg" />
             <div className="snbg" aria-hidden="true">08</div>
             <div className="con" style={{ alignItems: "center", textAlign: "center" }}>
-              <TextFX as="div" effect="fade-in" className="stag">Community</TextFX>
               <h2 className="shead" style={{ maxWidth: 620, margin: "0 auto 12px" }}>
                 Join the Peaceway{" "}
                 <RotatingWords words={["health", "care", "wellness"]} className="fx-gradient" /> community.
@@ -311,7 +304,6 @@ export default function Page(): JSX.Element {
             <div className="con">
               <div className="g2" style={{ alignItems: "flex-start" }}>
                 <div>
-                  <TextFX as="div" effect="fade-up" className="stag">Contact</TextFX>
                   <h2 className="shead"><ScrambleText text="Talk to Peaceway." /></h2>
                   <p style={{ fontSize: 15, color: "var(--m)", maxWidth: 380, lineHeight: 1.75, marginBottom: 16 }}>We are a real pharmacy with real people. Reach us through any of the channels below.</p>
                   <p style={{ fontSize: 13, color: "var(--m2)", maxWidth: 360, lineHeight: 1.65 }}>For orders, use the Telegram bot. For general inquiries or pharmacist questions, any channel works.</p>
