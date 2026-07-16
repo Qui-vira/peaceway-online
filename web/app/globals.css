@@ -59,9 +59,9 @@ body::before {
   --m: #b1bdb0;
   --m2: #868f85;
   --g-text: #34d98a;
-  /* The hero is the site's one light surface (--stage #c5c6c1). DESIGN.md
-     already named the ink for it, so this is that token rather than a new one:
-     8.94:1, where the brand green managed 4.04:1. */
+  /* The hero is the site's one light surface (--stage, now near-white #ecede8).
+     DESIGN.md already named the ink for it, so this is that token rather than a
+     new one: 13:1 on the white stage, where the brand green managed 4.04:1. */
   --stage-ink: #15291d;
 
   --bg: #191a17;
@@ -610,11 +610,28 @@ footer {
   #s1 .vign {
     display: none;
   }
+  /* White-dominant hero. The building frames are cut-outs whose baked
+     surroundings are a light warm grey (~rgb 212-225); the stage sat *darker*
+     than that (#c5c6c1 -> #b7b8b3, rgb 207-183), so the image read as a lighter
+     rectangle inside a greyer field. Lifting the stage to near-white puts it at
+     or above the image's own background, so the photo dissolves into the white
+     instead of sitting on grey. Scoped to #s1 only; the ::after below still
+     fades the base to #0b0c09 so nothing bleeds into the next section. */
   #s1 .sv-fb {
-    background: linear-gradient(180deg, #cfd0cb 0%, #c5c6c1 55%, #b7b8b3 100%);
+    background: linear-gradient(180deg, #f4f5f1 0%, #ecede8 54%, #e4e5e0 100%);
   }
   #s1 .pw-sticky {
-    background: #c5c6c1;
+    /* Solid near-white base, plus a soft white bloom centred on the building so
+       its immediate surroundings read as white rather than grey. */
+    background:
+      radial-gradient(ellipse 58% 62% at 62% 44%, #ffffff 0%, rgba(255, 255, 255, 0) 62%),
+      #ecede8;
+  }
+  /* Nudge the frame's baked light-grey background up toward the white stage so
+     the two meet as one surface; the building itself only gains a slight, airy
+     lift. Brightness alone, so hues are untouched. */
+  #s1 .pw-seq-canvas {
+    filter: brightness(1.06);
   }
   #s1 .htag {
     color: var(--stage-ink);
@@ -1636,11 +1653,17 @@ button:not(:disabled):not([aria-disabled="true"]),
   #s1 .vign {
     display: none;
   }
+  /* White-dominant hero, matching desktop: lift the stage above the frame's
+     baked light-grey background so the building dissolves into white instead of
+     sitting on grey. #s1 only; the dark sections below are untouched. */
   #s1 .pw-sticky {
-    background: linear-gradient(180deg, #cfd0cb 0%, #c5c6c1 52%, #bcbdb8 100%);
+    background: linear-gradient(180deg, #f4f5f1 0%, #ecede8 52%, #e4e5e0 100%);
   }
   #s1 .sv-fb {
-    background: linear-gradient(180deg, #cfd0cb 0%, #c5c6c1 55%, #b7b8b3 100%);
+    background: linear-gradient(180deg, #f4f5f1 0%, #ecede8 55%, #e4e5e0 100%);
+  }
+  #s1 .pw-seq-canvas {
+    filter: brightness(1.06);
   }
   /* Stacked hero. Desktop splits copy/building left-right (`#s1 .pw-seq` sits
      at left:40%), which won't fit a phone, so split top-bottom instead. The pin
