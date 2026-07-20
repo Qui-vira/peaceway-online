@@ -86,6 +86,9 @@ class Settings(BaseSettings):
     # Optional staff group
     staff_group_chat_id: str = ""
 
+    # Hour (0-23, Africa/Lagos) the daily checklist nudge DM fires, weekdays only.
+    staff_nudge_hour: int = 18
+
     # Logistics provider keys (P2)
     kwik_api_key: str = ""
     fez_api_key: str = ""
