@@ -12,7 +12,7 @@ from sqlalchemy import select
 from app.bot.staff.states import StaffFlow
 from app.core.db import get_session
 from app.core.logging import get_logger
-from app.core.security import get_role_keys, has, log_activity, primary_role, touch_activity
+from app.core.security import get_admin_id, get_role_keys, has, log_activity, primary_role, touch_activity
 from app.models import (
     AuditLog,
     Customer,
@@ -26,6 +26,7 @@ from app.models import (
 from app.services import orders as orders_svc
 from app.services import payments_admin as payments_admin_svc
 from app.services import sourcing as sourcing_svc
+from app.services import verification as verification_svc
 
 router = Router(name="staff-orders")
 log = get_logger("staff-orders")
@@ -242,11 +243,28 @@ async def handle_action(call: CallbackQuery, state: FSMContext) -> None:
             customer_msg = f"🚫 Your order {code} has been cancelled. Contact support for help."
 
         elif action == "rx_approve":
+            pharmacist_id = await get_admin_id(call.from_user.id, session)
+            if pharmacist_id is None:
+                await call.answer("Could not resolve your pharmacist identity. Contact the System Owner.", show_alert=True)
+                return
+            # Write-path for Gate 1: without this row the DB rejects dispatch of this POM order.
+            await verification_svc.record_verification(
+                session, order_id=order.id, pharmacist_admin_id=pharmacist_id,
+                decision=verification_svc.APPROVED,
+            )
             await orders_svc.transition_rx(session, order, RxStatus.APPROVED_FOR_PAYMENT, by)
             await orders_svc.transition_status(session, order, OrderStatus.AWAITING_PAYMENT, by)
             customer_msg = f"✅ Your prescription for {code} was approved. You can now pay."
 
         elif action == "rx_reject":
+            pharmacist_id = await get_admin_id(call.from_user.id, session)
+            if pharmacist_id is None:
+                await call.answer("Could not resolve your pharmacist identity. Contact the System Owner.", show_alert=True)
+                return
+            await verification_svc.record_verification(
+                session, order_id=order.id, pharmacist_admin_id=pharmacist_id,
+                decision=verification_svc.REJECTED,
+            )
             await orders_svc.transition_rx(session, order, RxStatus.REJECTED_BY_PHARMACIST, by)
             await orders_svc.transition_status(session, order, OrderStatus.REJECTED, by)
             customer_msg = f"⛔ Your prescription order {code} was not approved. Please contact our pharmacist."

@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
+from uuid import UUID
 
 from sqlalchemy import delete, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -46,6 +47,28 @@ async def get_role_keys(telegram_id: int, session: AsyncSession | None = None) -
         return bootstrap | await _query(session)
     async with get_session() as s:
         return bootstrap | await _query(s)
+
+
+async def get_admin_id(telegram_id: int, session: AsyncSession | None = None) -> UUID | None:
+    """Resolve the admin_users.id of an ACTIVE admin by Telegram id (None otherwise).
+
+    Used to attribute a pharmacist to a prescription_verifications row. The env
+    bootstrap owner has no admin_users row and cannot approve prescriptions
+    (WILDCARD_EXCLUDES), so a legitimate approver always resolves here.
+    """
+    async def _q(s: AsyncSession) -> UUID | None:
+        return (
+            await s.execute(
+                select(AdminUser.id).where(
+                    AdminUser.telegram_id == telegram_id, AdminUser.is_active.is_(True)
+                )
+            )
+        ).scalar_one_or_none()
+
+    if session is not None:
+        return await _q(session)
+    async with get_session() as s:
+        return await _q(s)
 
 
 async def can(telegram_id: int, permission: str) -> bool:

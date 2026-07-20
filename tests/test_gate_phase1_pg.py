@@ -49,6 +49,16 @@ def _sa_url(url: str, dbname: str) -> str:
     return re.sub(r"/[^/?]+(\?|$)", f"/{dbname}\\1", url)
 
 
+def _alembic_upgrade(url: str, dbname: str, rev: str = "head") -> None:
+    env = dict(os.environ, DATABASE_URL=_sa_url(url, dbname))
+    proc = subprocess.run(
+        [sys.executable, "-m", "alembic", "upgrade", rev],
+        cwd=str(REPO_ROOT), env=env, capture_output=True, text=True,
+    )
+    if proc.returncode != 0:
+        raise RuntimeError(f"alembic upgrade {rev} failed:\n{proc.stdout}\n{proc.stderr}")
+
+
 def _pg_available() -> bool:
     if asyncpg is None:
         return False
@@ -82,22 +92,12 @@ async def _build_and_seed(url: str) -> dict:
         await admin.close()
 
     # Apply the REAL migration chain against the throwaway DB.
-    env = dict(os.environ, DATABASE_URL=_sa_url(url, BRANCH_DB))
-    proc = subprocess.run(
-        [sys.executable, "-m", "alembic", "upgrade", "head"],
-        cwd=str(REPO_ROOT), env=env, capture_output=True, text=True,
-    )
-    if proc.returncode != 0:
-        raise RuntimeError(f"alembic upgrade failed:\n{proc.stdout}\n{proc.stderr}")
+    _alembic_upgrade(url, BRANCH_DB, "head")
 
     con = await asyncpg.connect(_dsn(url, BRANCH_DB))
     try:
-        # Gate 1 is deferred out of the deployed migration (it needs the pharmacist
-        # verify write-path first). Apply it here so the full design stays proven.
-        from app.core.gate_ddl import GATE1_UPGRADE_STATEMENTS
-        for stmt in GATE1_UPGRADE_STATEMENTS:
-            await con.execute(stmt)
-
+        # Gate 1 is now activated by migration c5e2b8a4f7d1 (part of `upgrade head`),
+        # so it no longer needs to be applied here.
         ids = {k: uuid.uuid4() for k in (
             "cust", "ph", "sales", "prod", "prod_otc",
             "t1", "t1c", "t1d", "t1b", "t1f", "t1g", "t1h",
@@ -306,3 +306,63 @@ async def test_handling_flag_stamped_and_frozen_at_dispatch(seeded):
         assert await con.fetchval("SELECT handling_flag FROM orders WHERE id=$1", seeded["hf_pom"]) == "RX_ID_CHECK"
     finally:
         await con.close()
+
+
+async def test_gate1_backfill_unblocks_inflight_approved_orders():
+    """Migration c5e2b8a4f7d1 backfills verification rows for in-flight approved POM
+    orders so activating Gate 1 doesn't freeze legitimate dispatch. Seed BEFORE the
+    backfill migration (at the prior revision), then upgrade head and assert."""
+    url = _base_url()
+    db = "peaceway_gate_backfill"
+    admin = await asyncpg.connect(_dsn(url, "postgres"))
+    try:
+        await admin.execute(f"DROP DATABASE IF EXISTS {db} WITH (FORCE)")
+        await admin.execute(f"CREATE DATABASE {db}")
+    finally:
+        await admin.close()
+    try:
+        _alembic_upgrade(url, db, "b3f1a2c9d7e4")  # pre-Gate1, pre-backfill
+        cust, ph, prod = uuid.uuid4(), uuid.uuid4(), uuid.uuid4()
+        approved, unapproved = uuid.uuid4(), uuid.uuid4()
+        con = await asyncpg.connect(_dsn(url, db))
+        try:
+            await con.execute("INSERT INTO customers(id, full_name, email_verified, email_opt_in) VALUES($1,'C',false,true)", cust)
+            await con.execute("INSERT INTO admin_users(id, full_name, is_active, status) VALUES($1,'Ph',true,'ACTIVE')", ph)
+            await con.execute("INSERT INTO admin_role_assignments(id, admin_id, role_key) VALUES($1,$2,'lead_pharmacist')", uuid.uuid4(), ph)
+            await con.execute("INSERT INTO products(id,name,generic_name,requires_prescription,controlled_substance,requires_review,is_listed) VALUES($1,'Amox','Amox',true,false,false,true)", prod)
+
+            async def order(oid, code, rx):
+                await con.execute(
+                    "INSERT INTO orders(id,code,customer_id,status,rx_status,delivery_status,"
+                    "subtotal,delivery_fee,payment_fee,offramp_fee,handling_fee,total) "
+                    "VALUES($1,$2,$3,'AWAITING_PAYMENT',$4,'NONE',5000,0,0,0,0,5000)", oid, code, cust, rx)
+                await con.execute("INSERT INTO order_items(id,order_id,product_id,product_name,quantity,unit_price,line_total,requires_prescription) VALUES($1,$2,$3,'x',1,5000,5000,true)", uuid.uuid4(), oid, prod)
+
+            await order(approved, "PW-BF-OK", "APPROVED_FOR_PAYMENT")   # eligible for backfill
+            await order(unapproved, "PW-BF-NO", "PHARMACIST_REVIEW")     # NOT approved -> not backfilled
+        finally:
+            await con.close()
+
+        _alembic_upgrade(url, db, "head")  # runs backfill + activates Gate 1
+
+        con = await asyncpg.connect(_dsn(url, db))
+        try:
+            # approved order: backfill created an APPROVED verification by the pharmacist
+            row = await con.fetchrow("SELECT pharmacist_user_id, decision FROM prescription_verifications WHERE order_id=$1", approved)
+            assert row is not None and row["decision"] == "APPROVED" and row["pharmacist_user_id"] == ph
+            # ...and it can dispatch under the now-active gate
+            await con.execute("UPDATE orders SET status='DISPATCHED' WHERE id=$1", approved)
+            assert await con.fetchval("SELECT status FROM orders WHERE id=$1", approved) == "DISPATCHED"
+
+            # unapproved order: NOT backfilled, and Gate 1 blocks its dispatch
+            assert await con.fetchval("SELECT count(*) FROM prescription_verifications WHERE order_id=$1", unapproved) == 0
+            with pytest.raises(asyncpg.exceptions.CheckViolationError):
+                await con.execute("UPDATE orders SET status='DISPATCHED' WHERE id=$1", unapproved)
+        finally:
+            await con.close()
+    finally:
+        admin = await asyncpg.connect(_dsn(url, "postgres"))
+        try:
+            await admin.execute(f"DROP DATABASE IF EXISTS {db} WITH (FORCE)")
+        finally:
+            await admin.close()
