@@ -74,6 +74,11 @@ from app.models.compliance import (
     DispensingRecord,
     PrescriptionVerification,
 )
+from app.models.dispatch_auth import (
+    DispatchPartner,
+    DispatchPartnerOtp,
+    DispatchPartnerSession,
+)
 
 __all__ = [
     "Base",
@@ -151,4 +156,7 @@ __all__ = [
     "BreakGlassAccess",
     "Approval",
     "CommunityMember",
+    "DispatchPartner",
+    "DispatchPartnerOtp",
+    "DispatchPartnerSession",
 ]

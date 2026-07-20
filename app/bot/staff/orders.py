@@ -2,10 +2,12 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
+from uuid import UUID
 
 from aiogram import Bot, F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.utils.text_decorations import html_decoration
 from sqlalchemy import select
 
@@ -17,6 +19,7 @@ from app.models import (
     AuditLog,
     Customer,
     DeliveryStatus,
+    DispatchPartner,
     FulfillmentStatus,
     Order,
     OrderStatus,
@@ -104,9 +107,26 @@ async def handle_action(call: CallbackQuery, state: FSMContext) -> None:
 
     # Interactive actions delegate to FSM capture.
     if action == "assign":
-        await state.set_state(StaffFlow.assign_rider)
-        await state.update_data(order_code=code)
-        await call.message.answer(f"🛵 Send rider details for {code} as: <i>Name, Phone</i>")
+        # Offer registered riders (so the delivery lands in their portal); fall back
+        # to free-text manual entry when none are registered.
+        async with get_session() as session:
+            riders = (
+                await session.execute(
+                    select(DispatchPartner).where(DispatchPartner.is_active.is_(True)).order_by(DispatchPartner.name)
+                )
+            ).scalars().all()
+        if not riders:
+            await state.set_state(StaffFlow.assign_rider)
+            await state.update_data(order_code=code)
+            await call.message.answer(f"🛵 No registered riders. Send rider details for {code} as: <i>Name, Phone</i>")
+            await call.answer()
+            return
+        kb = InlineKeyboardBuilder()
+        for r in riders:
+            kb.button(text=f"🛵 {r.name}", callback_data=f"rider:{code}:{r.id}")
+        kb.button(text="✍️ Manual entry", callback_data=f"rider:{code}:manual")
+        kb.adjust(1)
+        await call.message.answer(f"Assign a rider to {code}:", reply_markup=kb.as_markup())
         await call.answer()
         return
     if action == "msg":
@@ -292,6 +312,48 @@ async def handle_action(call: CallbackQuery, state: FSMContext) -> None:
 
     await _refresh(call, code, role_keys)
     await call.answer("Done ✅")
+
+
+@router.callback_query(F.data.startswith("rider:"))
+async def assign_registered_rider(call: CallbackQuery, state: FSMContext) -> None:
+    """Assign one of the registered dispatch partners to an order (or fall back to manual)."""
+    role_keys = await get_role_keys(call.from_user.id)
+    if not has(role_keys, "assign_rider"):
+        await call.answer("Not authorised for this action.", show_alert=True)
+        return
+    _, code, rider = call.data.split(":", 2)
+
+    if rider == "manual":
+        await state.set_state(StaffFlow.assign_rider)
+        await state.update_data(order_code=code)
+        await call.message.answer(f"🛵 Send rider details for {code} as: <i>Name, Phone</i>")
+        await call.answer()
+        return
+
+    by = f"assign:{call.from_user.id}"
+    async with get_session() as session:
+        order = (await session.execute(select(Order).where(Order.code == code))).scalar_one_or_none()
+        if order is None:
+            await call.answer("Order not found.", show_alert=True)
+            return
+        partner = await session.get(DispatchPartner, UUID(rider))
+        if partner is None or not partner.is_active:
+            await call.answer("Rider not available.", show_alert=True)
+            return
+        session.add(
+            RiderAssignment(
+                order_id=order.id, dispatch_partner_id=partner.id,
+                rider_name=partner.name, rider_phone=partner.phone, is_manual=False,
+            )
+        )
+        await orders_svc.transition_delivery(session, order, DeliveryStatus.RIDER_ASSIGNED, by)
+        if order.sourcing and order.sourcing.sourcing_required:
+            await sourcing_svc.mark_dispatch_assigned(session, order=order, by=by)
+        order_snapshot, rider_name = order, partner.name
+
+    await _notify_customer(call.bot, order_snapshot, f"🛵 A rider has been assigned to your order {code}.")
+    await call.message.answer(f"✅ {rider_name} assigned to {code}. It is now in their dispatch portal.")
+    await call.answer()
 
 
 @router.message(StaffFlow.assign_rider, F.text)

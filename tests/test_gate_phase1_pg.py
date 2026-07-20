@@ -383,6 +383,57 @@ async def test_app_role_has_crud_but_not_ddl_or_append_only_mutation(seeded):
         await app.close()
 
 
+async def test_gate5_dispatch_partner_scoping(seeded):
+    """Gate 5: a dispatch_partner sees ONLY their own ACTIVE deliveries; staff see all."""
+    su = await _conn()
+    r1, r2 = uuid.uuid4(), uuid.uuid4()
+    o_active, o_terminal, o_other = uuid.uuid4(), uuid.uuid4(), uuid.uuid4()
+    try:
+        await su.execute("ALTER ROLE peaceway_app PASSWORD 'testpw_ci'")
+        for rid, email in ((r1, "r1@x.co"), (r2, "r2@x.co")):
+            await su.execute("INSERT INTO dispatch_partners(id, name, portal_login_email, is_active) VALUES($1,'R',$2,true)", rid, email)
+
+        async def order(oid, dstatus):
+            await su.execute(
+                "INSERT INTO orders(id, code, customer_id, status, rx_status, delivery_status, subtotal, delivery_fee, payment_fee, offramp_fee, handling_fee, total) "
+                "VALUES($1,$2,$3,'PROCESSING','NOT_REQUIRED',$4,1000,0,0,0,0,1000)",
+                oid, "PW-" + str(oid)[:6], seeded["cust"], dstatus,
+            )
+
+        await order(o_active, "IN_TRANSIT")
+        await order(o_terminal, "DELIVERED")
+        await order(o_other, "IN_TRANSIT")
+        await su.execute("INSERT INTO rider_assignments(id, order_id, dispatch_partner_id, is_manual) VALUES(gen_random_uuid(),$1,$2,true)", o_active, r1)
+        await su.execute("INSERT INTO rider_assignments(id, order_id, dispatch_partner_id, is_manual) VALUES(gen_random_uuid(),$1,$2,true)", o_terminal, r1)
+        await su.execute("INSERT INTO rider_assignments(id, order_id, dispatch_partner_id, is_manual) VALUES(gen_random_uuid(),$1,$2,true)", o_other, r2)
+    finally:
+        await su.close()
+
+    app = await asyncpg.connect(_role_dsn(BRANCH_DB, "peaceway_app", "testpw_ci"))
+
+    async def assignment_orders(actor, atype):
+        async with app.transaction():
+            await app.execute("SELECT set_config('app.current_actor',$1,true), set_config('app.current_actor_type',$2,true)", actor or "", atype or "")
+            rows = await app.fetch("SELECT order_id FROM rider_assignments WHERE order_id = ANY($1::uuid[])", [o_active, o_terminal, o_other])
+            return {r["order_id"] for r in rows}
+
+    try:
+        # rider1: only its ACTIVE order (terminal hidden by Gate 5, rider2's hidden)
+        assert await assignment_orders(str(r1), "dispatch_partner") == {o_active}
+        # rider2: only its own
+        assert await assignment_orders(str(r2), "dispatch_partner") == {o_other}
+        # staff admin actor: all three (RLS non-dispatch branch)
+        assert await assignment_orders(str(seeded["ph"]), "admin") == {o_active, o_terminal, o_other}
+        # the masked-deliveries query the endpoint runs, as rider1 -> only o_active, no product fields
+        async with app.transaction():
+            await app.execute("SELECT set_config('app.current_actor',$1,true), set_config('app.current_actor_type','dispatch_partner',true)", str(r1))
+            masked = await app.fetch("SELECT * FROM dispatch_delivery_masked WHERE order_id IN (SELECT order_id FROM rider_assignments)")
+        assert {m["order_id"] for m in masked} == {o_active}
+        assert not ({"product_name", "product_id", "line_total"} & set(masked[0].keys()))
+    finally:
+        await app.close()
+
+
 async def test_clinical_rls_truth_table(seeded):
     """Gate 4: with RLS live, only a pharmacist (or break-glass, or the owning customer
     for the ask channel) can read clinical rows; everyone else and unset -> zero."""

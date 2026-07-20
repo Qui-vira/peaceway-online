@@ -107,3 +107,24 @@ async def _get_current_partner(
 
 
 PartnerSessionDep = Annotated["NetworkPartner", Depends(_get_current_partner)]
+
+
+async def _get_current_rider(
+    db: DbSession,
+    x_dispatch_session: Annotated[str, Header()] = "",
+) -> "DispatchPartner":
+    """Resolve the dispatch-partner (rider) session token. Separate auth domain."""
+    from app.services.dispatch_auth import get_session_rider
+
+    rider = await get_session_rider(db, x_dispatch_session)
+    if rider is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired dispatch session.",
+        )
+    # Stamp the rider as the actor so Gate 5 RLS scopes to their active deliveries.
+    await set_session_actor(db, rider.id, "dispatch_partner")
+    return rider
+
+
+RiderSessionDep = Annotated["DispatchPartner", Depends(_get_current_rider)]
