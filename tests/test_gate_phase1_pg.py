@@ -315,6 +315,33 @@ async def test_handling_flag_stamped_and_frozen_at_dispatch(seeded):
         await con.close()
 
 
+async def test_set_session_actor_stamps_transaction_local_guc(seeded):
+    """set_session_actor writes app.current_actor/type for the current transaction and
+    it clears at transaction end (so RLS in 2b default-denies once the actor is gone)."""
+    from sqlalchemy import text as sa_text
+    from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+
+    from app.core.db import set_session_actor
+
+    eng = create_async_engine(_sa_url(_base_url(), BRANCH_DB))
+    try:
+        async with async_sessionmaker(eng)() as s:
+            aid = uuid.uuid4()
+            await set_session_actor(s, aid, "admin")
+            row = (await s.execute(sa_text(
+                "SELECT current_setting('app.current_actor', true) AS actor_val, "
+                "current_setting('app.current_actor_type', true) AS actor_kind"
+            ))).first()
+            assert row.actor_val == str(aid) and row.actor_kind == "admin"
+            await s.rollback()  # transaction-local -> value does not survive
+            after = (await s.execute(sa_text(
+                "SELECT current_setting('app.current_actor', true) AS a"
+            ))).scalar()
+            assert after != str(aid)
+    finally:
+        await eng.dispose()
+
+
 async def test_app_role_has_crud_but_not_ddl_or_append_only_mutation(seeded):
     """The restricted peaceway_app role (migration d7a3c1e9f2b4): full CRUD on normal
     tables + sequences + the masked view, but no DDL and no UPDATE/DELETE on append-only
