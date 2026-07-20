@@ -79,6 +79,12 @@ from app.models.dispatch_auth import (
     DispatchPartnerOtp,
     DispatchPartnerSession,
 )
+from app.models.checklist import (
+    ChecklistInstance,
+    ChecklistTemplate,
+    Meeting,
+    MeetingDecision,
+)
 
 __all__ = [
     "Base",
@@ -159,4 +165,8 @@ __all__ = [
     "DispatchPartner",
     "DispatchPartnerOtp",
     "DispatchPartnerSession",
+    "ChecklistTemplate",
+    "ChecklistInstance",
+    "Meeting",
+    "MeetingDecision",
 ]
