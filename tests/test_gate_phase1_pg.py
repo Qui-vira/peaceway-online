@@ -1,0 +1,308 @@
+"""Phase-1 access-control gates — Postgres-backed acceptance tests.
+
+Triggers / REVOKE / views are Postgres features and CANNOT run on the SQLite unit
+suite, so this module builds a throwaway `peaceway_gate_test` database, applies the
+real migration chain (`alembic upgrade head`), seeds, and asserts each gate. It is
+skipped automatically when Postgres is unreachable, so the SQLite suite is unaffected.
+"""
+from __future__ import annotations
+
+import asyncio
+import os
+import re
+import subprocess
+import sys
+import uuid
+from pathlib import Path
+
+import pytest
+
+try:
+    import asyncpg
+except ImportError:  # pragma: no cover
+    asyncpg = None
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+BRANCH_DB = "peaceway_gate_test"
+
+
+def _base_url() -> str | None:
+    env = os.environ.get("DATABASE_URL")
+    if env:
+        return env
+    envfile = REPO_ROOT / ".env"
+    if envfile.exists():
+        for ln in envfile.read_text().splitlines():
+            if ln.startswith("DATABASE_URL="):
+                return ln.split("=", 1)[1].strip()
+    return None
+
+
+def _dsn(url: str, dbname: str) -> str:
+    raw = re.sub(r"\+asyncpg", "", url)
+    return re.sub(r"/[^/?]+(\?|$)", f"/{dbname}\\1", raw)
+
+
+def _sa_url(url: str, dbname: str) -> str:
+    if "+asyncpg" not in url:
+        url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
+    return re.sub(r"/[^/?]+(\?|$)", f"/{dbname}\\1", url)
+
+
+def _pg_available() -> bool:
+    if asyncpg is None:
+        return False
+    url = _base_url()
+    if not url or not url.startswith(("postgresql", "postgres")):
+        return False
+
+    async def _check() -> bool:
+        try:
+            con = await asyncpg.connect(_dsn(url, "postgres"))
+            await con.close()
+            return True
+        except Exception:
+            return False
+
+    try:
+        return asyncio.run(_check())
+    except Exception:
+        return False
+
+
+pytestmark = pytest.mark.skipif(not _pg_available(), reason="Postgres not reachable for gate tests")
+
+
+async def _build_and_seed(url: str) -> dict:
+    admin = await asyncpg.connect(_dsn(url, "postgres"))
+    try:
+        await admin.execute(f"DROP DATABASE IF EXISTS {BRANCH_DB} WITH (FORCE)")
+        await admin.execute(f"CREATE DATABASE {BRANCH_DB}")
+    finally:
+        await admin.close()
+
+    # Apply the REAL migration chain against the throwaway DB.
+    env = dict(os.environ, DATABASE_URL=_sa_url(url, BRANCH_DB))
+    proc = subprocess.run(
+        [sys.executable, "-m", "alembic", "upgrade", "head"],
+        cwd=str(REPO_ROOT), env=env, capture_output=True, text=True,
+    )
+    if proc.returncode != 0:
+        raise RuntimeError(f"alembic upgrade failed:\n{proc.stdout}\n{proc.stderr}")
+
+    con = await asyncpg.connect(_dsn(url, BRANCH_DB))
+    try:
+        # Gate 1 is deferred out of the deployed migration (it needs the pharmacist
+        # verify write-path first). Apply it here so the full design stays proven.
+        from app.core.gate_ddl import GATE1_UPGRADE_STATEMENTS
+        for stmt in GATE1_UPGRADE_STATEMENTS:
+            await con.execute(stmt)
+
+        ids = {k: uuid.uuid4() for k in (
+            "cust", "ph", "sales", "prod", "prod_otc",
+            "t1", "t1c", "t1d", "t1b", "t1f", "t1g", "t1h",
+            "append", "amt", "hf_pom", "hf_otc",
+        )}
+        await con.execute(
+            "INSERT INTO customers(id, full_name, email_verified, email_opt_in) VALUES($1,'Test',false,true)",
+            ids["cust"])
+        for k, name in (("ph", "Pharm"), ("sales", "Sales")):
+            await con.execute(
+                "INSERT INTO admin_users(id, full_name, is_active, status) VALUES($1,$2,true,'ACTIVE')",
+                ids[k], name)
+        await con.execute("INSERT INTO admin_role_assignments(id, admin_id, role_key) VALUES($1,$2,'lead_pharmacist')", uuid.uuid4(), ids["ph"])
+        await con.execute("INSERT INTO admin_role_assignments(id, admin_id, role_key) VALUES($1,$2,'sales_support')", uuid.uuid4(), ids["sales"])
+        await con.execute(
+            "INSERT INTO products(id, name, generic_name, requires_prescription, controlled_substance, requires_review, is_listed) "
+            "VALUES($1,'Amoxicillin','Amoxicillin',true,false,false,true)", ids["prod"])
+        await con.execute(
+            "INSERT INTO products(id, name, generic_name, requires_prescription, controlled_substance, requires_review, is_listed) "
+            "VALUES($1,'Vitamin C','Ascorbic',false,false,false,true)", ids["prod_otc"])
+
+        async def mk(oid, code):
+            await con.execute(
+                "INSERT INTO orders(id, code, customer_id, status, rx_status, delivery_status, "
+                "subtotal, delivery_fee, payment_fee, offramp_fee, handling_fee, total) "
+                "VALUES($1,$2,$3,'PROCESSING','PHARMACIST_REVIEW','NONE',5000,0,0,0,0,5000)",
+                oid, code, ids["cust"])
+
+        async def line(oid, rx, pid=None):
+            await con.execute(
+                "INSERT INTO order_items(id, order_id, product_id, product_name, quantity, unit_price, line_total, requires_prescription) "
+                "VALUES($1,$2,$3,'x',1,5000,5000,$4)", uuid.uuid4(), oid, pid or ids["prod"], rx)
+
+        for k in ("t1", "t1c", "t1d", "t1b", "t1f", "t1g", "append", "hf_pom"):
+            await mk(ids[k], f"PW-{k.upper()}")
+            await line(ids[k], True)
+        await mk(ids["amt"], "PW-AMT"); await line(ids["amt"], False, ids["prod_otc"])
+        await mk(ids["hf_otc"], "PW-HFOTC"); await line(ids["hf_otc"], False, ids["prod_otc"])
+        await mk(ids["t1h"], "PW-T1H")
+        await line(ids["t1h"], True)
+        await line(ids["t1h"], False, ids["prod_otc"])
+    finally:
+        await con.close()
+    return ids
+
+
+@pytest.fixture(scope="module")
+def seeded() -> dict:
+    url = _base_url()
+    ids = asyncio.run(_build_and_seed(url))
+    yield ids
+
+    async def _drop():
+        admin = await asyncpg.connect(_dsn(url, "postgres"))
+        try:
+            await admin.execute(f"DROP DATABASE IF EXISTS {BRANCH_DB} WITH (FORCE)")
+        finally:
+            await admin.close()
+    asyncio.run(_drop())
+
+
+async def _conn():
+    return await asyncpg.connect(_dsn(_base_url(), BRANCH_DB))
+
+
+async def _approve(con, order_id, pharm_id):
+    await con.execute(
+        "INSERT INTO prescription_verifications(order_id, pharmacist_user_id, decision, verified_at) "
+        "VALUES($1,$2,'APPROVED', now())", order_id, pharm_id)
+
+
+async def test_gate1_pom_dispatch_without_verification_rejected(seeded):
+    con = await _conn()
+    try:
+        with pytest.raises(asyncpg.exceptions.CheckViolationError):
+            await con.execute("UPDATE orders SET status='DISPATCHED' WHERE id=$1", seeded["t1"])
+    finally:
+        await con.close()
+
+
+async def test_gate1_pom_pickup_without_verification_rejected(seeded):
+    con = await _conn()
+    try:
+        with pytest.raises(asyncpg.exceptions.CheckViolationError):
+            await con.execute("UPDATE orders SET delivery_status='PICKED_UP' WHERE id=$1", seeded["t1c"])
+    finally:
+        await con.close()
+
+
+async def test_gate1_verification_by_non_pharmacist_rejected(seeded):
+    con = await _conn()
+    try:
+        await _approve(con, seeded["t1d"], seeded["sales"])
+        with pytest.raises(asyncpg.exceptions.CheckViolationError):
+            await con.execute("UPDATE orders SET status='DISPATCHED' WHERE id=$1", seeded["t1d"])
+    finally:
+        await con.close()
+
+
+async def test_gate1_valid_verification_allows_dispatch(seeded):
+    con = await _conn()
+    try:
+        await _approve(con, seeded["t1b"], seeded["ph"])
+        await con.execute("UPDATE orders SET status='DISPATCHED' WHERE id=$1", seeded["t1b"])
+        assert await con.fetchval("SELECT status FROM orders WHERE id=$1", seeded["t1b"]) == "DISPATCHED"
+    finally:
+        await con.close()
+
+
+async def test_linebinding_mutate_after_verify_rejected(seeded):
+    con = await _conn()
+    try:
+        await _approve(con, seeded["t1f"], seeded["ph"])
+        await con.execute("UPDATE order_items SET quantity=2 WHERE order_id=$1", seeded["t1f"])
+        with pytest.raises(asyncpg.exceptions.CheckViolationError):
+            await con.execute("UPDATE orders SET status='DISPATCHED' WHERE id=$1", seeded["t1f"])
+    finally:
+        await con.close()
+
+
+async def test_linebinding_reverify_after_mutate_allows_dispatch(seeded):
+    con = await _conn()
+    try:
+        await _approve(con, seeded["t1g"], seeded["ph"])
+        await con.execute("UPDATE order_items SET quantity=3 WHERE order_id=$1", seeded["t1g"])
+        await _approve(con, seeded["t1g"], seeded["ph"])  # re-verify the new lines
+        await con.execute("UPDATE orders SET status='DISPATCHED' WHERE id=$1", seeded["t1g"])
+        assert await con.fetchval("SELECT status FROM orders WHERE id=$1", seeded["t1g"]) == "DISPATCHED"
+    finally:
+        await con.close()
+
+
+async def test_linebinding_remove_pom_line_allows_otc_dispatch(seeded):
+    con = await _conn()
+    try:
+        await _approve(con, seeded["t1h"], seeded["ph"])
+        await con.execute("DELETE FROM order_items WHERE order_id=$1 AND requires_prescription=true", seeded["t1h"])
+        # supersede row IS written (trigger fired) but Gate 1 exits early on has_pom=false
+        assert await con.fetchval(
+            "SELECT count(*) FROM prescription_verifications WHERE order_id=$1 AND decision='SUPERSEDED'",
+            seeded["t1h"]) >= 1
+        await con.execute("UPDATE orders SET status='DISPATCHED' WHERE id=$1", seeded["t1h"])
+        assert await con.fetchval("SELECT status FROM orders WHERE id=$1", seeded["t1h"]) == "DISPATCHED"
+    finally:
+        await con.close()
+
+
+async def test_dispensing_records_append_only(seeded):
+    con = await _conn()
+    try:
+        rid = uuid.uuid4()
+        await con.execute("INSERT INTO dispensing_records(id, order_id, pharmacist_user_id) VALUES($1,$2,$3)",
+                          rid, seeded["append"], seeded["ph"])
+        with pytest.raises(asyncpg.exceptions.RestrictViolationError):
+            await con.execute("UPDATE dispensing_records SET payload='{}'::jsonb WHERE id=$1", rid)
+        with pytest.raises(asyncpg.exceptions.RestrictViolationError):
+            await con.execute("DELETE FROM dispensing_records WHERE id=$1", rid)
+    finally:
+        await con.close()
+
+
+async def test_audit_log_append_only_including_delete(seeded):
+    con = await _conn()
+    try:
+        aid = uuid.uuid4()
+        await con.execute("INSERT INTO audit_logs(id, action) VALUES($1,'t')", aid)
+        with pytest.raises(asyncpg.exceptions.RestrictViolationError):
+            await con.execute("DELETE FROM audit_logs WHERE id=$1", aid)
+    finally:
+        await con.close()
+
+
+async def test_dispatch_view_hides_product_fields(seeded):
+    con = await _conn()
+    try:
+        cols = {r["column_name"] for r in await con.fetch(
+            "SELECT column_name FROM information_schema.columns WHERE table_name='dispatch_delivery_masked'")}
+        assert not (cols & {"product_name", "product_id", "line_total", "unit_price", "quantity"})
+        assert {"recipient_name", "address", "phone", "amount_to_collect", "handling_flag"} <= cols
+    finally:
+        await con.close()
+
+
+async def test_amount_to_collect_nets_approved_payments_floored(seeded):
+    con = await _conn()
+    try:
+        await con.execute("INSERT INTO payments(id, order_id, method, amount, status) VALUES($1,$2,'BANK_TRANSFER',2000,'APPROVED')",
+                          uuid.uuid4(), seeded["amt"])
+        assert await con.fetchval("SELECT amount_to_collect FROM dispatch_delivery_masked WHERE order_id=$1", seeded["amt"]) == 3000
+        await con.execute("INSERT INTO payments(id, order_id, method, amount, status) VALUES($1,$2,'BANK_TRANSFER',4000,'APPROVED')",
+                          uuid.uuid4(), seeded["amt"])
+        assert await con.fetchval("SELECT amount_to_collect FROM dispatch_delivery_masked WHERE order_id=$1", seeded["amt"]) == 0
+    finally:
+        await con.close()
+
+
+async def test_handling_flag_stamped_and_frozen_at_dispatch(seeded):
+    con = await _conn()
+    try:
+        assert await con.fetchval("SELECT handling_flag FROM orders WHERE id=$1", seeded["hf_pom"]) == "RX_ID_CHECK"
+        assert await con.fetchval("SELECT handling_flag FROM orders WHERE id=$1", seeded["hf_otc"]) == "STANDARD"
+        # freeze: dispatch then remove the POM line — flag must not change
+        await _approve(con, seeded["hf_pom"], seeded["ph"])
+        await con.execute("UPDATE orders SET status='DISPATCHED' WHERE id=$1", seeded["hf_pom"])
+        await con.execute("DELETE FROM order_items WHERE order_id=$1 AND requires_prescription=true", seeded["hf_pom"])
+        assert await con.fetchval("SELECT handling_flag FROM orders WHERE id=$1", seeded["hf_pom"]) == "RX_ID_CHECK"
+    finally:
+        await con.close()
