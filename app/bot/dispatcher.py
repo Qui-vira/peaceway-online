@@ -74,6 +74,14 @@ async def set_bot_commands(bot: Bot) -> None:
 def build_dispatcher() -> Dispatcher:
     dp = Dispatcher(storage=MemoryStorage())
 
+    # Stamp the acting identity onto each update's context for DB-layer access
+    # control. Registered on message + callback_query (where event_from_user exists).
+    from app.bot.middleware import ActorContextMiddleware
+
+    _actor_mw = ActorContextMiddleware()
+    dp.message.middleware(_actor_mw)
+    dp.callback_query.middleware(_actor_mw)
+
     # Routers are imported lazily so model/db imports stay ordered.
     from app.bot.customer import (
         cart,

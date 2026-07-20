@@ -8,7 +8,7 @@ from fastapi import Cookie, Depends, Header, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.db import async_session
+from app.core.db import async_session, set_session_actor
 from app.models import Customer
 
 
@@ -45,6 +45,8 @@ async def get_optional_customer(
     ).scalar_one_or_none()
     if customer is None or is_session_expired(customer):
         return None
+    # Stamp the customer as the actor for this request's transaction (RLS reads it).
+    await set_session_actor(db, customer.id, "customer")
     return customer
 
 
@@ -76,6 +78,8 @@ async def _get_current_admin(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired session.",
         )
+    # Stamp the admin as the actor for this request's transaction (RLS reads it).
+    await set_session_actor(db, result[0].id, "admin")
     return result
 
 
