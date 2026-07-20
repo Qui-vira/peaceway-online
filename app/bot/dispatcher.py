@@ -101,6 +101,7 @@ def build_dispatcher() -> Dispatcher:
     )
     from app.bot.staff import admins as staff_admins
     from app.bot.staff import break_glass as staff_break_glass
+    from app.bot.staff import chatid as staff_chatid
     from app.bot.staff import crypto as staff_crypto
     from app.bot.staff import delivery as staff_delivery
     from app.bot.staff import fallback as staff_fallback
@@ -125,6 +126,7 @@ def build_dispatcher() -> Dispatcher:
     dp.include_router(staff_admins.router)
     dp.include_router(staff_break_glass.router)
     dp.include_router(staff_riders.router)
+    dp.include_router(staff_chatid.router)
     dp.include_router(staff_products.router)
     dp.include_router(staff_products_csv.router)
     dp.include_router(staff_scan.router)

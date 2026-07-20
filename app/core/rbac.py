@@ -20,6 +20,7 @@ COMMUNITY_MANAGER = "community_manager"
 PACKAGING = "packaging"
 DISPATCHER = "dispatcher"
 FINANCE = "finance"
+PA = "pa"  # Personal assistant: reads all checklist status, completes only her own items
 
 # NOTE: Wholesalers/suppliers are NOT staff roles. They authenticate against
 # `network_partners` via the separate partner portal (`/api/v1/partner/*`,
@@ -34,6 +35,7 @@ ROLES: dict[str, str] = {
     PACKAGING: "Packaging Staff",
     DISPATCHER: "Dispatcher",
     FINANCE: "Finance / Payment Admin",
+    PA: "Personal Assistant",
 }
 
 # ── Permission catalog (key -> human description) ────────────────────────────
@@ -116,6 +118,11 @@ PERMISSIONS: dict[str, str] = {
     "view_sourcing_requests": "View out-of-stock sourcing requests",
     "view_partner_directory": "View the approved-partner directory",
     "view_dispatch_queue": "View pickup-ready sourcing orders under Peaceway dispatch tracking",
+    # Staff checklist + meeting tracker
+    "complete_own_checklist": "Tick your own daily/weekly checklist items",
+    "view_checklist_status": "Read checklist status for all staff (aggregate + per person)",
+    "manage_checklist_templates": "Create/edit checklist item templates",
+    "record_decision": "Record a meeting decision with owner and due date",
 }
 
 WILDCARD = "*"  # System Owner: full access (except the prescription safety override)
@@ -160,7 +167,19 @@ ROLE_PERMISSIONS: dict[str, set[str]] = {
         "review_payment_proof", "approve_payment", "reject_payment", "view_payment_history",
         "view_order_totals", "view_settlement_records", "export_payment_reports",
     },
+    # Personal Assistant: reads ALL checklist status; completes ONLY her own items
+    # (complete_own_checklist added below). Nothing else - no orders, customers,
+    # clinical data, or approvals.
+    PA: {
+        "view_checklist_status",
+    },
 }
+
+# Every staff role can tick their OWN checklist items (System Owner via wildcard).
+# The DB CHECK + handler enforce that "own" means completed_by == assigned_user_id.
+for _rk in ROLE_PERMISSIONS:
+    if _rk != SYSTEM_OWNER:
+        ROLE_PERMISSIONS[_rk] = ROLE_PERMISSIONS[_rk] | {"complete_own_checklist"}
 
 # Permissions that the wildcard MUST NOT grant (hard safety override).
 WILDCARD_EXCLUDES: set[str] = {"approve_prescription"}
@@ -233,6 +252,10 @@ ROLE_MENUS: dict[str, list[tuple[str, str]]] = {
         ("💵 Pending Payments", "staff:payments"),
         ("📜 Payment History", "staff:payhistory"),
         ("📤 Export Reports", "staff:payexport"),
+    ],
+    PA: [
+        ("🗒 My Checklist", "staff:checklist"),
+        ("📋 Team Status", "staff:status"),
     ],
 }
 
