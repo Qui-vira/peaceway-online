@@ -19,7 +19,11 @@ target_metadata = Base.metadata
 
 
 def _url() -> str:
-    return _normalize_async_url(get_settings().database_url)
+    # Prefer the privileged migration URL when configured; migrations need DDL
+    # rights the restricted runtime role deliberately lacks. Falls back to the
+    # runtime URL so single-role setups (local/dev) keep working unchanged.
+    settings = get_settings()
+    return _normalize_async_url(settings.migration_database_url or settings.database_url)
 
 
 def run_migrations_offline() -> None:

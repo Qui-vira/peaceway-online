@@ -49,6 +49,13 @@ def _sa_url(url: str, dbname: str) -> str:
     return re.sub(r"/[^/?]+(\?|$)", f"/{dbname}\\1", url)
 
 
+def _role_dsn(dbname: str, user: str, pw: str) -> str:
+    """asyncpg DSN for the base host, swapping in a different user/password/db."""
+    raw = re.sub(r"\+asyncpg", "", _base_url())
+    raw = re.sub(r"://[^@/]+@", f"://{user}:{pw}@", raw)
+    return re.sub(r"/[^/?]+(\?|$)", f"/{dbname}\\1", raw)
+
+
 def _alembic_upgrade(url: str, dbname: str, rev: str = "head") -> None:
     env = dict(os.environ, DATABASE_URL=_sa_url(url, dbname))
     proc = subprocess.run(
@@ -306,6 +313,47 @@ async def test_handling_flag_stamped_and_frozen_at_dispatch(seeded):
         assert await con.fetchval("SELECT handling_flag FROM orders WHERE id=$1", seeded["hf_pom"]) == "RX_ID_CHECK"
     finally:
         await con.close()
+
+
+async def test_app_role_has_crud_but_not_ddl_or_append_only_mutation(seeded):
+    """The restricted peaceway_app role (migration d7a3c1e9f2b4): full CRUD on normal
+    tables + sequences + the masked view, but no DDL and no UPDATE/DELETE on append-only
+    tables. Proves the runtime role is safe to connect as (RLS will then apply)."""
+    su = await _conn()
+    try:
+        await su.execute("ALTER ROLE peaceway_app PASSWORD 'testpw_ci'")
+        cid, alid = uuid.uuid4(), uuid.uuid4()
+        await su.execute("INSERT INTO customers(id, full_name, email_verified, email_opt_in) VALUES($1,'RoleTest',false,true)", cid)
+        await su.execute("INSERT INTO audit_logs(id, action) VALUES($1,'seed')", alid)
+    finally:
+        await su.close()
+
+    app = await asyncpg.connect(_role_dsn(BRANCH_DB, "peaceway_app", "testpw_ci"))
+    try:
+        assert await app.fetchval("SELECT current_setting('is_superuser')") == "off"
+
+        # CRUD on a normal table
+        assert await app.fetchval("SELECT count(*) FROM customers") >= 1
+        await app.execute("UPDATE customers SET full_name='RoleTest2' WHERE id=$1", cid)
+        tmp = uuid.uuid4()
+        await app.execute("INSERT INTO customers(id, full_name, email_verified, email_opt_in) VALUES($1,'x',false,true)", tmp)
+        await app.execute("DELETE FROM customers WHERE id=$1", tmp)
+
+        # sequence usage + masked view read
+        await app.fetchval("SELECT nextval('fee_settings_id_seq')")
+        await app.fetch("SELECT * FROM dispatch_delivery_masked LIMIT 1")
+
+        # REVOKE bites: no UPDATE/DELETE on append-only tables
+        with pytest.raises(asyncpg.exceptions.InsufficientPrivilegeError):
+            await app.execute("UPDATE audit_logs SET action='x' WHERE id=$1", alid)
+        with pytest.raises(asyncpg.exceptions.InsufficientPrivilegeError):
+            await app.execute("DELETE FROM audit_logs WHERE id=$1", alid)
+
+        # no DDL rights (CREATE not granted on the schema)
+        with pytest.raises(asyncpg.exceptions.InsufficientPrivilegeError):
+            await app.execute("CREATE TABLE _nope (id int)")
+    finally:
+        await app.close()
 
 
 async def test_gate1_backfill_unblocks_inflight_approved_orders():
