@@ -208,6 +208,11 @@ class Order(Base, TimestampMixin):
     # regulatory query returns what the rider was told, not what current data implies.
     handling_flag: Mapped[str] = mapped_column(String(20), default="STANDARD", server_default="STANDARD", nullable=False)
 
+    # One-time proof-of-delivery code. Issued to the customer when a rider picks the
+    # order up; the rider must key the customer's code (never a rider-typed name) to
+    # mark it delivered. Cleared conceptually after delivery (kept for the audit trail).
+    delivery_code: Mapped[str | None] = mapped_column(String(6))
+
     # Post-delivery follow-up: stamped when the order is marked delivered; a
     # dedicated scheduler worker polls for due-and-unsent rows and sends the
     # 24h check-in, then sets followup_sent_at.

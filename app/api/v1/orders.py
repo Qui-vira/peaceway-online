@@ -47,6 +47,7 @@ class OrderOut(BaseModel):
     fulfillment_status: str | None = None
     customer_facing_status: str | None = None
     delivery_status: str
+    delivery_code: str | None = None
     subtotal: str
     delivery_fee: str
     total: str
@@ -69,6 +70,8 @@ def _order_out(order: Order) -> OrderOut:
         fulfillment_status=order.sourcing.fulfillment_status.value if order.sourcing else None,
         customer_facing_status=order.sourcing.customer_facing_status if order.sourcing else None,
         delivery_status=order.delivery_status.value,
+        # The customer reads this to the rider at hand-off (only while out for delivery).
+        delivery_code=order.delivery_code if order.delivery_status.value in ("PICKED_UP", "IN_TRANSIT", "NEAR_CUSTOMER") else None,
         subtotal=str(order.subtotal),
         delivery_fee=str(order.delivery_fee),
         total=str(order.total),

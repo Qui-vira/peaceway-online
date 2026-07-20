@@ -8,6 +8,7 @@ ever exposed (dispatch_delivery_masked).
 """
 from __future__ import annotations
 
+import secrets
 from typing import Literal
 from uuid import UUID
 
@@ -40,7 +41,13 @@ class StatusBody(BaseModel):
     status: Literal["PICKED_UP", "IN_TRANSIT", "NEAR_CUSTOMER", "DELIVERED", "FAILED_DELIVERY"]
     latitude: float | None = None
     longitude: float | None = None
+    # Required only for DELIVERED: the one-time code the CUSTOMER reads to the rider.
+    code: str | None = None
     note: str | None = None
+
+
+def _new_delivery_code() -> str:
+    return f"{secrets.randbelow(1_000_000):06d}"
 
 
 @router.post("/dispatch/request-otp")
@@ -102,20 +109,40 @@ async def dispatch_update_status(order_id: UUID, body: StatusBody, rider: RiderS
     if body.status not in _RIDER_STATUSES:
         raise HTTPException(status_code=400, detail="Not a valid rider status.")
 
-    # Confirm the order is one of THIS rider's active assignments (RLS-scoped subquery).
-    assigned = (
+    # Confirm the order is one of THIS rider's active assignments (RLS-scoped subquery)
+    # and read its current delivery code in the same scoped step.
+    row = (
         await db.execute(
-            text("SELECT 1 FROM rider_assignments WHERE order_id = :oid LIMIT 1"),
+            text(
+                "SELECT o.delivery_code FROM orders o "
+                "WHERE o.id = :oid AND o.id IN (SELECT order_id FROM rider_assignments)"
+            ),
             {"oid": str(order_id)},
         )
     ).first()
-    if assigned is None:
+    if row is None:
         raise HTTPException(status_code=404, detail="Delivery not found for this rider.")
+    current_code = row[0]
 
-    await db.execute(
-        text("UPDATE orders SET delivery_status = :st WHERE id = :oid"),
-        {"st": body.status, "oid": str(order_id)},
-    )
+    if body.status == "DELIVERED":
+        # Proof of delivery: the customer's one-time code is the ONLY accepted proof.
+        if not current_code:
+            raise HTTPException(status_code=409, detail="No delivery code has been issued yet. Mark picked up first.")
+        if not body.code or body.code.strip() != current_code:
+            raise HTTPException(status_code=400, detail="Incorrect delivery code.")
+
+    # Issue the one-time code at pickup so the customer has it before hand-off.
+    if body.status == "PICKED_UP" and not current_code:
+        await db.execute(
+            text("UPDATE orders SET delivery_status = :st, delivery_code = :code WHERE id = :oid"),
+            {"st": body.status, "code": _new_delivery_code(), "oid": str(order_id)},
+        )
+    else:
+        await db.execute(
+            text("UPDATE orders SET delivery_status = :st WHERE id = :oid"),
+            {"st": body.status, "oid": str(order_id)},
+        )
+
     # Geostamp the movement (never product data).
     await db.execute(
         text(
@@ -124,11 +151,9 @@ async def dispatch_update_status(order_id: UUID, body: StatusBody, rider: RiderS
         ),
         {"oid": str(order_id), "st": body.status, "lat": body.latitude, "lng": body.longitude},
     )
-    if body.status in ("DELIVERED", "FAILED_DELIVERY"):
-        # Terminal: the row will drop out of the rider's list on next fetch (Gate 5).
-        if body.status == "DELIVERED":
-            await db.execute(
-                text("UPDATE orders SET status = 'DELIVERED' WHERE id = :oid AND status <> 'DELIVERED'"),
-                {"oid": str(order_id)},
-            )
+    if body.status == "DELIVERED":
+        await db.execute(
+            text("UPDATE orders SET status = 'DELIVERED' WHERE id = :oid AND status <> 'DELIVERED'"),
+            {"oid": str(order_id)},
+        )
     return {"ok": True, "delivery_status": body.status}
