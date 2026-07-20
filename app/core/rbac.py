@@ -123,6 +123,10 @@ PERMISSIONS: dict[str, str] = {
     "view_checklist_status": "Read checklist status for all staff (aggregate + per person)",
     "manage_checklist_templates": "Create/edit checklist item templates",
     "record_decision": "Record a meeting decision with owner and due date",
+    # Weekly orientation
+    "manage_orientation_topics": "Create/edit/activate orientation rotation topics",
+    "set_meeting_example": "Fill the weekly orientation worked example",
+    "swap_meeting_topic": "Swap the computed orientation topic for a week (with a reason)",
 }
 
 WILDCARD = "*"  # System Owner: full access (except the prescription safety override)
@@ -168,10 +172,12 @@ ROLE_PERMISSIONS: dict[str, set[str]] = {
         "view_order_totals", "view_settlement_records", "export_payment_reports",
     },
     # Personal Assistant: reads ALL checklist status; completes ONLY her own items
-    # (complete_own_checklist added below). Nothing else - no orders, customers,
-    # clinical data, or approvals.
+    # (complete_own_checklist added below); fills the weekly orientation example (but
+    # cannot choose or swap the topic - that is System-Owner-only). Nothing else - no
+    # orders, customers, clinical data, or approvals.
     PA: {
         "view_checklist_status",
+        "set_meeting_example",
     },
 }
 
@@ -256,6 +262,7 @@ ROLE_MENUS: dict[str, list[tuple[str, str]]] = {
     PA: [
         ("🗒 My Checklist", "staff:checklist"),
         ("📋 Team Status", "staff:status"),
+        ("🎓 Orientation", "staff:orientation"),
     ],
 }
 

@@ -69,6 +69,23 @@ class ChecklistInstance(Base):
     )
 
 
+class OrientationTopic(Base, TimestampMixin):
+    """One weekly orientation topic on the fixed twelve-week rotation.
+
+    The scheduler computes the week's topic from the calendar (rotation position), not
+    from manual entry; ordering is by ``sort_order``. Deactivating a topic never
+    silently drops it from the rotation - the computing job skips it to the next active
+    topic and records an audit row for the skip.
+    """
+
+    __tablename__ = "orientation_topics"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    sort_order: Mapped[int] = mapped_column(Integer, default=0, nullable=False, index=True)
+    topic_text: Mapped[str] = mapped_column(Text, nullable=False)
+    active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+
+
 class Meeting(Base, TimestampMixin):
     __tablename__ = "meetings"
 
@@ -77,6 +94,12 @@ class Meeting(Base, TimestampMixin):
     chaired_by: Mapped[UUID | None] = mapped_column(ForeignKey("admin_users.id"))
     numbers_posted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     summary_posted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # Weekly orientation: the computed topic, the PA's real worked example, and (if the
+    # owner swaps the computed topic) what it was swapped from and by whom.
+    topic_id: Mapped[UUID | None] = mapped_column(ForeignKey("orientation_topics.id"))
+    example_text: Mapped[str | None] = mapped_column(Text)
+    swapped_from_topic_id: Mapped[UUID | None] = mapped_column(ForeignKey("orientation_topics.id"))
+    swapped_by: Mapped[UUID | None] = mapped_column(ForeignKey("admin_users.id"))
 
 
 class MeetingDecision(Base, TimestampMixin):

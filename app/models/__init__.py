@@ -84,6 +84,7 @@ from app.models.checklist import (
     ChecklistTemplate,
     Meeting,
     MeetingDecision,
+    OrientationTopic,
 )
 
 __all__ = [
@@ -169,4 +170,5 @@ __all__ = [
     "ChecklistInstance",
     "Meeting",
     "MeetingDecision",
+    "OrientationTopic",
 ]

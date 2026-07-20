@@ -49,3 +49,19 @@ class OrderAdminFlow(StatesGroup):
 class PaymentAdminFlow(StatesGroup):
     message = State()           # capture freetext message to customer about a payment
     clearer = State()           # capture "request clearer proof" note
+
+
+class ChecklistFlow(StatesGroup):
+    skip_reason = State()       # capture a reason when skipping a checklist item
+
+
+class DecisionFlow(StatesGroup):
+    text = State()              # capture the decision text (scanned for phone numbers)
+    owner = State()             # pick the decision owner from staff (inline)
+    due = State()               # capture an optional due date (YYYY-MM-DD or "none")
+
+
+class OrientationFlow(StatesGroup):
+    example = State()           # PA captures the week's worked example
+    swap_reason = State()       # owner captures the reason when swapping the topic
+    add_topic = State()         # owner captures a new rotation topic's text
