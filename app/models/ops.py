@@ -203,12 +203,24 @@ class ProductRequestStatusEvent(Base, TimestampMixin):
 
 
 class AuditLog(Base, TimestampMixin):
+    """Authoritative append-only compliance log (protected by a BEFORE UPDATE/DELETE
+    trigger — no role, including system_owner, may mutate a row). `admin_activity_logs`
+    remains a separate legacy admin-action stream; all gate/verification/break-glass
+    audit writes go here."""
+
     __tablename__ = "audit_logs"
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     actor_telegram_id: Mapped[int | None] = mapped_column(BigInteger)
+    # Internal user id (admin_users.id) — the spec's `actor_id`; kept alongside the
+    # Telegram id for continuity with existing writers.
+    actor_id: Mapped[UUID | None] = mapped_column(ForeignKey("admin_users.id"))
     actor_role: Mapped[str | None] = mapped_column(String(40))
     action: Mapped[str] = mapped_column(String(80), nullable=False)
     entity: Mapped[str | None] = mapped_column(String(80))
     entity_id: Mapped[str | None] = mapped_column(String(80))
+    reason: Mapped[str | None] = mapped_column(Text)
+    before_value: Mapped[dict | None] = mapped_column(JSONB)
+    after_value: Mapped[dict | None] = mapped_column(JSONB)
+    ip: Mapped[str | None] = mapped_column(String(45))
     detail: Mapped[dict | None] = mapped_column(JSONB)

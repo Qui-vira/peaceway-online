@@ -203,6 +203,11 @@ class Order(Base, TimestampMixin):
 
     assigned_staff_id: Mapped[UUID | None] = mapped_column(ForeignKey("staff.id"))
 
+    # Rider handling instruction (e.g. RX_ID_CHECK|STANDARD). Written by the
+    # order_items trigger on every line change and FROZEN once dispatched, so a
+    # regulatory query returns what the rider was told, not what current data implies.
+    handling_flag: Mapped[str] = mapped_column(String(20), default="STANDARD", server_default="STANDARD", nullable=False)
+
     # Post-delivery follow-up: stamped when the order is marked delivered; a
     # dedicated scheduler worker polls for due-and-unsent rows and sends the
     # 24h check-in, then sets followup_sent_at.

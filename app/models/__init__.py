@@ -67,6 +67,13 @@ from app.models.orders import (
     RxStatus,
 )
 from app.models.payments import Payment, PaymentStatus, PaymentWebhookEvent
+from app.models.compliance import (
+    Approval,
+    BreakGlassAccess,
+    CommunityMember,
+    DispensingRecord,
+    PrescriptionVerification,
+)
 
 __all__ = [
     "Base",
@@ -139,4 +146,9 @@ __all__ = [
     "WebAdminEmailOtp",
     "WebAdminOtp",
     "WebAdminSession",
+    "PrescriptionVerification",
+    "DispensingRecord",
+    "BreakGlassAccess",
+    "Approval",
+    "CommunityMember",
 ]
