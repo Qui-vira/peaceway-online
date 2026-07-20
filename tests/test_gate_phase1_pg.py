@@ -383,6 +383,61 @@ async def test_app_role_has_crud_but_not_ddl_or_append_only_mutation(seeded):
         await app.close()
 
 
+async def test_clinical_rls_truth_table(seeded):
+    """Gate 4: with RLS live, only a pharmacist (or break-glass, or the owning customer
+    for the ask channel) can read clinical rows; everyone else and unset -> zero."""
+    su = await _conn()
+    try:
+        await su.execute("ALTER ROLE peaceway_app PASSWORD 'testpw_ci'")
+        presc, q, msg, disp = uuid.uuid4(), uuid.uuid4(), uuid.uuid4(), uuid.uuid4()
+        await su.execute("INSERT INTO prescriptions(id, customer_id, file_id, file_type, review_status) VALUES($1,$2,'f','image','PENDING')", presc, seeded["cust"])
+        await su.execute("INSERT INTO pharmacist_questions(id, customer_id, question, is_answered) VALUES($1,$2,'q?',false)", q, seeded["cust"])
+        await su.execute("INSERT INTO pharmacist_messages(id, question_id, sender, body) VALUES($1,$2,'customer','hi')", msg, q)
+        await su.execute("INSERT INTO dispensing_records(id, order_id, pharmacist_user_id) VALUES($1,$2,$3)", disp, seeded["append"], seeded["ph"])
+    finally:
+        await su.close()
+
+    app = await asyncpg.connect(_role_dsn(BRANCH_DB, "peaceway_app", "testpw_ci"))
+
+    async def counts(actor, atype):
+        # Visibility of THIS test's specific rows (module DB is shared across tests).
+        async with app.transaction():
+            await app.execute(
+                "SELECT set_config('app.current_actor', $1, true), set_config('app.current_actor_type', $2, true)",
+                actor or "", atype or "",
+            )
+            return (
+                await app.fetchval("SELECT count(*) FROM prescriptions WHERE id=$1", presc),
+                await app.fetchval("SELECT count(*) FROM pharmacist_questions WHERE id=$1", q),
+                await app.fetchval("SELECT count(*) FROM pharmacist_messages WHERE id=$1", msg),
+                await app.fetchval("SELECT count(*) FROM dispensing_records WHERE id=$1", disp),
+            )
+
+    try:
+        assert await counts(str(seeded["ph"]), "admin") == (1, 1, 1, 1)      # pharmacist: all
+        assert await counts(str(seeded["sales"]), "admin") == (0, 0, 0, 0)   # non-pharmacist staff: none
+        assert await counts(str(seeded["cust"]), "customer") == (0, 1, 1, 0) # owning customer: own Q&A only
+        assert await counts(None, None) == (0, 0, 0, 0)                      # unset: none
+
+        # break-glass grant for the non-pharmacist admin -> full clinical read
+        su2 = await _conn()
+        try:
+            await su2.execute("INSERT INTO break_glass_access(id, user_id, resource, reason, expires_at) VALUES(gen_random_uuid(),$1,'clinical','audit test', now() + interval '15 min')", seeded["sales"])
+        finally:
+            await su2.close()
+        assert await counts(str(seeded["sales"]), "admin") == (1, 1, 1, 1)
+
+        # expire it -> back to zero (15-minute window enforced by the policy)
+        su3 = await _conn()
+        try:
+            await su3.execute("UPDATE break_glass_access SET expires_at = now() - interval '1 min' WHERE user_id=$1", seeded["sales"])
+        finally:
+            await su3.close()
+        assert await counts(str(seeded["sales"]), "admin") == (0, 0, 0, 0)
+    finally:
+        await app.close()
+
+
 async def test_gate1_backfill_unblocks_inflight_approved_orders():
     """Migration c5e2b8a4f7d1 backfills verification rows for in-flight approved POM
     orders so activating Gate 1 doesn't freeze legitimate dispatch. Seed BEFORE the
