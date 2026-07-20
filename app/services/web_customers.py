@@ -24,14 +24,25 @@ SESSION_TTL_DAYS = 30
 
 
 async def ensure_web_customer_columns(session: AsyncSession) -> None:
-    """Backfill web-session columns that older databases may be missing."""
-    await session.execute(
-        text(
-            """
-            ALTER TABLE customers
-            ADD COLUMN IF NOT EXISTS web_session_expires_at TIMESTAMPTZ
-            """
+    """Backfill web-session columns that older databases may be missing.
+
+    Guarded with a SELECT (which the runtime role always has) so it is a NO-OP
+    when the column already exists — the restricted, non-superuser runtime role
+    must never attempt an ALTER it isn't permitted to run. The column has shipped
+    via migration c9e2a51b7f3d, so in practice this only ALTERs a pre-migration DB.
+    """
+    exists = (
+        await session.execute(
+            text(
+                "SELECT 1 FROM information_schema.columns "
+                "WHERE table_name = 'customers' AND column_name = 'web_session_expires_at'"
+            )
         )
+    ).scalar()
+    if exists:
+        return
+    await session.execute(
+        text("ALTER TABLE customers ADD COLUMN IF NOT EXISTS web_session_expires_at TIMESTAMPTZ")
     )
 
 

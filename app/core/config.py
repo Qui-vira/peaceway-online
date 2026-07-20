@@ -37,6 +37,11 @@ class Settings(BaseSettings):
     # Databases
     database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/peaceway"
     pharmaos_database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/pharmaos"
+    # Optional privileged connection used ONLY by Alembic (CREATE/ALTER/GRANT need
+    # DDL rights). When set, the app runtime uses `database_url` (a restricted,
+    # non-superuser role so RLS applies) while migrations use this one. Empty =
+    # migrations reuse `database_url` (current single-role behaviour).
+    migration_database_url: str = ""
 
     # Pharmacy identity
     pharmacy_name: str = "Peaceway Pharmacy"
