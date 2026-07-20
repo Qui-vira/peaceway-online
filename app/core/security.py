@@ -8,13 +8,17 @@ from __future__ import annotations
 from app.core import rbac
 from app.services.rbac_service import (  # re-export for convenience
     can,
+    get_admin_id,
     get_role_keys,
     is_admin,
     log_activity,
     touch_activity,
 )
 
-__all__ = ["can", "get_role_keys", "is_admin", "log_activity", "touch_activity", "has", "primary_role"]
+__all__ = [
+    "can", "get_admin_id", "get_role_keys", "is_admin", "log_activity",
+    "touch_activity", "has", "primary_role",
+]
 
 
 def has(role_keys: set[str], permission: str) -> bool:
