@@ -28,3 +28,18 @@ async def test_dispatch_otp_login_flow(session):
 
 async def test_dispatch_unknown_email_returns_none(session):
     assert await dispatch_auth.create_dispatch_otp(session, "nobody@nowhere.co") is None
+
+
+async def test_rider_admin_add_reactivate_toggle(session):
+    from app.services import rider_admin
+
+    rider, created = await rider_admin.add_rider(session, name="Ada", email="Ada@x.co", phone="080")
+    assert created and rider.is_active and rider.portal_login_email == "ada@x.co"
+
+    # same email -> update, not a duplicate
+    again, created2 = await rider_admin.add_rider(session, name="Ada B", email="ada@x.co")
+    assert not created2 and again.id == rider.id and again.name == "Ada B"
+    assert len(await rider_admin.list_riders(session)) == 1
+
+    assert await rider_admin.set_rider_active(session, rider.id, False) is True
+    assert (await rider_admin.get_rider(session, rider.id)).is_active is False

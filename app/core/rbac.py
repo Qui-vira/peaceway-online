@@ -173,6 +173,7 @@ ROLE_MENUS: dict[str, list[tuple[str, str]]] = {
         ("💊 Products", "staff:products"),
         ("👤 Customers", "staff:customers"),
         ("👥 Staff", "staff:admins"),
+        ("🛵 Riders", "staff:riders"),
         ("💵 Payments", "staff:payments"),
         ("💊 Prescription Order Reviews", "staff:rx"),
         ("📥 Pharmacist Inbox", "staff:tickets"),

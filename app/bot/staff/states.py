@@ -16,6 +16,10 @@ class AdminFlow(StatesGroup):
     search = State()            # capture admin search query (name or Telegram ID)
 
 
+class RiderFlow(StatesGroup):
+    add_details = State()       # capture new rider "Name, email, phone"
+
+
 class ProductAdminFlow(StatesGroup):
     search = State()            # capture product search query
     value = State()             # capture a new field value
