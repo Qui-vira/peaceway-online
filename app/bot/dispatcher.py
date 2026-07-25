@@ -160,4 +160,10 @@ def build_dispatcher() -> Dispatcher:
     dp.include_router(product_request.router)
     dp.include_router(support.router)
     dp.include_router(followup.router)
+
+    # Registered last: turns any unhandled handler exception into a logged traceback
+    # plus a visible apology, instead of a silently dead button.
+    from app.bot.errors import on_bot_error
+
+    dp.errors.register(on_bot_error)
     return dp
