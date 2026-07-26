@@ -40,3 +40,6 @@ Thumbs.db
 
 .vercel
 .env*.local
+
+# Generated screenshots from scripts/video/*.mjs
+scripts/video/out/
