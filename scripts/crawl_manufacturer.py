@@ -109,7 +109,13 @@ def scrape(client: httpx.Client, url: str) -> dict | None:
         data = _post(client, "/scrape", {
             "url": url,
             "formats": ["markdown"],
-            "onlyMainContent": True,
+            # onlyMainContent MUST stay False. It strips the product description
+            # under each tile — which is where the NAFDAC number, dosage form and
+            # pack size live. With it on, Afrab-Chem yielded 30 images and 0 NRNs;
+            # with it off, the same page gives "_Syrup_ (NRN: A4-7551): Loratadine
+            # 5 mg". Site chrome comes along too, but the parser already discards
+            # logo/icon images, and losing identity fields is far worse than noise.
+            "onlyMainContent": False,
             "waitFor": 3000,
         })
     except Exception as exc:

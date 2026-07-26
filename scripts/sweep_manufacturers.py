@@ -98,7 +98,9 @@ def main() -> int:
         code, out = run(cmd, timeout=600)
 
         matched = 0
-        m = re.search(r"MATCHED:\s*(\d+)", out)
+        # STAGED is the row count actually written; MATCHED double-counts a
+        # product that appears on several category pages.
+        m = re.search(r"(?:STAGED|WOULD STAGE):\s*(\d+)", out)
         if m:
             matched = int(m.group(1))
         parsed = re.search(r"images parsed\s*:\s*(\d+)", out)
@@ -109,7 +111,7 @@ def main() -> int:
                         "matched": matched})
 
     print("\n\n" + "=" * 72)
-    print(f"{'MANUFACTURER':46} {'MISSING':>8} {'MATCHED':>8}  STATUS")
+    print(f"{'MANUFACTURER':46} {'MISSING':>8} {'STAGED':>8}  STATUS")
     print("=" * 72)
     for r in results:
         print(f"{r['manufacturer'][:44]:46} {r['missing']:>8} {r['matched']:>8}  {r['status']}")
