@@ -23,6 +23,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 from app.core.config import get_settings
 from app.core.db import _normalize_async_url
 from app.models import Product, ProductAlias
+from app.services.brand_cleanup import strip_qa_annotation
 from app.services.products_admin import normalize_name
 from app.services.rx_classifier import classify
 
@@ -110,7 +111,11 @@ async def run(commit: bool) -> None:
             # Update catalog fields (never pricing/listing — admin owns those).
             target.name = name
             target.generic_name = normalize_name(row["generic_name"]) or name
-            target.brand_name = normalize_name(row["brand_name"]) or None
+            # PharmaOS stores data-review notes inside brand_name ("Artazide
+            # Tablet## (duplicate"). Strip them here, or every re-sync silently
+            # undoes scripts/clean_brand_names.py and re-breaks image matching.
+            _brand, _note = strip_qa_annotation(normalize_name(row["brand_name"]))
+            target.brand_name = _brand or None
             target.dosage_form = normalize_name(row["dosage_form"]) or None
             target.strength = normalize_name(row["strength"]) or None
             target.manufacturer = normalize_name(row["manufacturer"]) or None
