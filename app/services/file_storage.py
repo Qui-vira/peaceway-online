@@ -71,9 +71,20 @@ def normalize_image(raw: bytes) -> tuple[bytes, int, int]:
 
 
 async def store_image(
-    db: AsyncSession, raw: bytes, uploaded_by: int | None = None
+    db: AsyncSession,
+    raw: bytes,
+    uploaded_by: int | None = None,
+    *,
+    source_url: str | None = None,
+    match_basis: str | None = None,
 ) -> MediaAsset:
-    """Normalize and persist `raw`, reusing an existing row when the bytes match."""
+    """Normalize and persist `raw`, reusing an existing row when the bytes match.
+
+    `source_url` and `match_basis` record provenance for images that did not come
+    from a staff photo — where the picture came from, and why it was attached to a
+    product. On dedup the existing row is returned unchanged: the bytes are already
+    accounted for, and rewriting provenance would erase the first, real attribution.
+    """
     data, width, height = normalize_image(raw)
     digest = hashlib.sha256(data).hexdigest()
 
@@ -91,6 +102,8 @@ async def store_image(
         height=height,
         data=data,
         uploaded_by_telegram_id=uploaded_by,
+        source_url=source_url,
+        match_basis=match_basis,
     )
     db.add(asset)
     await db.flush()

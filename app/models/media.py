@@ -15,7 +15,7 @@ from __future__ import annotations
 
 from uuid import UUID, uuid4
 
-from sqlalchemy import BigInteger, Integer, LargeBinary, String
+from sqlalchemy import BigInteger, Integer, LargeBinary, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base, TimestampMixin
@@ -36,3 +36,10 @@ class MediaAsset(Base, TimestampMixin):
     height: Mapped[int] = mapped_column(Integer, nullable=False)
     data: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
     uploaded_by_telegram_id: Mapped[int | None] = mapped_column(BigInteger)
+
+    # Provenance. Required for anything not photographed by staff: on a
+    # NAFDAC-regulated pharmacy we must be able to answer "where did this picture of
+    # a medicine come from, and on what basis was it attached to this product?"
+    # Null for staff photos taken through the bot, where the answer is self-evident.
+    source_url: Mapped[str | None] = mapped_column(Text)
+    match_basis: Mapped[str | None] = mapped_column(Text)
