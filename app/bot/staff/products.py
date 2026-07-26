@@ -51,6 +51,7 @@ async def products_home(call: CallbackQuery) -> None:
     if has(role_keys, "scan_inventory"):
         kb.button(text="🤖 Scan Stock From Photos", callback_data="invscan:start")
     kb.button(text="🧩 Backfill Product Data", callback_data="pbf:home")
+    kb.button(text="🖼 Review Image Candidates", callback_data="imgc:home")
     kb.button(text="📤 Import Products (CSV)", callback_data="padmin:csv")
     kb.button(text="🏠 Staff Menu", callback_data="staff:home")
     kb.adjust(1)

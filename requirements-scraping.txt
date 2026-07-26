@@ -1,0 +1,10 @@
+# Dev-only dependencies for scripts/scrapers/ and scripts/import_vitabiotics.py.
+#
+# Deliberately NOT in requirements.txt: .railwayignore keeps scripts/ out of the
+# deployed container, and Scrapling pulls in Playwright plus browser binaries, which
+# would bloat the image for code that never runs there. Application code under app/
+# uses httpx instead — see app/bot/staff/image_candidates.py.
+#
+#   pip install -r requirements-scraping.txt
+#   scrapling install          # one-off, fetches the browser binaries
+scrapling[fetchers]>=0.4.11
