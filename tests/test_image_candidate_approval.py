@@ -290,3 +290,44 @@ def test_bot_flow_does_not_import_dev_only_scrapers():
             imported.append(node.module.split(".")[0])
     assert "scrapling" not in imported and "curl_cffi" not in imported
     assert "httpx" in imported
+
+
+# ── Tier-3 candidates get a third gate ────────────────────────────────────────
+def test_brand_form_candidates_route_to_a_strength_question_not_publish():
+    """A candidate matched without strength must not reach approve in two taps."""
+    src = (ROOT / "app" / "bot" / "staff" / "image_candidates.py").read_text(encoding="utf-8")
+    assert "imgc:strength:" in src, "no strength gate exists"
+
+    tree = ast.parse(src)
+    fn = next(n for n in ast.walk(tree)
+              if isinstance(n, ast.AsyncFunctionDef) and n.name == "confirm_pack_size")
+    body = ast.dump(fn)
+    # It must branch on the brand+form basis and send those to the strength step.
+    assert "BASIS_BRAND_FORM" in body
+    assert "imgc:strength:" in body
+
+
+def test_strength_gate_writes_nothing():
+    src = (ROOT / "app" / "bot" / "staff" / "image_candidates.py").read_text(encoding="utf-8")
+    tree = ast.parse(src)
+    fn = next(n for n in ast.walk(tree)
+              if isinstance(n, ast.AsyncFunctionDef) and n.name == "confirm_strength")
+    body = ast.dump(fn)
+    assert "svc.approve" not in body
+    assert "image_id" not in body
+
+
+def test_approval_records_whether_a_reviewer_confirmed_strength():
+    src = (ROOT / "app" / "services" / "image_candidates.py").read_text(encoding="utf-8")
+    assert "strength_confirmed_by_reviewer" in src
+
+
+@pytest.mark.asyncio
+async def test_brand_form_candidate_is_visibly_flagged(db_session: AsyncSession):
+    """The reviewer must see that strength was not verified before they look."""
+    from app.bot.staff.image_candidates import _review_text
+
+    product, candidate = await _seed(db_session)
+    candidate.match_basis = "brandform=ceflonac|form=tablet [STRENGTH NOT MATCHED]"
+    text = _review_text(candidate, product)
+    assert "strength NOT verified" in text

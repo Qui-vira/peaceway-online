@@ -24,6 +24,7 @@ from app.core.security import get_role_keys, has
 from app.models import ImageCandidate, Product
 from app.services import catalog, image_candidates as svc
 from app.services.file_storage import ImageRejected
+from app.services.image_matching import BASIS_BRAND_FORM
 
 router = Router(name="staff-image-candidates")
 log = get_logger(__name__)
@@ -57,8 +58,11 @@ async def _download(url: str) -> bytes | None:
 
 
 def _review_text(c: ImageCandidate, p: Product) -> str:
+    weak = (c.match_basis or "").startswith(BASIS_BRAND_FORM)
     return (
-        f"🖼 <b>Image candidate</b>\n\n"
+        f"🖼 <b>Image candidate</b>"
+        + ("\n⚠️ <b>Brand + form only — strength NOT verified</b>" if weak else "")
+        + "\n\n"
         f"<b>Product in our catalogue</b>\n"
         f"{p.name}\n"
         f"Brand: {p.brand_name or '—'} · Form: {p.dosage_form or '—'}\n"
@@ -165,7 +169,13 @@ async def skip(call: CallbackQuery, state: FSMContext) -> None:
 
 @router.callback_query(F.data.startswith("imgc:confirm:"))
 async def confirm_pack_size(call: CallbackQuery) -> None:
-    """Second gate. Nothing is written here — this only asks the question."""
+    """Second gate. Nothing is written here — this only asks the question.
+
+    Candidates matched on brand+form alone (most manufacturers publish neither a
+    registration number nor a comparable strength) get a THIRD gate for strength,
+    because that is the field the matcher could not check and the one where being
+    wrong is a dosing error.
+    """
     if await _guard(call) is None:
         return
     cid = UUID(call.data.split("imgc:confirm:", 1)[1])
@@ -178,21 +188,72 @@ async def confirm_pack_size(call: CallbackQuery) -> None:
         p = await catalog.get_product(session, c.product_id)
         ours = p.pack_size or "— not recorded"
         theirs = c.scraped_pack_size or "— none given"
+        needs_strength = (c.match_basis or "").startswith(BASIS_BRAND_FORM)
+        our_strength = p.strength or "— not recorded"
+        their_strength = c.scraped_strength or "— not published"
 
     kb = InlineKeyboardBuilder()
-    kb.button(text="✅ Yes — pack size matches", callback_data=f"imgc:approve:{cid}")
+    # Strength unverified -> the next tap asks about strength, not publish.
+    next_step = f"imgc:strength:{cid}" if needs_strength else f"imgc:approve:{cid}"
+    kb.button(
+        text=("➡️ Next check — strength" if needs_strength else "✅ Yes — pack size matches"),
+        callback_data=next_step,
+    )
     kb.button(text="❌ No — reject this image", callback_data=f"imgc:reject:{cid}")
     kb.button(text="⏭ Skip for now", callback_data=f"imgc:skip:{cid}")
     kb.adjust(1)
 
     await call.message.answer(
-        "🔍 <b>One check before this goes live.</b>\n\n"
-        "The automatic match compared brand, strength and dosage form. "
-        "It did <b>not</b> compare pack size.\n\n"
+        "🔍 <b>Check before this goes live.</b>\n\n"
+        "The automatic match did <b>not</b> compare pack size.\n\n"
         f"Our catalogue says: <b>{ours}</b>\n"
         f"Their page says: <b>{theirs}</b>\n\n"
         "Look at the photograph again. Does it show the pack we actually dispense?\n\n"
-        "If our pack size is not recorded, check the physical pack before answering.",
+        "If our pack size is not recorded, check the physical pack before answering."
+        + (
+            f"\n\n⚠️ <b>Strength was also not matched</b> for this one — "
+            f"there is one more question after this."
+            if needs_strength else ""
+        ),
+        reply_markup=kb.as_markup(),
+    )
+    await call.answer()
+
+
+@router.callback_query(F.data.startswith("imgc:strength:"))
+async def confirm_strength(call: CallbackQuery) -> None:
+    """Third gate, only for brand+form matches. Writes nothing."""
+    if await _guard(call) is None:
+        return
+    cid = UUID(call.data.split("imgc:strength:", 1)[1])
+
+    async with get_session() as session:
+        c = await svc.get_candidate(session, cid)
+        if c is None or c.status != "pending":
+            await call.answer("This candidate is no longer pending.", show_alert=True)
+            return
+        p = await catalog.get_product(session, c.product_id)
+        ours = p.strength or "— not recorded"
+        theirs = c.scraped_strength or "— not published on their page"
+        name = p.name
+
+    kb = InlineKeyboardBuilder()
+    kb.button(text="✅ Yes — strength matches the pack", callback_data=f"imgc:approve:{cid}")
+    kb.button(text="❌ No — reject this image", callback_data=f"imgc:reject:{cid}")
+    kb.button(text="⏭ Skip for now", callback_data=f"imgc:skip:{cid}")
+    kb.adjust(1)
+
+    await call.message.answer(
+        "⚠️ <b>Strength check — this one was not matched automatically.</b>\n\n"
+        f"<b>{name}</b>\n\n"
+        f"Our catalogue: <b>{ours}</b>\n"
+        f"Their page: <b>{theirs}</b>\n\n"
+        "This photo was paired on brand and dosage form only. Manufacturers write "
+        "strength differently from us, so the system could not compare it.\n\n"
+        "<b>Read the strength printed on the pack in the photo.</b> Is it the same "
+        "medicine at the same strength we dispense?\n\n"
+        "If you are not certain, reject. A wrong strength on a medicine photo is a "
+        "dosing error.",
         reply_markup=kb.as_markup(),
     )
     await call.answer()

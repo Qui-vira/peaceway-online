@@ -42,7 +42,7 @@ def load_items(path: Path, manufacturer: str):
     return items, len(pages)
 
 
-async def run(path: Path, manufacturer: str, *, commit: bool) -> int:
+async def run(path: Path, manufacturer: str, *, commit: bool, allow_brand_form: bool) -> int:
     items, pages = load_items(path, manufacturer)
     print(f"pages crawled : {pages}")
     print(f"images parsed : {len(items)}")
@@ -61,7 +61,7 @@ async def run(path: Path, manufacturer: str, *, commit: bool) -> int:
             return 0
 
         for item in items:
-            result = match_against_catalogue(item, products)
+            result = match_against_catalogue(item, products, allow_brand_form=allow_brand_form)
             if not result.matched:
                 reasons[result.reason or "unknown"] += 1
                 continue
@@ -116,8 +116,12 @@ def main() -> int:
     ap.add_argument("--manufacturer", required=True,
                     help="Must match products.manufacturer exactly.")
     ap.add_argument("--commit", action="store_true")
+    ap.add_argument("--allow-brand-form", action="store_true",
+                    help="Also pair on brand+form when strength cannot be compared. "
+                         "Candidates are flagged and staff must confirm strength.")
     args = ap.parse_args()
-    return asyncio.run(run(args.path, args.manufacturer, commit=args.commit))
+    return asyncio.run(run(args.path, args.manufacturer, commit=args.commit,
+                           allow_brand_form=args.allow_brand_form))
 
 
 if __name__ == "__main__":

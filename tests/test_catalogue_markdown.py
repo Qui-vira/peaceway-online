@@ -103,3 +103,39 @@ def test_parser_never_sets_a_product_id():
     """This module reads only; pairing is the matcher's job."""
     for i in _parse():
         assert not hasattr(i, "product_id")
+
+
+# ── Brand decomposition: manufacturers put the form in the product name ───────
+def test_form_is_removed_from_the_brand():
+    """Site says "Iron Dex Capsules"; our catalogue stores brand "Iron Dex" + form
+    "Capsule". Removing a form we already extracted is decomposition, not a guess."""
+    from app.services.catalogue_markdown import brand_from_title
+
+    assert brand_from_title("Iron Dex Capsules", "capsule", None, None) == "Iron Dex"
+    assert brand_from_title("Ketineal Cream", "cream", None, None) == "Ketineal"
+    assert brand_from_title("Ceflonac Tablets", "tablet", None, None) == "Ceflonac"
+
+
+def test_brand_untouched_when_no_form_was_extracted():
+    from app.services.catalogue_markdown import brand_from_title
+
+    assert brand_from_title("Ceflonac Forte", None, None, None) == "Ceflonac Forte"
+    assert brand_from_title("Boneflex", None, None, None) == "Boneflex"
+
+
+def test_strength_and_pack_removed_from_brand():
+    from app.services.catalogue_markdown import brand_from_title
+
+    assert brand_from_title("Emcap 500mg Caplet 10*10", "caplet", "500mg", "10*10") == "Emcap"
+
+
+def test_brand_never_becomes_empty():
+    from app.services.catalogue_markdown import brand_from_title
+
+    assert brand_from_title("Cream", "cream", None, None) is None
+
+
+def test_unrecognised_words_are_kept():
+    from app.services.catalogue_markdown import brand_from_title
+
+    assert brand_from_title("Fenal 50 Mystery", None, None, None) == "Fenal 50 Mystery"

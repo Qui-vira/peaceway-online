@@ -198,20 +198,43 @@ class ScrapedItem:
     nafdac: str | None = None
 
 
+# match_basis prefixes. The staff approval flow branches on these to decide which
+# questions a reviewer must answer before the image can be published.
+BASIS_NAFDAC = "nafdac="
+BASIS_EXACT = "brand="
+BASIS_BRAND_FORM = "brandform="
+
+
 @dataclass
 class MatchResult:
     matched: bool
     product_id: object | None = None
     match_basis: str | None = None
     reason: str | None = None          # why it failed, for the coverage log
+    # True when strength was NOT compared, so a human must read it off the pack.
+    needs_strength_check: bool = False
 
 
-def match_product(item: ScrapedItem, product) -> MatchResult:
-    """Exact-match one scraped item against one product.
+def match_product(item: ScrapedItem, product, *, allow_brand_form: bool = False) -> MatchResult:
+    """Match one scraped item against one product.
 
-    Requires brand AND strength AND dosage form to all be present and equal. A
-    product missing any of those three cannot match anything — which is precisely
-    why Track 1's backfill exists.
+    Three tiers, strongest first:
+
+    1. NAFDAC number — the regulator's unique id, settles identity outright.
+    2. brand AND strength AND dosage form, all present and equal.
+    3. brand AND dosage form only, when `allow_brand_form` is set.
+
+    Tier 3 exists because most manufacturers do not publish registration numbers and
+    describe strength in prose: we store "0.25 mg/g; 10 mg/g; 5000 IU/g" where the
+    site writes "ketoconazole 10mg, clobetasol propionate 0.25mg". Those are the same
+    medicine, and no safe string comparison reconciles them.
+
+    It is deliberately NOT a silent relaxation. A tier-3 result is flagged
+    `needs_strength_check`, its match_basis says so in words, and the staff approval
+    flow makes the reviewer confirm strength against the physical pack before the
+    image can be published. Combined with the ambiguity rule in
+    match_against_catalogue — two products sharing a brand and form yield nothing —
+    a tier-3 candidate is one specific product a human then verifies.
     """
     # A NAFDAC number, where BOTH sides publish one, settles identity on its own.
     # It is not a relaxation of the brand+strength+form rule but a stricter test:
@@ -243,18 +266,44 @@ def match_product(item: ScrapedItem, product) -> MatchResult:
 
     for label, scraped, stored in checks:
         if not canonical(scraped):
+            # Strength missing on one side is the ordinary case for sites that write
+            # it as prose. Fall through to tier 3 rather than failing outright.
+            if label == "strength" and allow_brand_form:
+                continue
             return MatchResult(False, reason=f"scraped item has no {label}")
         if not canonical(stored):
+            if label == "strength" and allow_brand_form:
+                continue
             return MatchResult(False, reason=f"product has no {label} (needs backfill)")
         if not _equal(scraped, stored):
+            if label == "strength" and allow_brand_form:
+                continue
             return MatchResult(
                 False,
                 reason=f"{label} differs: scraped={scraped!r} product={stored!r}",
             )
 
+    # Did strength actually get compared, or did tier 3 let it through?
+    strength_matched = _equal(item.strength, product.strength)
+
     pack = normalize_pack(item.pack_size)
+    if not strength_matched:
+        basis = (
+            f"{BASIS_BRAND_FORM}{canonical(item.brand)}"
+            f"|form={canonical(item.form)}"
+            f"|{pack.as_basis()}"
+            f" [STRENGTH NOT MATCHED - ours={product.strength or '—'!s}"
+            f" theirs={item.strength or 'not published'!s}]"
+            " [confirm strength against the physical pack before publishing]"
+        )
+        if pack.notes:
+            basis += f" [normalized: {'; '.join(pack.notes)}]"
+        return MatchResult(
+            True, product_id=product.id, match_basis=basis, needs_strength_check=True
+        )
+
     basis_parts = [
-        f"brand={canonical(item.brand)}",
+        f"{BASIS_EXACT}{canonical(item.brand)}",
         f"strength={canonical(item.strength)}",
         f"form={canonical(item.form)}",
         pack.as_basis(),
@@ -268,18 +317,32 @@ def match_product(item: ScrapedItem, product) -> MatchResult:
     return MatchResult(True, product_id=product.id, match_basis=basis)
 
 
-def match_against_catalogue(item: ScrapedItem, products) -> MatchResult:
+def match_against_catalogue(
+    item: ScrapedItem, products, *, allow_brand_form: bool = False
+) -> MatchResult:
     """Match one scraped item against many products.
 
-    An ambiguous result (more than one exact match) is rejected rather than guessed
-    at — two products matching the same brand+strength+form means the catalogue has
-    duplicates a human needs to resolve.
+    Ambiguity is rejected rather than guessed at, and this rule carries most of the
+    safety weight for tier-3 matching: "Ceflonac Forte" exists as a Tablet at two
+    strengths, so brand+form alone hits both and yields nothing. Only a brand+form
+    pair that identifies exactly ONE product can ever become a candidate — and even
+    then a human confirms the strength.
     """
-    hits = [r for r in (match_product(item, p) for p in products) if r.matched]
+    hits = [
+        r for r in (match_product(item, p, allow_brand_form=allow_brand_form) for p in products)
+        if r.matched
+    ]
     if not hits:
         return MatchResult(False, reason="no exact brand+strength+form match")
     if len(hits) > 1:
+        # Prefer a single strength-confirmed hit over several unconfirmed ones: an
+        # exact match is not made ambiguous by looser ones sharing its brand.
+        exact = [h for h in hits if not h.needs_strength_check]
+        if len(exact) == 1:
+            return exact[0]
         return MatchResult(
-            False, reason=f"ambiguous: {len(hits)} products share this brand+strength+form"
+            False,
+            reason=f"ambiguous: {len(hits)} products share this brand"
+                   + ("+form" if allow_brand_form else "+strength+form"),
         )
     return hits[0]

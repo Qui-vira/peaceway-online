@@ -77,7 +77,7 @@ async def _stage(session, item: ScrapedItem, result, *, commit: bool) -> str:
     return "new"
 
 
-async def run(names: list[str], *, commit: bool) -> int:
+async def run(names: list[str], *, commit: bool, allow_brand_form: bool = False) -> int:
     matched_rows: list[tuple[ScrapedItem, object]] = []
     unmatched_items: list[tuple[ScrapedItem, str]] = []
     all_problems: list[str] = []
@@ -96,7 +96,7 @@ async def run(names: list[str], *, commit: bool) -> int:
             print(f"  catalogue rows for this manufacturer: {len(products)}", flush=True)
 
             for item in items:
-                result = match_against_catalogue(item, products)
+                result = match_against_catalogue(item, products, allow_brand_form=allow_brand_form)
                 if result.matched:
                     matched_rows.append((item, result))
                     await _stage(session, item, result, commit=commit)
@@ -155,10 +155,13 @@ def main() -> int:
                     help="Run one scraper (repeatable). Default: all.")
     ap.add_argument("--commit", action="store_true",
                     help="Write candidates. Without this nothing is persisted.")
+    ap.add_argument("--allow-brand-form", action="store_true",
+                    help="Also pair on brand+form when strength cannot be compared. "
+                         "Candidates are flagged and staff must confirm strength.")
     args = ap.parse_args()
 
     names = args.manufacturer or sorted(SCRAPERS)
-    return asyncio.run(run(names, commit=args.commit))
+    return asyncio.run(run(names, commit=args.commit, allow_brand_form=args.allow_brand_form))
 
 
 if __name__ == "__main__":

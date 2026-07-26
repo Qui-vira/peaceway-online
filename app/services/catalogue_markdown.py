@@ -63,6 +63,29 @@ def parse_blocks(markdown: str) -> list[tuple[str, str, str]]:
     return out
 
 
+def brand_from_title(title: str, form: str | None, strength: str | None,
+                     pack: str | None) -> str | None:
+    """The product name with the structured parts removed.
+
+    Manufacturers put the dosage form in the product name — "Iron Dex Capsules",
+    "Ketineal Cream" — where our catalogue stores brand and form separately as
+    "Iron Dex" + "Capsule". Removing a form we already extracted is decomposition,
+    not a guess: the same thing scripts/scrapers/emzor.py does with alt text.
+
+    Only tokens we actually extracted are removed, so an unrecognised word is always
+    left in place.
+    """
+    s = title or ""
+    for part in (strength, pack):
+        if part:
+            s = re.sub(re.escape(part), " ", s, flags=re.IGNORECASE)
+    if form:
+        # Trailing form word, singular or plural: "… Capsules" -> "…"
+        s = re.sub(rf"\b{re.escape(form)}s?\b", " ", s, flags=re.IGNORECASE)
+    s = re.sub(r"\s+", " ", s).strip(" -–—·,")
+    return s or None
+
+
 def _title_for(block: str, alt: str) -> str:
     """Prefer the heading that follows the image; fall back to alt, then body text."""
     h = _HEADING.search(block)
@@ -102,16 +125,20 @@ def parse_catalogue_markdown(
         # the product name is more reliable than one mentioned in marketing copy.
         haystack = f"{title} {body}"
 
+        form = extract_form(title) or extract_form(body)
+        strength = extract_strength(title) or extract_strength(body)
+        pack = extract_pack(haystack)
+
         items.append(
             ScrapedItem(
                 manufacturer=manufacturer,
                 source_url=source_url,
                 image_url=image_url,
                 title=(title or body)[:500],
-                brand=title or None,
-                strength=extract_strength(title) or extract_strength(body),
-                form=extract_form(title) or extract_form(body),
-                pack_size=extract_pack(haystack),
+                brand=brand_from_title(title, form, strength, pack),
+                strength=strength,
+                form=form,
+                pack_size=pack,
                 nafdac=extract_nafdac(haystack),
             )
         )

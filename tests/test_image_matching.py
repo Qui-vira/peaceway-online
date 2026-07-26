@@ -218,3 +218,73 @@ def test_extract_pack_reads_multiplier():
 
 def test_extract_pack_returns_none_when_absent():
     assert extract_pack("Emcap Caplet") is None
+
+
+# ── Tier 3: brand + form only, with human strength confirmation ───────────────
+def test_brand_form_is_off_by_default():
+    """Without the flag, a strength mismatch still refuses outright."""
+    r = match_product(_item(strength="ketoconazole 10mg"), _product(strength="0.25 mg/g; 10 mg/g"))
+    assert r.matched is False
+
+
+def test_brand_form_matches_when_enabled():
+    r = match_product(
+        _item(strength="ketoconazole 10mg"),
+        _product(strength="0.25 mg/g; 10 mg/g"),
+        allow_brand_form=True,
+    )
+    assert r.matched is True
+    assert r.needs_strength_check is True
+
+
+def test_brand_form_match_basis_shouts_about_strength():
+    r = match_product(_item(strength=None), _product(), allow_brand_form=True)
+    assert r.match_basis.startswith("brandform=")
+    assert "STRENGTH NOT MATCHED" in r.match_basis
+    assert "confirm strength against the physical pack" in r.match_basis
+
+
+def test_brand_form_still_requires_brand_and_form():
+    """Loosening strength must not loosen anything else."""
+    assert match_product(_item(brand="Different"), _product(), allow_brand_form=True).matched is False
+    assert match_product(_item(form="syrup"), _product(dosage_form="Caplet"),
+                         allow_brand_form=True).matched is False
+
+
+def test_brand_form_still_requires_a_brand_to_exist():
+    assert match_product(_item(brand=None), _product(), allow_brand_form=True).matched is False
+    assert match_product(_item(), _product(brand_name=None), allow_brand_form=True).matched is False
+
+
+def test_two_strengths_of_the_same_brand_are_ambiguous_and_rejected():
+    """The safety property that makes tier 3 usable: Ceflonac Forte Tablet exists at
+    100mg and 200mg, so brand+form alone identifies neither."""
+    a = _product(id="a", strength="100 mg")
+    b = _product(id="b", strength="200 mg")
+    r = match_against_catalogue(_item(strength=None), [a, b], allow_brand_form=True)
+    assert r.matched is False
+    assert "ambiguous" in r.reason
+
+
+def test_an_exact_match_wins_over_looser_siblings():
+    exact = _product(id="exact", strength="500 mg")
+    other = _product(id="other", strength="250 mg")
+    r = match_against_catalogue(_item(strength="500mg"), [exact, other], allow_brand_form=True)
+    assert r.matched is True
+    assert r.product_id == "exact"
+    assert r.needs_strength_check is False
+
+
+def test_exact_match_is_never_flagged_for_strength_confirmation():
+    r = match_product(_item(), _product(), allow_brand_form=True)
+    assert r.matched is True and r.needs_strength_check is False
+    assert r.match_basis.startswith("brand=")
+
+
+def test_nafdac_still_wins_and_needs_no_strength_check():
+    it = _item(strength="whatever", nafdac="A4-7551")
+    p = _product(strength="totally different")
+    p.nafdac_number = "A4-7551"
+    r = match_product(it, p, allow_brand_form=True)
+    assert r.matched is True and r.needs_strength_check is False
+    assert r.match_basis.startswith("nafdac=")

@@ -114,6 +114,11 @@ async def approve(
                 "source_url": candidate.image_url,
                 "match_basis": candidate.match_basis,
                 "pack_size_confirmed": True,
+                # Recorded explicitly: a brand+form candidate reaches approval only
+                # after a reviewer has also confirmed the strength off the pack.
+                "strength_confirmed_by_reviewer": (candidate.match_basis or "").startswith(
+                    "brandform="
+                ),
             },
         )
     )
