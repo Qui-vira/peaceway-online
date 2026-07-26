@@ -8,7 +8,7 @@ from __future__ import annotations
 import re
 from decimal import Decimal, InvalidOperation
 
-from sqlalchemy import select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import AdminActivityLog, PriceHistory, Product, ProductPricing
@@ -18,6 +18,17 @@ VALID_CATEGORIES = ["Medicines", "Medical Devices", "Vaccines", "Supplements", "
 # CSV cell vocabularies shared by the bulk importer.
 RX_TRUE = {"rx", "prescription", "prescription-required", "true", "yes", "1", "required"}
 AVAIL_TRUE = {"yes", "true", "1", "available", "in stock", "in_stock"}
+
+# Descriptive fields staff can edit during backfill: field -> (label, max length).
+# These carry no pricing or safety semantics on their own, but they are the keys the
+# image matcher compares on, so they are never auto-populated — only typed by staff.
+DESCRIPTIVE_FIELDS: dict[str, tuple[str, int]] = {
+    "brand_name": ("Brand", 255),
+    "manufacturer": ("Manufacturer", 255),
+    "dosage_form": ("Dosage form", 100),
+    "strength": ("Strength", 100),
+    "pack_size": ("Pack size", 100),
+}
 
 _WS = re.compile(r"\s+")
 
@@ -149,7 +160,72 @@ async def apply_change(
         _record(session, product.id, "rx", old, bool(new_value), admin_id, reason)
         return f"Prescription required: {bool(new_value)}"
 
+    if field in DESCRIPTIVE_FIELDS:
+        label, maxlen = DESCRIPTIVE_FIELDS[field]
+        # "-" clears the field. Staff need a way to say "this product genuinely has
+        # no brand", which is different from "not filled in yet".
+        raw = normalize_name(str(new_value))
+        val = None if raw in ("", "-") else raw
+        if val is not None and len(val) > maxlen:
+            raise ValueError(f"{label} must be {maxlen} characters or fewer.")
+        old = getattr(product, field)
+        setattr(product, field, val)
+        _record(session, product.id, field, old, val, admin_id, reason)
+        return f"{label}: {old or '—'} → {val or '—'}"
+
     raise ValueError(f"Unknown field: {field}")
+
+
+# Fields a product must carry before the image matcher can compare it to anything.
+# `strength` is deliberately absent: some products legitimately have none (Afrabvite
+# Multivitamin Drops), so requiring it would park them in the queue forever.
+REQUIRED_BACKFILL_FIELDS = ("brand_name", "manufacturer", "dosage_form", "pack_size")
+
+
+def missing_backfill_fields(product: Product) -> list[str]:
+    """Which required descriptive fields are empty on this product."""
+    return [f for f in REQUIRED_BACKFILL_FIELDS if not (getattr(product, f) or "").strip()]
+
+
+def _needs_backfill_clause():
+    """SQL mirror of missing_backfill_fields() — any required field null or blank."""
+    # func.trim (not btrim) — standard SQL, so this works on Postgres in production
+    # and on the SQLite the unit tests run against.
+    return or_(
+        *[
+            or_(getattr(Product, f).is_(None), func.trim(getattr(Product, f)) == "")
+            for f in REQUIRED_BACKFILL_FIELDS
+        ]
+    )
+
+
+async def backfill_stats(session: AsyncSession, *, listed_only: bool = True) -> dict:
+    """Progress counts for the staff backfill queue. Reports, never mutates."""
+    scope = select(func.count()).select_from(Product)
+    if listed_only:
+        scope = scope.where(Product.is_listed.is_(True))
+    total = (await session.execute(scope)).scalar_one()
+
+    pending_q = select(func.count()).select_from(Product).where(_needs_backfill_clause())
+    if listed_only:
+        pending_q = pending_q.where(Product.is_listed.is_(True))
+    pending = (await session.execute(pending_q)).scalar_one()
+
+    return {"total": total, "pending": pending, "complete": total - pending}
+
+
+async def next_backfill_product(
+    session: AsyncSession, *, listed_only: bool = True, skip_ids: set | None = None
+) -> Product | None:
+    """The next product needing descriptive data. Listed products come first, since
+    those are the ones customers can actually see and buy."""
+    stmt = select(Product).where(_needs_backfill_clause())
+    if listed_only:
+        stmt = stmt.where(Product.is_listed.is_(True))
+    if skip_ids:
+        stmt = stmt.where(Product.id.notin_(list(skip_ids)))
+    stmt = stmt.order_by(Product.name).limit(1)
+    return (await session.execute(stmt)).scalar_one_or_none()
 
 
 async def create_product_from_name(

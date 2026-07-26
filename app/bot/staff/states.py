@@ -28,6 +28,10 @@ class ProductAdminFlow(StatesGroup):
     photo_wait = State()        # awaiting a product photo for the storefront
 
 
+class ProductBackfillFlow(StatesGroup):
+    value = State()             # capture a descriptive field value (brand, form, pack...)
+
+
 class InventoryScanFlow(StatesGroup):
     collecting = State()        # receiving product/shelf photos for an AI scan
     edit_value = State()        # capture a corrected field value for a scan item

@@ -225,6 +225,7 @@ def _product_out(product: Product) -> dict:
         "brand_name": product.brand_name,
         "dosage_form": product.dosage_form,
         "strength": product.strength,
+        "pack_size": product.pack_size,
         "category": product.category,
         "requires_prescription": product.requires_prescription,
         "requires_review": product.requires_review,

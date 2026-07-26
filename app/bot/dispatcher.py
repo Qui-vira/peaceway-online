@@ -112,6 +112,7 @@ def build_dispatcher() -> Dispatcher:
     from app.bot.staff import pharmacist as staff_pharmacist
     from app.bot.staff import prescriptions as staff_prescriptions
     from app.bot.staff import products as staff_products
+    from app.bot.staff import products_backfill as staff_products_backfill
     from app.bot.staff import products_csv as staff_products_csv
     from app.bot.staff import riders as staff_riders
     from app.bot.staff import customers as staff_customers
@@ -132,6 +133,7 @@ def build_dispatcher() -> Dispatcher:
     dp.include_router(staff_checklist.router)
     dp.include_router(staff_orientation.router)
     dp.include_router(staff_products.router)
+    dp.include_router(staff_products_backfill.router)
     dp.include_router(staff_products_csv.router)
     dp.include_router(staff_scan.router)
     dp.include_router(staff_inventory_scan.router)

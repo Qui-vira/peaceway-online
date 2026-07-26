@@ -31,7 +31,15 @@ class Product(Base, TimestampMixin):
     generic_name: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
     brand_name: Mapped[str | None] = mapped_column(String(255))
     dosage_form: Mapped[str | None] = mapped_column(String(100))
+    # Strength of the active ingredient ONLY, e.g. "500 mg" or "5 mg/5 mL".
+    # Pack size belongs in pack_size, not here. The PharmaOS import and the manual
+    # "create from name" flow both historically dumped pack sizes ("200ml", "130g")
+    # into this column, which is what pack_size exists to correct.
     strength: Mapped[str | None] = mapped_column(String(100))
+    # How much is in the box: "30 capsules", "100 mL", "10*10". Free text, because
+    # manufacturers notate it inconsistently; normalization happens at comparison
+    # time, never by rewriting what staff entered.
+    pack_size: Mapped[str | None] = mapped_column(String(100))
     manufacturer: Mapped[str | None] = mapped_column(String(255))
     nafdac_number: Mapped[str | None] = mapped_column(String(100), unique=True, index=True)
     category: Mapped[str | None] = mapped_column(String(100), index=True)
