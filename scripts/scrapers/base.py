@@ -115,6 +115,19 @@ async def fetch(url: str, *, wait_selector: str | None = None, timeout: int = 45
     return FetchOutcome(url=url, ok=True, page=page)
 
 
+def first(node, selector: str):
+    """First element matching `selector`, or None.
+
+    Scrapling's Selector has no `css_first` — only `css()`, which returns a list.
+    This is the equivalent, and it tolerates a node that is None so callers can
+    chain without guarding every step.
+    """
+    if node is None:
+        return None
+    found = node.css(selector)
+    return found[0] if found else None
+
+
 def absolute(base: str, src: str | None) -> str | None:
     """Resolve a possibly-relative image src against its page URL."""
     if not src:

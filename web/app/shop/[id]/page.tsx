@@ -15,9 +15,16 @@ import { TactileButton, TactileLink } from "@/components/app/tactile-button";
 const FOCUS =
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0b0c09]";
 
+/** See product-card.tsx: "0.00" is a truthy string, so an unpriced item used to
+ *  render as "₦0". Products are listed before staff price them, so this is common. */
+function isPriced(price: string | null | undefined): boolean {
+  if (price === null || price === undefined || price === "") return false;
+  const n = Number(price);
+  return Number.isFinite(n) && n > 0;
+}
+
 function fmt(price: string | null) {
-  if (!price) return "-";
-  return `₦${Number(price).toLocaleString("en-NG")}`;
+  return isPriced(price) ? `₦${Number(price).toLocaleString("en-NG")}` : "Price on request";
 }
 
 export default function ProductDetailPage() {
@@ -47,7 +54,9 @@ export default function ProductDetailPage() {
   }, [id]);
 
   function handleAdd() {
-    if (!product?.selling_price || !product.is_in_stock) return;
+    // isPriced, not a truthy check: "0.00" would otherwise pass and put a ₦0 line
+    // into the cart and through checkout.
+    if (!product || !isPriced(product.selling_price) || !product.is_in_stock) return;
     const updated = addToCart({
       product_id: product.id,
       product_name: product.name,
@@ -146,9 +155,10 @@ export default function ProductDetailPage() {
               </div>
             )}
 
-            {/* CTA */}
+            {/* CTA — an unpriced product falls through to "Request this medicine
+                instead" rather than offering Add, so no ₦0 line can reach a cart. */}
             <div className="space-y-2">
-              {product.is_in_stock ? (
+              {product.is_in_stock && isPriced(product.selling_price) ? (
                 <>
                   {added ? (
                     <div className="inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-2xl bg-emerald-500/20 text-sm font-bold text-emerald-400 sm:w-auto sm:min-w-[240px]">

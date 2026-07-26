@@ -31,7 +31,7 @@ _CARD_SELECTORS = (".product-item", ".card", ".col-lg-4", ".portfolio-item")
 
 def _caption_for(card) -> str:
     for sel in ("h3", "h4", "h5", ".card-title", "figcaption", "p"):
-        node = card.css_first(sel)
+        node = base.first(card, sel)
         if node is not None and node.text and node.text.strip():
             return re.sub(r"\s+", " ", node.text).strip()
     return ""
@@ -58,7 +58,7 @@ async def scrape() -> tuple[list[ScrapedItem], list[str]]:
             continue
 
         for card in cards:
-            img = card.css_first("img")
+            img = base.first(card, "img")
             if img is None:
                 continue
             src = base.absolute(url, img.attrib.get("src"))

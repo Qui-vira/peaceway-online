@@ -46,18 +46,27 @@ async def run(*, commit: bool, limit: int | None) -> int:
     needs_human: list[tuple[str, list[str]]] = []
 
     async with get_session() as session:
+        # ALL products, not just those with a brand: products.name carries the same
+        # QA notes and 108 polluted names sit on rows whose brand_name is NULL.
         products = list(
-            (
-                await session.execute(
-                    select(Product).where(Product.brand_name.is_not(None)).order_by(Product.name)
-                )
-            ).scalars().all()
+            (await session.execute(select(Product).order_by(Product.name))).scalars().all()
         )
-        print(f"products with a brand: {len(products)}")
+        print(f"products scanned: {len(products)}")
 
         touched = 0
         for p in products:
-            found = detect_issues(p.brand_name)
+            # products.name carries the same QA notes and is what customers read on
+            # the storefront — "Banedif Ointment## (strength format)" would ship
+            # straight to the shop. Done FIRST and unconditionally: a product can
+            # have a clean brand and a polluted name, or no brand at all.
+            name_cleaned, name_note = strip_qa_annotation(p.name)
+            if name_note and name_cleaned != p.name:
+                issues["name_qa_annotation"] += 1
+                fixed.append((p.name, p.name, name_cleaned))
+                if commit:
+                    p.name = name_cleaned
+
+            found = detect_issues(p.brand_name) if p.brand_name else []
             for i in found:
                 issues[i] += 1
             if not found:
@@ -101,7 +110,7 @@ async def run(*, commit: bool, limit: int | None) -> int:
     print(f"NEEDS A HUMAN         : {len(needs_human)}")
     print("=" * 72)
 
-    auto_fixed = {"qa_annotation", "truncation_restored"}
+    auto_fixed = {"qa_annotation", "truncation_restored", "name_qa_annotation"}
     print("\nIssue counts across the catalogue:")
     for name, count in issues.most_common():
         tag = " (fixed automatically)" if name in auto_fixed else " (needs a person)"

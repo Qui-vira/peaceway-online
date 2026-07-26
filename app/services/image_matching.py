@@ -127,6 +127,28 @@ _STRENGTH = re.compile(
 _PACK = re.compile(r"\b(\d+\s?[*x×]\s?\d+|\d+\s?'?s)\b", re.IGNORECASE)
 
 
+# A NAFDAC registration number, but ONLY when the manufacturer labelled it as one.
+# Requiring the label is deliberate: the bare pattern ("04-1955") would also match
+# pack sizes, dates and phone fragments, and a wrong regulatory id is worse than none.
+_NAFDAC = re.compile(
+    r"\b(?:NRN|NAFDAC(?:\s+(?:reg(?:\.|istration)?\s*)?(?:no\.?|number)?)?)\s*[:#]?\s*"
+    r"([A-Z]{0,2}\d{1,3}-\d{3,7})\b",
+    re.IGNORECASE,
+)
+
+
+def extract_nafdac(text: str | None) -> str | None:
+    """NAFDAC registration number from manufacturer text, or None.
+
+    This is the strongest identifier either side can publish: it names exactly one
+    registered product, from one manufacturer, at one strength and pack size.
+    """
+    if not text:
+        return None
+    m = _NAFDAC.search(text)
+    return m.group(1).strip().upper() if m else None
+
+
 def extract_strength(text: str | None) -> str | None:
     """First strength-shaped token in the manufacturer's own text, else None.
 
@@ -173,6 +195,7 @@ class ScrapedItem:
     strength: str | None = None
     form: str | None = None
     pack_size: str | None = None
+    nafdac: str | None = None
 
 
 @dataclass
@@ -190,6 +213,28 @@ def match_product(item: ScrapedItem, product) -> MatchResult:
     product missing any of those three cannot match anything — which is precisely
     why Track 1's backfill exists.
     """
+    # A NAFDAC number, where BOTH sides publish one, settles identity on its own.
+    # It is not a relaxation of the brand+strength+form rule but a stricter test:
+    # the regulator issues one number per registered product, per manufacturer, per
+    # strength and pack. It also sidesteps the naming mismatch that blocks everything
+    # else here — Afrab-Chem's site says "Loratadine Syrup" where our catalogue says
+    # brand "Afrab", yet both carry NRN A4-7551 and are unambiguously one product.
+    scraped_nafdac = canonical(item.nafdac)
+    stored_nafdac = canonical(getattr(product, "nafdac_number", None))
+    if scraped_nafdac and stored_nafdac:
+        if scraped_nafdac != stored_nafdac:
+            return MatchResult(
+                False,
+                reason=f"nafdac differs: scraped={item.nafdac!r} product={product.nafdac_number!r}",
+            )
+        pack = normalize_pack(item.pack_size)
+        basis = f"nafdac={item.nafdac}|{pack.as_basis()}"
+        if pack.notes:
+            basis += f" [normalized: {'; '.join(pack.notes)}]"
+        basis += " [matched on NAFDAC registration number - the regulator's unique id]"
+        basis += " [pack not used for matching - verify against the physical pack]"
+        return MatchResult(True, product_id=product.id, match_basis=basis)
+
     checks = (
         ("brand", item.brand, product.brand_name),
         ("strength", item.strength, product.strength),

@@ -63,7 +63,7 @@ async def scrape() -> tuple[list[ScrapedItem], list[str]]:
 
         src = base.absolute(url, img.attrib.get("src"))
         alt = (img.attrib.get("alt") or "").strip()
-        heading = outcome.page.css_first("h1")
+        heading = base.first(outcome.page, "h1")
         title = (heading.text.strip() if heading is not None and heading.text else alt) or alt
         body = outcome.page.get_all_text() if hasattr(outcome.page, "get_all_text") else title
 

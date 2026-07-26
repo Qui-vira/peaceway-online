@@ -238,6 +238,38 @@ def test_storefront_icon_fallback_is_intact():
         assert "DrugIcon" in tail, f"{rel} has no DrugIcon in the image_url fallback branch"
 
 
+def test_unpriced_products_never_render_as_zero_naira():
+    """A product listed before staff price it must not show "₦0".
+
+    selling_price arrives as a string, so "0.00" is truthy and a bare `!price`
+    guard lets it through. Products are deliberately listed before pricing (the
+    catalogue is imported, then priced), so this is the normal state for much of
+    the shop — six live products were showing ₦0 because of exactly this.
+    """
+    for rel in (
+        Path("web") / "components" / "app" / "product-card.tsx",
+        Path("web") / "app" / "shop" / "[id]" / "page.tsx",
+    ):
+        src = (ROOT / rel).read_text(encoding="utf-8")
+        assert "isPriced" in src, f"{rel} lost the unpriced guard"
+        assert "Price on request" in src, f"{rel} no longer has an unpriced label"
+        assert "if (!price) return" not in src, (
+            f"{rel} reintroduced the truthy-string price check that renders ₦0"
+        )
+
+
+def test_unpriced_products_cannot_be_added_to_cart():
+    """Adding a ₦0 item would put a zero-price line through checkout."""
+    card = (ROOT / "web" / "components" / "app" / "product-card.tsx").read_text(encoding="utf-8")
+    assert "!isPriced(p.selling_price)" in card, "card offers Add on an unpriced product"
+
+    detail = (ROOT / "web" / "app" / "shop" / "[id]" / "page.tsx").read_text(encoding="utf-8")
+    assert "isPriced(product.selling_price)" in detail, "detail page offers Add when unpriced"
+    assert "!product?.selling_price ||" not in detail, (
+        "detail page reintroduced the truthy-string guard in handleAdd"
+    )
+
+
 def test_public_product_shape_still_carries_image_url():
     """The storefront reads image_url; the serializer must keep emitting it."""
     src = (ROOT / "app" / "api" / "v1" / "catalog.py").read_text(encoding="utf-8")

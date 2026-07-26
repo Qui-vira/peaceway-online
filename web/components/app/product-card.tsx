@@ -13,9 +13,22 @@ import type { Product } from "@/lib/api/catalog";
 const FOCUS =
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0b0c09]";
 
+/**
+ * A product with no price set must not render "₦0".
+ *
+ * `selling_price` arrives as a string, so "0.00" is truthy and the old `!price`
+ * guard sailed straight past it — an unpriced item showed as free. Products are
+ * listed before pricing (the catalogue is imported, then priced by staff), so this
+ * is the normal state for a lot of the shop, not an edge case.
+ */
+function isPriced(price: string | null | undefined): boolean {
+  if (price === null || price === undefined || price === "") return false;
+  const n = Number(price);
+  return Number.isFinite(n) && n > 0;
+}
+
 function fmt(price: string | null) {
-  if (!price) return "-";
-  return `₦${Number(price).toLocaleString("en-NG")}`;
+  return isPriced(price) ? `₦${Number(price).toLocaleString("en-NG")}` : "Price on request";
 }
 
 /**
@@ -127,8 +140,12 @@ export function ProductCard({
           {p.strength && <p className="text-[11px] text-[#b1bdb0]">{p.strength}</p>}
         </Link>
         <p className="text-[13px] font-bold text-emerald-400">{fmt(p.selling_price)}</p>
-        {!p.is_in_stock ? (
-          <span className="mt-auto text-[11px] text-[#b1bdb0]">Out of stock</span>
+        {/* An unpriced product must never offer Add: adding it would put a ₦0 line
+            into the customer's cart and through checkout. */}
+        {!p.is_in_stock || !isPriced(p.selling_price) ? (
+          <span className="mt-auto text-[11px] text-[#b1bdb0]">
+            {!p.is_in_stock ? "Out of stock" : "Ask us for the price"}
+          </span>
         ) : (
           /* Add -> Added is the one state change on this screen the customer
              causes themselves, and it was a hard cut: the button was simply a
