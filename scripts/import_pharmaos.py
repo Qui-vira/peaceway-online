@@ -14,7 +14,6 @@ from __future__ import annotations
 
 import argparse
 import asyncio
-import re
 import sys
 from uuid import uuid4
 
@@ -24,6 +23,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 from app.core.config import get_settings
 from app.core.db import _normalize_async_url
 from app.models import Product, ProductAlias
+from app.services.products_admin import normalize_name
 from app.services.rx_classifier import classify
 
 # PharmaOS category -> customer-friendly Peaceway category.
@@ -36,19 +36,12 @@ CATEGORY_MAP = {
     "n/a": "Other",
 }
 
-_WS = re.compile(r"\s+")
-
-
-def normalize_name(raw: str | None) -> str:
-    return _WS.sub(" ", (raw or "").strip())
-
-
 def map_category(raw: str | None) -> str:
     return CATEGORY_MAP.get((raw or "").strip().lower(), "Other")
 
 
 def normalize_alias(raw: str | None) -> str:
-    return _WS.sub(" ", (raw or "").strip().lower())
+    return normalize_name(raw).lower()
 
 
 async def fetch_pharmaos_rows():

@@ -5,6 +5,7 @@ change is recorded consistently.
 """
 from __future__ import annotations
 
+import re
 from decimal import Decimal, InvalidOperation
 
 from sqlalchemy import select
@@ -17,6 +18,19 @@ VALID_CATEGORIES = ["Medicines", "Medical Devices", "Vaccines", "Supplements", "
 # CSV cell vocabularies shared by the bulk importer.
 RX_TRUE = {"rx", "prescription", "prescription-required", "true", "yes", "1", "required"}
 AVAIL_TRUE = {"yes", "true", "1", "available", "in stock", "in_stock"}
+
+_WS = re.compile(r"\s+")
+
+
+def normalize_name(raw: str | None) -> str:
+    """Collapse whitespace in a product name.
+
+    Lives here, not in scripts/import_pharmaos.py, because the running app needs it
+    (the in-bot CSV importer matches on it) and `scripts/` is dev tooling that is
+    excluded from the Railway upload by .railwayignore. The import script now takes
+    it from here, so the dependency points app <- scripts, never the reverse.
+    """
+    return _WS.sub(" ", (raw or "").strip())
 
 
 def parse_money(raw: str) -> Decimal | None:

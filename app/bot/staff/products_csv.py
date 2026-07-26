@@ -25,8 +25,7 @@ from app.bot.staff.states import ProductAdminFlow
 from app.core.db import get_session
 from app.core.security import get_role_keys, has
 from app.models import Product
-from app.services.products_admin import apply_csv_row, create_product_from_name
-from scripts.import_pharmaos import normalize_name  # reuse name normalization
+from app.services.products_admin import apply_csv_row, create_product_from_name, normalize_name
 
 router = Router(name="staff-products-csv")
 

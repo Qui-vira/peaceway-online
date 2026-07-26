@@ -1,0 +1,35 @@
+# Vercel builds only web/ (Project Root Directory = "web"). Exclude the Python
+# backend and heavy non-frontend assets so `vercel` uploads stay small.
+#
+# EVERY PATTERN HERE MUST BE ANCHORED WITH A LEADING "/".
+# Unanchored patterns match at EVERY level, not just the repo root. On 2026-07-26 a
+# bare `app/` here silently excluded `web/app/` — the whole Next.js App Router — so
+# `next build` produced a Pages-Router build containing only /404, and every route on
+# production 404'd. The deployment still reported "Ready", because compiling nothing
+# succeeds. Anchor the pattern, or you delete the app.
+#
+# Before promoting any build, check its route table:
+#   vercel inspect <deployment-url> --logs
+# It must list "Route (app)" with /shop, /cart, /checkout — not a lone /404.
+/app/
+/alembic/
+/alembic.ini
+/presentations/
+/graphify-out/
+/peaceway-online-pharmacy-website/
+/design-system/
+/docs/
+/tasks/
+/scripts/
+/tests/
+/requirements.txt
+/pyproject.toml
+/runtime.txt
+/nixpacks.toml
+/railway.json
+/Procfile
+/.codex/
+/package.json
+/package-lock.json
+/node_modules
+*.egg-info/
