@@ -5,7 +5,7 @@ from sqlalchemy import select
 from app.models import Product, ProductAlias, ProductPricing
 
 
-async def test_create_product_with_pricing_and_alias(session):
+async def test_create_product_with_pricing_and_alias(db_session):
     p = Product(
         name="Paracetamol 500mg Tablet",
         generic_name="Paracetamol",
@@ -23,19 +23,19 @@ async def test_create_product_with_pricing_and_alias(session):
         stock_qty=50,
         is_in_stock=True,
     )
-    session.add(p)
-    await session.flush()
+    db_session.add(p)
+    await db_session.flush()
 
-    fetched = (await session.execute(select(Product).where(Product.id == p.id))).scalar_one()
+    fetched = (await db_session.execute(select(Product).where(Product.id == p.id))).scalar_one()
     assert fetched.generic_name == "Paracetamol"
     assert fetched.is_listed is True
     assert fetched.pricing.selling_price == Decimal("350.00")
     assert fetched.aliases[0].alias_name == "PCM 500"
 
 
-async def test_product_defaults_to_review_required(session):
+async def test_product_defaults_to_review_required(db_session):
     p = Product(name="Mystery Drug", generic_name="Unknown")
-    session.add(p)
-    await session.flush()
+    db_session.add(p)
+    await db_session.flush()
     assert p.requires_review is True
     assert p.is_listed is False

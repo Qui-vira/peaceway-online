@@ -18,14 +18,14 @@ from app.services.products_admin import apply_csv_row, create_product_from_name
 ADMIN = 42
 
 
-async def _pricing(session, product) -> ProductPricing:
+async def _pricing(db_session, product) -> ProductPricing:
     return (
-        await session.execute(select(ProductPricing).where(ProductPricing.product_id == product.id))
+        await db_session.execute(select(ProductPricing).where(ProductPricing.product_id == product.id))
     ).scalar_one()
 
 
 @pytest.mark.asyncio
-async def test_create_new_otc_product_becomes_buyable(session):
+async def test_create_new_otc_product_becomes_buyable(db_session):
     row = {
         "product_name": "Vitamin C 1000mg",
         "dosage": "1000mg",
@@ -37,9 +37,9 @@ async def test_create_new_otc_product_becomes_buyable(session):
         "category": "Supplements",
         "description": "Immune support",
     }
-    p = await create_product_from_name(session, row["product_name"], ADMIN, strength=row["dosage"])
-    await apply_csv_row(session, p, row, ADMIN)
-    await session.flush()
+    p = await create_product_from_name(db_session, row["product_name"], ADMIN, strength=row["dosage"])
+    await apply_csv_row(db_session, p, row, ADMIN)
+    await db_session.flush()
 
     assert p.generic_name == "Vitamin C 1000mg"  # seeded from name
     assert p.strength == "1000mg"
@@ -47,7 +47,7 @@ async def test_create_new_otc_product_becomes_buyable(session):
     assert p.requires_prescription is False
     assert p.requires_review is False  # OTC → cleared for sale
     assert p.is_listed is True
-    pricing = await _pricing(session, p)
+    pricing = await _pricing(db_session, p)
     assert pricing.selling_price == Decimal("1500")
     assert pricing.cost_price == Decimal("800")
     assert pricing.stock_qty == 40
@@ -58,7 +58,7 @@ async def test_create_new_otc_product_becomes_buyable(session):
 
 
 @pytest.mark.asyncio
-async def test_new_product_without_prescription_flag_waits_for_review(session):
+async def test_new_product_without_prescription_flag_waits_for_review(db_session):
     """Safety: a new product with no OTC/Rx marker stays review-required (not sellable)."""
     row = {
         "product_name": "Mystery Syrup",
@@ -66,50 +66,50 @@ async def test_new_product_without_prescription_flag_waits_for_review(session):
         "stock": "10",
         "availability": "yes",
     }
-    p = await create_product_from_name(session, row["product_name"], ADMIN)
-    await apply_csv_row(session, p, row, ADMIN)
-    await session.flush()
+    p = await create_product_from_name(db_session, row["product_name"], ADMIN)
+    await apply_csv_row(db_session, p, row, ADMIN)
+    await db_session.flush()
 
     assert p.requires_review is True  # model default preserved — needs pharmacist clearance
-    pricing = await _pricing(session, p)
+    pricing = await _pricing(db_session, p)
     p.pricing = pricing
     assert is_buyable(p) is False
 
 
 @pytest.mark.asyncio
-async def test_new_rx_product_requires_review(session):
+async def test_new_rx_product_requires_review(db_session):
     row = {"product_name": "Amoxil 250", "selling_price": "900", "stock": "5", "prescription": "Rx"}
-    p = await create_product_from_name(session, row["product_name"], ADMIN)
-    await apply_csv_row(session, p, row, ADMIN)
-    await session.flush()
+    p = await create_product_from_name(db_session, row["product_name"], ADMIN)
+    await apply_csv_row(db_session, p, row, ADMIN)
+    await db_session.flush()
 
     assert p.requires_prescription is True
     assert p.requires_review is True
-    pricing = await _pricing(session, p)
+    pricing = await _pricing(db_session, p)
     p.pricing = pricing
     assert is_buyable(p) is False  # Rx never buyable via catalog
 
 
 @pytest.mark.asyncio
-async def test_apply_row_updates_existing_product(session):
+async def test_apply_row_updates_existing_product(db_session):
     p = Product(name="Paracetamol 500", generic_name="Paracetamol", requires_review=False)
     p.pricing = ProductPricing(selling_price=Decimal("100"), cost_price=Decimal("50"), stock_qty=5, is_in_stock=True)
-    session.add(p)
-    await session.flush()
+    db_session.add(p)
+    await db_session.flush()
 
-    await apply_csv_row(session, p, {"product_name": "Paracetamol 500", "selling_price": "250", "stock": "80"}, ADMIN)
-    await session.flush()
+    await apply_csv_row(db_session, p, {"product_name": "Paracetamol 500", "selling_price": "250", "stock": "80"}, ADMIN)
+    await db_session.flush()
 
-    pricing = await _pricing(session, p)
+    pricing = await _pricing(db_session, p)
     assert pricing.selling_price == Decimal("250")
     assert pricing.stock_qty == 80
     assert pricing.is_in_stock is True
 
 
 @pytest.mark.asyncio
-async def test_unknown_category_is_skipped_not_fatal(session):
-    p = await create_product_from_name(session, "Odd Item", ADMIN)
+async def test_unknown_category_is_skipped_not_fatal(db_session):
+    p = await create_product_from_name(db_session, "Odd Item", ADMIN)
     # 'Groceries' is not a valid category — must not raise.
-    await apply_csv_row(session, p, {"product_name": "Odd Item", "category": "Groceries", "selling_price": "300"}, ADMIN)
-    await session.flush()
+    await apply_csv_row(db_session, p, {"product_name": "Odd Item", "category": "Groceries", "selling_price": "300"}, ADMIN)
+    await db_session.flush()
     assert p.category is None

@@ -17,7 +17,7 @@ from app.services.admin_web_auth import (
 
 
 @pytest.mark.asyncio
-async def test_web_admin_otp_model_exists(session):
+async def test_web_admin_otp_model_exists(db_session):
     """WebAdminOtp can be created and queried."""
     otp = WebAdminOtp(
         telegram_id=123456789,
@@ -25,16 +25,16 @@ async def test_web_admin_otp_model_exists(session):
         expires_at=datetime.now(timezone.utc) + timedelta(minutes=5),
         used=False,
     )
-    session.add(otp)
-    await session.flush()
+    db_session.add(otp)
+    await db_session.flush()
     assert otp.id is not None
 
 
 @pytest.mark.asyncio
-async def test_web_admin_email_otp_model_exists(session):
+async def test_web_admin_email_otp_model_exists(db_session):
     admin = AdminUser(email="ops@peaceway.test", status=AdminStatus.ACTIVE, is_active=True)
-    session.add(admin)
-    await session.flush()
+    db_session.add(admin)
+    await db_session.flush()
 
     otp = WebAdminEmailOtp(
         admin_id=admin.id,
@@ -43,41 +43,41 @@ async def test_web_admin_email_otp_model_exists(session):
         expires_at=datetime.now(timezone.utc) + timedelta(minutes=5),
         used=False,
     )
-    session.add(otp)
-    await session.flush()
+    db_session.add(otp)
+    await db_session.flush()
     assert otp.id is not None
 
 
 @pytest.mark.asyncio
-async def test_web_admin_session_model_exists(session):
+async def test_web_admin_session_model_exists(db_session):
     """WebAdminSession can be linked to an AdminUser."""
     admin = AdminUser(telegram_id=111222333, status=AdminStatus.ACTIVE, is_active=True)
-    session.add(admin)
-    await session.flush()
+    db_session.add(admin)
+    await db_session.flush()
 
     web_session = WebAdminSession(
         admin_id=admin.id,
         expires_at=datetime.now(timezone.utc) + timedelta(hours=8),
     )
-    session.add(web_session)
-    await session.flush()
+    db_session.add(web_session)
+    await db_session.flush()
     assert web_session.id is not None
 
 
-async def _make_active_admin(session, telegram_id: int = 999888777) -> AdminUser:
+async def _make_active_admin(db_session, telegram_id: int = 999888777) -> AdminUser:
     admin = AdminUser(telegram_id=telegram_id, status=AdminStatus.ACTIVE, is_active=True)
-    session.add(admin)
-    await session.flush()
+    db_session.add(admin)
+    await db_session.flush()
     return admin
 
 
 @pytest.mark.asyncio
-async def test_create_email_otp_for_active_admin(session):
+async def test_create_email_otp_for_active_admin(db_session):
     admin = AdminUser(email="ops@example.com", status=AdminStatus.ACTIVE, is_active=True)
-    session.add(admin)
-    await session.flush()
+    db_session.add(admin)
+    await db_session.flush()
 
-    result = await create_web_email_otp(session, "OPS@example.com")
+    result = await create_web_email_otp(db_session, "OPS@example.com")
     assert result is not None
     code, email = result
     assert len(code) == 6
@@ -85,28 +85,28 @@ async def test_create_email_otp_for_active_admin(session):
 
 
 @pytest.mark.asyncio
-async def test_verify_email_otp_creates_session(session):
+async def test_verify_email_otp_creates_session(db_session):
     admin = AdminUser(email="supplier@example.com", status=AdminStatus.ACTIVE, is_active=True)
-    session.add(admin)
-    await session.flush()
+    db_session.add(admin)
+    await db_session.flush()
 
-    result = await create_web_email_otp(session, admin.email)
+    result = await create_web_email_otp(db_session, admin.email)
     assert result is not None
     code, _ = result
 
-    token = await verify_web_email_otp_and_create_session(session, admin.email, code)
+    token = await verify_web_email_otp_and_create_session(db_session, admin.email, code)
     assert token is not None
 
-    fetched = await get_session_admin(session, token)
+    fetched = await get_session_admin(db_session, token)
     assert fetched is not None
     fetched_admin, _ = fetched
     assert fetched_admin.email == admin.email
 
 
 @pytest.mark.asyncio
-async def test_create_web_otp_returns_code_for_active_admin(session):
-    admin = await _make_active_admin(session)
-    result = await create_web_otp(session, admin.telegram_id)
+async def test_create_web_otp_returns_code_for_active_admin(db_session):
+    admin = await _make_active_admin(db_session)
+    result = await create_web_otp(db_session, admin.telegram_id)
     assert result is not None
     code, tid = result
     assert len(code) == 6 and code.isdigit()
@@ -114,58 +114,58 @@ async def test_create_web_otp_returns_code_for_active_admin(session):
 
 
 @pytest.mark.asyncio
-async def test_create_web_otp_returns_none_for_unknown_id(session):
-    result = await create_web_otp(session, 0)
+async def test_create_web_otp_returns_none_for_unknown_id(db_session):
+    result = await create_web_otp(db_session, 0)
     assert result is None
 
 
 @pytest.mark.asyncio
-async def test_create_web_otp_returns_none_for_pending_admin(session):
+async def test_create_web_otp_returns_none_for_pending_admin(db_session):
     admin = AdminUser(telegram_id=555444333, status=AdminStatus.PENDING, is_active=False)
-    session.add(admin)
-    await session.flush()
-    result = await create_web_otp(session, admin.telegram_id)
+    db_session.add(admin)
+    await db_session.flush()
+    result = await create_web_otp(db_session, admin.telegram_id)
     assert result is None
 
 
 @pytest.mark.asyncio
-async def test_verify_otp_creates_session(session):
-    admin = await _make_active_admin(session)
-    result = await create_web_otp(session, admin.telegram_id)
+async def test_verify_otp_creates_session(db_session):
+    admin = await _make_active_admin(db_session)
+    result = await create_web_otp(db_session, admin.telegram_id)
     assert result is not None
     code, _ = result
-    await session.flush()
+    await db_session.flush()
 
-    token = await verify_web_otp_and_create_session(session, admin.telegram_id, code)
+    token = await verify_web_otp_and_create_session(db_session, admin.telegram_id, code)
     assert token is not None
     assert len(token) == 36  # UUID string
 
 
 @pytest.mark.asyncio
-async def test_verify_otp_wrong_code_returns_none(session):
-    admin = await _make_active_admin(session, telegram_id=111000111)
-    await create_web_otp(session, admin.telegram_id)
-    await session.flush()
+async def test_verify_otp_wrong_code_returns_none(db_session):
+    admin = await _make_active_admin(db_session, telegram_id=111000111)
+    await create_web_otp(db_session, admin.telegram_id)
+    await db_session.flush()
 
-    token = await verify_web_otp_and_create_session(session, admin.telegram_id, "000000")
+    token = await verify_web_otp_and_create_session(db_session, admin.telegram_id, "000000")
     assert token is None
 
 
 @pytest.mark.asyncio
-async def test_get_session_admin_returns_admin_and_roles(session):
+async def test_get_session_admin_returns_admin_and_roles(db_session):
     from app.models.admin import AdminRoleAssignment
-    admin = await _make_active_admin(session, telegram_id=222333444)
-    session.add(AdminRoleAssignment(admin_id=admin.id, role_key="packaging"))
-    result = await create_web_otp(session, admin.telegram_id)
+    admin = await _make_active_admin(db_session, telegram_id=222333444)
+    db_session.add(AdminRoleAssignment(admin_id=admin.id, role_key="packaging"))
+    result = await create_web_otp(db_session, admin.telegram_id)
     assert result is not None
     code, _ = result
-    await session.flush()
+    await db_session.flush()
 
-    token = await verify_web_otp_and_create_session(session, admin.telegram_id, code)
+    token = await verify_web_otp_and_create_session(db_session, admin.telegram_id, code)
     assert token is not None
-    await session.flush()
+    await db_session.flush()
 
-    auth = await get_session_admin(session, token)
+    auth = await get_session_admin(db_session, token)
     assert auth is not None
     fetched_admin, role_keys = auth
     assert fetched_admin.telegram_id == admin.telegram_id
@@ -173,86 +173,86 @@ async def test_get_session_admin_returns_admin_and_roles(session):
 
 
 @pytest.mark.asyncio
-async def test_get_session_admin_invalid_token_returns_none(session):
-    result = await get_session_admin(session, "not-a-uuid")
+async def test_get_session_admin_invalid_token_returns_none(db_session):
+    result = await get_session_admin(db_session, "not-a-uuid")
     assert result is None
 
 
 @pytest.mark.asyncio
-async def test_delete_session_invalidates_token(session):
-    admin = await _make_active_admin(session, telegram_id=777666555)
-    result = await create_web_otp(session, admin.telegram_id)
+async def test_delete_session_invalidates_token(db_session):
+    admin = await _make_active_admin(db_session, telegram_id=777666555)
+    result = await create_web_otp(db_session, admin.telegram_id)
     assert result is not None
     code, _ = result
-    await session.flush()
+    await db_session.flush()
 
-    token = await verify_web_otp_and_create_session(session, admin.telegram_id, code)
+    token = await verify_web_otp_and_create_session(db_session, admin.telegram_id, code)
     assert token is not None
-    await session.flush()
+    await db_session.flush()
 
-    await delete_session(session, token)
-    await session.flush()
+    await delete_session(db_session, token)
+    await db_session.flush()
 
-    auth = await get_session_admin(session, token)
+    auth = await get_session_admin(db_session, token)
     assert auth is None
 
 
 @pytest.mark.asyncio
-async def test_create_web_otp_invalidates_previous_otp(session):
+async def test_create_web_otp_invalidates_previous_otp(db_session):
     """Second OTP request renders the first code unusable."""
-    admin = await _make_active_admin(session, telegram_id=444333222)
-    first = await create_web_otp(session, admin.telegram_id)
+    admin = await _make_active_admin(db_session, telegram_id=444333222)
+    first = await create_web_otp(db_session, admin.telegram_id)
     assert first is not None
     first_code, _ = first
-    await session.flush()
+    await db_session.flush()
 
-    await create_web_otp(session, admin.telegram_id)
-    await session.flush()
+    await create_web_otp(db_session, admin.telegram_id)
+    await db_session.flush()
 
-    token = await verify_web_otp_and_create_session(session, admin.telegram_id, first_code)
+    token = await verify_web_otp_and_create_session(db_session, admin.telegram_id, first_code)
     assert token is None
 
 
 @pytest.mark.asyncio
-async def test_verify_otp_expired_returns_none(session):
+async def test_verify_otp_expired_returns_none(db_session):
     """OTP past its TTL cannot be used."""
-    admin = await _make_active_admin(session, telegram_id=333222111)
-    result = await create_web_otp(session, admin.telegram_id)
+    admin = await _make_active_admin(db_session, telegram_id=333222111)
+    result = await create_web_otp(db_session, admin.telegram_id)
     assert result is not None
     code, _ = result
-    await session.flush()
+    await db_session.flush()
 
     # Back-date the OTP's expiry so it appears expired
     from app.models.admin import WebAdminOtp as _Otp
     from sqlalchemy import select as _select
     otp_row = (
-        await session.execute(_select(_Otp).where(_Otp.telegram_id == admin.telegram_id, _Otp.used.is_(False)))
+        await db_session.execute(_select(_Otp).where(_Otp.telegram_id == admin.telegram_id, _Otp.used.is_(False)))
     ).scalar_one()
     otp_row.expires_at = datetime.now(timezone.utc) - timedelta(minutes=1)
-    await session.flush()
+    await db_session.flush()
 
-    token = await verify_web_otp_and_create_session(session, admin.telegram_id, code)
+    token = await verify_web_otp_and_create_session(db_session, admin.telegram_id, code)
     assert token is None
 
 
 @pytest.mark.asyncio
-async def test_get_session_admin_disabled_admin_returns_none(session):
+async def test_get_session_admin_disabled_admin_returns_none(db_session):
     """A disabled admin's session is rejected."""
     from app.models.admin import AdminStatus as _Status
-    admin = await _make_active_admin(session, telegram_id=888777666)
-    result = await create_web_otp(session, admin.telegram_id)
+    admin = await _make_active_admin(db_session, telegram_id=888777666)
+    result = await create_web_otp(db_session, admin.telegram_id)
     assert result is not None
     code, _ = result
-    await session.flush()
+    await db_session.flush()
 
-    token = await verify_web_otp_and_create_session(session, admin.telegram_id, code)
+    token = await verify_web_otp_and_create_session(db_session, admin.telegram_id, code)
     assert token is not None
-    await session.flush()
+    await db_session.flush()
 
     # Disable the admin after the session was created
     admin.status = _Status.DISABLED
     admin.is_active = False
-    await session.flush()
+    await db_session.flush()
 
-    auth = await get_session_admin(session, token)
+    auth = await get_session_admin(db_session, token)
     assert auth is None

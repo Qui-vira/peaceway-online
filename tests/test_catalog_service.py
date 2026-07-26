@@ -37,7 +37,7 @@ def test_is_buyable_false_when_review_required():
     assert is_buyable(p) is False
 
 
-async def test_popular_products_excludes_unpriced_and_rx(session):
+async def test_popular_products_excludes_unpriced_and_rx(db_session):
     buyable = _product(name="Buyable Drug")
     buyable.pricing = ProductPricing(selling_price=Decimal("500"), stock_qty=10, is_in_stock=True)
 
@@ -50,9 +50,9 @@ async def test_popular_products_excludes_unpriced_and_rx(session):
     out_of_stock = _product(name="Out Of Stock Drug")
     out_of_stock.pricing = ProductPricing(selling_price=Decimal("500"), stock_qty=0, is_in_stock=False)
 
-    session.add_all([buyable, unpriced, rx, out_of_stock])
-    await session.flush()
+    db_session.add_all([buyable, unpriced, rx, out_of_stock])
+    await db_session.flush()
 
-    results = await popular_products(session)
+    results = await popular_products(db_session)
     names = {p.name for p in results}
     assert names == {"Buyable Drug"}

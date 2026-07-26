@@ -62,23 +62,23 @@ def _detected(name="Relcer Gel", stock=1, dosage=None, category="Medicines",
     )
 
 
-async def _make_scan(session, mode=SCAN_MODE_SET, images=1):
-    scan = await svc.create_scan_session(session, ADMIN, CHAT, mode)
+async def _make_scan(db_session, mode=SCAN_MODE_SET, images=1):
+    scan = await svc.create_scan_session(db_session, ADMIN, CHAT, mode)
     for i in range(images):
-        await svc.add_image(session, scan, f"file{i}", f"uniq{i}")
+        await svc.add_image(db_session, scan, f"file{i}", f"uniq{i}")
     return scan
 
 
-async def _make_product(session, name="Relcer Gel", stock=4, price="1500",
+async def _make_product(db_session, name="Relcer Gel", stock=4, price="1500",
                         strength=None) -> Product:
     p = Product(name=name, generic_name=name, strength=strength)
-    session.add(p)
-    await session.flush()
-    session.add(ProductPricing(
+    db_session.add(p)
+    await db_session.flush()
+    db_session.add(ProductPricing(
         product_id=p.id, stock_qty=stock,
         selling_price=Decimal(price), is_in_stock=stock > 0,
     ))
-    await session.flush()
+    await db_session.flush()
     return p
 
 
@@ -99,32 +99,32 @@ def test_unauthorized_roles_cannot_scan_inventory():
 # ── 3+4. Batch collection: photos attach, analysis waits for the button ─────
 
 @pytest.mark.asyncio
-async def test_multiple_photos_attach_to_one_session(session):
-    scan = await _make_scan(session, images=0)
+async def test_multiple_photos_attach_to_one_session(db_session):
+    scan = await _make_scan(db_session, images=0)
     for i in range(4):
-        img, total = await svc.add_image(session, scan, f"f{i}", f"u{i}", media_group_id="alb1")
+        img, total = await svc.add_image(db_session, scan, f"f{i}", f"u{i}", media_group_id="alb1")
         assert img is not None
         assert total == i + 1
-    await session.refresh(scan, ["images"])
+    await db_session.refresh(scan, ["images"])
     assert len(scan.images) == 4
     assert [img.position for img in scan.images] == [0, 1, 2, 3]
 
 
 @pytest.mark.asyncio
-async def test_duplicate_photo_is_not_added_twice(session):
-    scan = await _make_scan(session, images=0)
-    await svc.add_image(session, scan, "fA", "same-unique-id")
-    dup, total = await svc.add_image(session, scan, "fB", "same-unique-id")
+async def test_duplicate_photo_is_not_added_twice(db_session):
+    scan = await _make_scan(db_session, images=0)
+    await svc.add_image(db_session, scan, "fA", "same-unique-id")
+    dup, total = await svc.add_image(db_session, scan, "fB", "same-unique-id")
     assert dup is None
     assert total == 1
 
 
 @pytest.mark.asyncio
-async def test_collecting_photos_does_not_trigger_analysis(session):
+async def test_collecting_photos_does_not_trigger_analysis(db_session):
     """The workflow waits for the explicit Analyse action."""
-    scan = await _make_scan(session, images=3)
+    scan = await _make_scan(db_session, images=3)
     assert scan.status == SCAN_STATUS_COLLECTING
-    await session.refresh(scan, ["items"])
+    await db_session.refresh(scan, ["items"])
     assert scan.items == []
 
 
@@ -210,25 +210,25 @@ def test_different_dosages_are_never_merged():
 # ── 9+10. Database matching ──────────────────────────────────────────────────
 
 @pytest.mark.asyncio
-async def test_existing_product_matches_despite_case_and_spacing(session):
-    p = await _make_product(session, "Relcer Gel")
-    match_type, product, conf = await svc.match_candidate(session, "RELCER  GEL", None)
+async def test_existing_product_matches_despite_case_and_spacing(db_session):
+    p = await _make_product(db_session, "Relcer Gel")
+    match_type, product, conf = await svc.match_candidate(db_session, "RELCER  GEL", None)
     assert match_type == MATCH_EXACT
     assert product.id == p.id
     assert conf >= 0.9
 
 
 @pytest.mark.asyncio
-async def test_dosage_mismatch_is_not_auto_merged(session):
-    await _make_product(session, "Amoxil", strength="250mg")
-    match_type, product, _ = await svc.match_candidate(session, "Amoxil", "500mg")
+async def test_dosage_mismatch_is_not_auto_merged(db_session):
+    await _make_product(db_session, "Amoxil", strength="250mg")
+    match_type, product, _ = await svc.match_candidate(db_session, "Amoxil", "500mg")
     assert match_type == MATCH_PROBABLE  # human must decide — may be a new SKU
     assert product is not None
 
 
 @pytest.mark.asyncio
-async def test_unknown_product_is_new(session):
-    match_type, product, _ = await svc.match_candidate(session, "Danacid", None)
+async def test_unknown_product_is_new(db_session):
+    match_type, product, _ = await svc.match_candidate(db_session, "Danacid", None)
     assert match_type == MATCH_NEW
     assert product is None
 
@@ -248,14 +248,14 @@ def test_high_confidence_actions_follow_scan_mode():
 
 
 @pytest.mark.asyncio
-async def test_bulk_confirm_skips_low_confidence_items(session):
-    await _make_product(session, "Relcer Gel")
-    scan = await _make_scan(session)
+async def test_bulk_confirm_skips_low_confidence_items(db_session):
+    await _make_product(db_session, "Relcer Gel")
+    scan = await _make_scan(db_session)
     result = InventoryScanResult(products=[
         _detected(name="Relcer Gel", stock=2),                       # high conf, exact
         _detected(name="Blurrymed", stock=1, identity=0.3, count_conf=0.4),  # low conf
     ])
-    await svc.run_analysis(session, scan, result)
+    await svc.run_analysis(db_session, scan, result)
     confirmed = svc.confirm_safe_items(scan)
     assert confirmed == 1
     by_name = {i.product_name: i for i in scan.items}
@@ -267,12 +267,12 @@ async def test_bulk_confirm_skips_low_confidence_items(session):
 # ── 12. Human corrections ────────────────────────────────────────────────────
 
 @pytest.mark.asyncio
-async def test_human_can_edit_stock_with_full_audit(session):
-    scan = await _make_scan(session)
-    await svc.run_analysis(session, scan, InventoryScanResult(products=[_detected(stock=8)]))
+async def test_human_can_edit_stock_with_full_audit(db_session):
+    scan = await _make_scan(db_session)
+    await svc.run_analysis(db_session, scan, InventoryScanResult(products=[_detected(stock=8)]))
     item = scan.items[0]
 
-    await svc.apply_correction(session, item, "stock", "5", ADMIN, scan.scan_mode)
+    await svc.apply_correction(db_session, item, "stock", "5", ADMIN, scan.scan_mode)
 
     assert item.detected_stock == 5
     assert item.review_status == "edited"
@@ -285,30 +285,30 @@ async def test_human_can_edit_stock_with_full_audit(session):
 
 
 @pytest.mark.asyncio
-async def test_invalid_edit_is_rejected(session):
-    scan = await _make_scan(session)
-    await svc.run_analysis(session, scan, InventoryScanResult(products=[_detected()]))
+async def test_invalid_edit_is_rejected(db_session):
+    scan = await _make_scan(db_session)
+    await svc.run_analysis(db_session, scan, InventoryScanResult(products=[_detected()]))
     item = scan.items[0]
     with pytest.raises(ValueError):
-        await svc.apply_correction(session, item, "stock", "many", ADMIN, scan.scan_mode)
+        await svc.apply_correction(db_session, item, "stock", "many", ADMIN, scan.scan_mode)
     with pytest.raises(ValueError):
-        await svc.apply_correction(session, item, "category", "Cosmetics", ADMIN, scan.scan_mode)
+        await svc.apply_correction(db_session, item, "category", "Cosmetics", ADMIN, scan.scan_mode)
     with pytest.raises(ValueError):
-        await svc.apply_correction(session, item, "nafdac_number", "x", ADMIN, scan.scan_mode)
+        await svc.apply_correction(db_session, item, "nafdac_number", "x", ADMIN, scan.scan_mode)
 
 
 # ── 13+14. CSV export ────────────────────────────────────────────────────────
 
 @pytest.mark.asyncio
-async def test_csv_has_exact_header_and_reviewed_quantities(session):
-    scan = await _make_scan(session)
-    await svc.run_analysis(session, scan, InventoryScanResult(products=[
+async def test_csv_has_exact_header_and_reviewed_quantities(db_session):
+    scan = await _make_scan(db_session)
+    await svc.run_analysis(db_session, scan, InventoryScanResult(products=[
         _detected(name="Relcer Gel", stock=8),
         _detected(name="Danacid", stock=4, dosage="250mg"),
         _detected(name="Skipped Thing", stock=9),
     ]))
     items = {i.product_name: i for i in scan.items}
-    await svc.apply_correction(session, items["Relcer Gel"], "stock", "5", ADMIN, scan.scan_mode)
+    await svc.apply_correction(db_session, items["Relcer Gel"], "stock", "5", ADMIN, scan.scan_mode)
     items["Skipped Thing"].review_status = REVIEW_SKIPPED
 
     csv_text = svc.generate_csv(scan)
@@ -325,30 +325,30 @@ async def test_csv_has_exact_header_and_reviewed_quantities(session):
 # ── 15. Nothing changes before confirmation ──────────────────────────────────
 
 @pytest.mark.asyncio
-async def test_no_inventory_change_before_commit(session):
-    product = await _make_product(session, "Relcer Gel", stock=4)
-    scan = await _make_scan(session)
-    await svc.run_analysis(session, scan, InventoryScanResult(products=[
+async def test_no_inventory_change_before_commit(db_session):
+    product = await _make_product(db_session, "Relcer Gel", stock=4)
+    scan = await _make_scan(db_session)
+    await svc.run_analysis(db_session, scan, InventoryScanResult(products=[
         _detected(name="Relcer Gel", stock=1),
         _detected(name="Danacid", stock=4),
     ]))
     assert scan.status == SCAN_STATUS_REVIEW
 
-    pricing = (await session.execute(
+    pricing = (await db_session.execute(
         select(ProductPricing).where(ProductPricing.product_id == product.id)
     )).scalar_one()
     assert pricing.stock_qty == 4  # untouched
-    names = (await session.execute(select(Product.name))).scalars().all()
+    names = (await db_session.execute(select(Product.name))).scalars().all()
     assert "Danacid" not in names  # no product created yet
 
 
 # ── 16+17. Commit + audit trail ──────────────────────────────────────────────
 
 @pytest.mark.asyncio
-async def test_commit_sets_stock_creates_products_and_audits(session):
-    product = await _make_product(session, "Relcer Gel", stock=4)
-    scan = await _make_scan(session, mode=SCAN_MODE_SET)
-    await svc.run_analysis(session, scan, InventoryScanResult(products=[
+async def test_commit_sets_stock_creates_products_and_audits(db_session):
+    product = await _make_product(db_session, "Relcer Gel", stock=4)
+    scan = await _make_scan(db_session, mode=SCAN_MODE_SET)
+    await svc.run_analysis(db_session, scan, InventoryScanResult(products=[
         _detected(name="Relcer Gel", stock=1),
         _detected(name="Danacid", stock=4, dosage="250mg", prescription="OTC"),
         _detected(name="Left Out", stock=2),
@@ -357,35 +357,35 @@ async def test_commit_sets_stock_creates_products_and_audits(session):
         if item.product_name != "Left Out":
             item.review_status = REVIEW_CONFIRMED
 
-    summary = await svc.commit_scan_session(session, scan, ADMIN)
+    summary = await svc.commit_scan_session(db_session, scan, ADMIN)
 
     assert summary == {**summary, "updated": 1, "created": 1, "skipped": 1}
     assert scan.status == SCAN_STATUS_COMMITTED
-    pricing = (await session.execute(
+    pricing = (await db_session.execute(
         select(ProductPricing).where(ProductPricing.product_id == product.id)
     )).scalar_one()
     assert pricing.stock_qty == 1  # SET mode replaced 4 -> 1
 
-    danacid = (await session.execute(
+    danacid = (await db_session.execute(
         select(Product).where(Product.name == "Danacid")
     )).scalar_one()
     assert danacid.strength == "250mg"
     assert danacid.requires_prescription is False
 
     # Unreviewed item was NOT committed.
-    assert (await session.execute(
+    assert (await db_session.execute(
         select(Product).where(Product.name == "Left Out")
     )).scalar_one_or_none() is None
 
     # Price history recorded through the shared products_admin path.
-    history = (await session.execute(
+    history = (await db_session.execute(
         select(PriceHistory).where(PriceHistory.product_id == product.id,
                                    PriceHistory.field == "stock")
     )).scalars().all()
     assert any(h.new_value == "1" and h.changed_by == ADMIN for h in history)
 
     # Scan-level audit log.
-    audit = (await session.execute(
+    audit = (await db_session.execute(
         select(AuditLog).where(AuditLog.action == "inventory_scan_commit")
     )).scalar_one()
     assert audit.entity_id == str(scan.id)
@@ -394,51 +394,51 @@ async def test_commit_sets_stock_creates_products_and_audits(session):
 
 
 @pytest.mark.asyncio
-async def test_commit_add_mode_adds_to_existing_stock(session):
-    product = await _make_product(session, "Relcer Gel", stock=4)
-    scan = await _make_scan(session, mode=SCAN_MODE_ADD)
-    await svc.run_analysis(session, scan, InventoryScanResult(products=[
+async def test_commit_add_mode_adds_to_existing_stock(db_session):
+    product = await _make_product(db_session, "Relcer Gel", stock=4)
+    scan = await _make_scan(db_session, mode=SCAN_MODE_ADD)
+    await svc.run_analysis(db_session, scan, InventoryScanResult(products=[
         _detected(name="Relcer Gel", stock=3),
     ]))
     scan.items[0].review_status = REVIEW_CONFIRMED
-    await svc.commit_scan_session(session, scan, ADMIN)
-    pricing = (await session.execute(
+    await svc.commit_scan_session(db_session, scan, ADMIN)
+    pricing = (await db_session.execute(
         select(ProductPricing).where(ProductPricing.product_id == product.id)
     )).scalar_one()
     assert pricing.stock_qty == 7  # 4 + 3
 
 
 @pytest.mark.asyncio
-async def test_draft_mode_commit_changes_nothing(session):
-    product = await _make_product(session, "Relcer Gel", stock=4)
-    scan = await _make_scan(session, mode=SCAN_MODE_DRAFT)
-    await svc.run_analysis(session, scan, InventoryScanResult(products=[
+async def test_draft_mode_commit_changes_nothing(db_session):
+    product = await _make_product(db_session, "Relcer Gel", stock=4)
+    scan = await _make_scan(db_session, mode=SCAN_MODE_DRAFT)
+    await svc.run_analysis(db_session, scan, InventoryScanResult(products=[
         _detected(name="Relcer Gel", stock=1),
         _detected(name="Danacid", stock=4),
     ]))
     for item in scan.items:
         item.review_status = REVIEW_CONFIRMED
-    summary = await svc.commit_scan_session(session, scan, ADMIN)
+    summary = await svc.commit_scan_session(db_session, scan, ADMIN)
     assert summary["drafted"] == 2 and summary["updated"] == 0 and summary["created"] == 0
-    pricing = (await session.execute(
+    pricing = (await db_session.execute(
         select(ProductPricing).where(ProductPricing.product_id == product.id)
     )).scalar_one()
     assert pricing.stock_qty == 4
-    assert (await session.execute(
+    assert (await db_session.execute(
         select(Product).where(Product.name == "Danacid")
     )).scalar_one_or_none() is None
 
 
 @pytest.mark.asyncio
-async def test_uncertain_prescription_new_product_stays_review_required(session):
+async def test_uncertain_prescription_new_product_stays_review_required(db_session):
     """Pharmacy safety: never invent Rx status — product waits for a pharmacist."""
-    scan = await _make_scan(session, mode=SCAN_MODE_SET)
-    await svc.run_analysis(session, scan, InventoryScanResult(products=[
+    scan = await _make_scan(db_session, mode=SCAN_MODE_SET)
+    await svc.run_analysis(db_session, scan, InventoryScanResult(products=[
         _detected(name="Mysterysyrup", stock=2, prescription="uncertain"),
     ]))
     scan.items[0].review_status = REVIEW_CONFIRMED
-    await svc.commit_scan_session(session, scan, ADMIN)
-    p = (await session.execute(
+    await svc.commit_scan_session(db_session, scan, ADMIN)
+    p = (await db_session.execute(
         select(Product).where(Product.name == "Mysterysyrup")
     )).scalar_one()
     assert p.requires_review is True  # not sellable until cleared
@@ -447,11 +447,11 @@ async def test_uncertain_prescription_new_product_stays_review_required(session)
 # ── 18. Failed commit leaves no partial state ────────────────────────────────
 
 @pytest.mark.asyncio
-async def test_failed_commit_rolls_back_cleanly(session):
-    product = await _make_product(session, "Relcer Gel", stock=4)
+async def test_failed_commit_rolls_back_cleanly(db_session):
+    product = await _make_product(db_session, "Relcer Gel", stock=4)
     product_id = product.id  # captured before rollback expires the instance
-    scan = await _make_scan(session, mode=SCAN_MODE_SET)
-    await svc.run_analysis(session, scan, InventoryScanResult(products=[
+    scan = await _make_scan(db_session, mode=SCAN_MODE_SET)
+    await svc.run_analysis(db_session, scan, InventoryScanResult(products=[
         _detected(name="Relcer Gel", stock=1),
         _detected(name="Ghost Product", stock=2),
     ]))
@@ -460,19 +460,19 @@ async def test_failed_commit_rolls_back_cleanly(session):
     # Sabotage the second item: its match points at a product that no longer exists.
     ghost = next(i for i in scan.items if i.product_name == "Ghost Product")
     ghost.matched_product_id = uuid4()
-    await session.flush()
+    await db_session.flush()
 
     # Production wraps the commit in one transaction (get_session rolls back on
     # error); a SAVEPOINT models that here without discarding the test setup.
     with pytest.raises(ValueError):
-        async with session.begin_nested():
-            await svc.commit_scan_session(session, scan, ADMIN)
+        async with db_session.begin_nested():
+            await svc.commit_scan_session(db_session, scan, ADMIN)
 
-    pricing = (await session.execute(
+    pricing = (await db_session.execute(
         select(ProductPricing).where(ProductPricing.product_id == product_id)
     )).scalar_one()
     assert pricing.stock_qty == 4  # first item's update was rolled back too
-    audit = (await session.execute(
+    audit = (await db_session.execute(
         select(AuditLog).where(AuditLog.action == "inventory_scan_commit")
     )).scalar_one_or_none()
     assert audit is None
@@ -481,23 +481,23 @@ async def test_failed_commit_rolls_back_cleanly(session):
 # ── Session lifecycle extras ─────────────────────────────────────────────────
 
 @pytest.mark.asyncio
-async def test_active_session_lookup_and_cancel(session):
-    scan = await _make_scan(session)
-    found = await svc.get_active_session(session, ADMIN)
+async def test_active_session_lookup_and_cancel(db_session):
+    scan = await _make_scan(db_session)
+    found = await svc.get_active_session(db_session, ADMIN)
     assert found is not None and found.id == scan.id
-    await svc.cancel_scan(session, scan)
-    assert await svc.get_active_session(session, ADMIN) is None
+    await svc.cancel_scan(db_session, scan)
+    assert await svc.get_active_session(db_session, ADMIN) is None
 
 
 @pytest.mark.asyncio
-async def test_rematch_item_to_existing_product(session):
-    target = await _make_product(session, "Relcer Gel Original", stock=4)
-    scan = await _make_scan(session)
-    await svc.run_analysis(session, scan, InventoryScanResult(products=[
+async def test_rematch_item_to_existing_product(db_session):
+    target = await _make_product(db_session, "Relcer Gel Original", stock=4)
+    scan = await _make_scan(db_session)
+    await svc.run_analysis(db_session, scan, InventoryScanResult(products=[
         _detected(name="Relcer antacid gel", stock=2, identity=0.7),
     ]))
     item = scan.items[0]
-    await svc.set_item_match(session, item, target, ADMIN, scan.scan_mode)
+    await svc.set_item_match(db_session, item, target, ADMIN, scan.scan_mode)
     assert item.matched_product_id == target.id
     assert item.match_type == MATCH_EXACT
     assert item.proposed_action == ACTION_SET_STOCK

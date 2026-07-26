@@ -25,10 +25,10 @@ def utc(y, mo, d, h, mi=0):
     return datetime(y, mo, d, h, mi, tzinfo=timezone.utc)
 
 
-async def make_customer(session, telegram_id=111) -> Customer:
+async def make_customer(db_session, telegram_id=111) -> Customer:
     c = Customer(telegram_id=telegram_id, full_name="Test", phone="+2348000000000")
-    session.add(c)
-    await session.flush()
+    db_session.add(c)
+    await db_session.flush()
     return c
 
 
@@ -82,10 +82,10 @@ def test_next_run_none_after_end_date():
 
 # ── lifecycle ───────────────────────────────────────────────────────────────
 
-async def test_create_customer_reminder_is_active_and_scheduled(session):
-    customer = await make_customer(session)
+async def test_create_customer_reminder_is_active_and_scheduled(db_session):
+    customer = await make_customer(db_session)
     r = await create_reminder(
-        session,
+        db_session,
         customer=customer,
         medicine_name="Amlodipine 5mg",
         times=["08:00"],
@@ -97,10 +97,10 @@ async def test_create_customer_reminder_is_active_and_scheduled(session):
     assert r.next_run_at == utc(2026, 7, 2, 7)
 
 
-async def test_pharmacist_reminder_waits_for_consent(session):
-    customer = await make_customer(session)
+async def test_pharmacist_reminder_waits_for_consent(db_session):
+    customer = await make_customer(db_session)
     r = await create_reminder(
-        session,
+        db_session,
         customer=customer,
         medicine_name="Lisinopril",
         times=["09:00"],
@@ -112,67 +112,67 @@ async def test_pharmacist_reminder_waits_for_consent(session):
     assert r.consent_status == ReminderConsent.PENDING.value
     assert r.next_run_at is None  # not schedulable until customer accepts
 
-    await grant_consent(session, r, now=utc(2026, 7, 2, 6))
+    await grant_consent(db_session, r, now=utc(2026, 7, 2, 6))
     assert r.consent_status == ReminderConsent.GRANTED.value
     assert r.next_run_at == utc(2026, 7, 2, 8)  # 09:00 Lagos
 
 
-async def test_pause_resume_stop(session):
-    customer = await make_customer(session)
+async def test_pause_resume_stop(db_session):
+    customer = await make_customer(db_session)
     r = await create_reminder(
-        session,
+        db_session,
         customer=customer,
         medicine_name="Metformin",
         times=["08:00", "20:00"],
         start_date=date(2026, 7, 1),
         now=utc(2026, 7, 2, 6),
     )
-    await pause_reminder(session, r)
+    await pause_reminder(db_session, r)
     assert r.status == ReminderStatus.PAUSED.value
     assert r.next_run_at is None
 
-    await resume_reminder(session, r, now=utc(2026, 7, 2, 10))
+    await resume_reminder(db_session, r, now=utc(2026, 7, 2, 10))
     assert r.status == ReminderStatus.ACTIVE.value
     assert r.next_run_at == utc(2026, 7, 2, 19)  # 20:00 Lagos
 
-    await stop_reminder(session, r)
+    await stop_reminder(db_session, r)
     assert r.status == ReminderStatus.STOPPED.value
     assert r.next_run_at is None
 
 
-async def test_create_rejects_bad_input(session):
-    customer = await make_customer(session)
+async def test_create_rejects_bad_input(db_session):
+    customer = await make_customer(db_session)
     with pytest.raises(ValueError):
         await create_reminder(
-            session, customer=customer, medicine_name="  ",
+            db_session, customer=customer, medicine_name="  ",
             times=["08:00"], start_date=date(2026, 7, 1),
         )
     with pytest.raises(ValueError):
         await create_reminder(
-            session, customer=customer, medicine_name="X",
+            db_session, customer=customer, medicine_name="X",
             times=["08:00"], start_date=date(2026, 7, 10), end_date=date(2026, 7, 1),
         )
 
 
 # ── dispatch ────────────────────────────────────────────────────────────────
 
-async def test_collect_due_sends_fresh_and_skips_stale(session):
-    customer = await make_customer(session)
+async def test_collect_due_sends_fresh_and_skips_stale(db_session):
+    customer = await make_customer(db_session)
     now = utc(2026, 7, 2, 6)
 
     fresh = await create_reminder(
-        session, customer=customer, medicine_name="Fresh",
+        db_session, customer=customer, medicine_name="Fresh",
         times=["08:00"], start_date=date(2026, 7, 1), now=utc(2026, 7, 2, 5),
     )
     fresh.next_run_at = now - timedelta(minutes=2)  # due 2 min ago -> send
     stale = await create_reminder(
-        session, customer=customer, medicine_name="Stale",
+        db_session, customer=customer, medicine_name="Stale",
         times=["08:00"], start_date=date(2026, 7, 1), now=utc(2026, 7, 2, 5),
     )
     stale.next_run_at = now - timedelta(hours=3)  # due 3h ago -> missed
-    await session.flush()
+    await db_session.flush()
 
-    work = await collect_due(session, now=now)
+    work = await collect_due(db_session, now=now)
     actions = {r.medicine_name: action for r, _at, action in work}
     assert actions == {"Fresh": "send", "Stale": "missed"}
 
@@ -182,47 +182,47 @@ async def test_collect_due_sends_fresh_and_skips_stale(session):
     assert fresh.status == ReminderStatus.ACTIVE.value
 
 
-async def test_collect_due_completes_past_end_date(session):
-    customer = await make_customer(session)
+async def test_collect_due_completes_past_end_date(db_session):
+    customer = await make_customer(db_session)
     now = utc(2026, 7, 2, 6)
     r = await create_reminder(
-        session, customer=customer, medicine_name="Course done",
+        db_session, customer=customer, medicine_name="Course done",
         times=["06:30"], start_date=date(2026, 7, 1), end_date=date(2026, 7, 2),
         now=utc(2026, 7, 2, 5),
     )
     r.next_run_at = now - timedelta(minutes=1)  # last occurrence of the course
-    await session.flush()
+    await db_session.flush()
 
-    work = await collect_due(session, now=now)
+    work = await collect_due(db_session, now=now)
     assert [a for _r, _at, a in work] == ["send"]
     assert r.next_run_at is None
     assert r.status == ReminderStatus.COMPLETED.value
 
 
-async def test_collect_due_ignores_paused_and_pending_consent(session):
-    customer = await make_customer(session)
+async def test_collect_due_ignores_paused_and_pending_consent(db_session):
+    customer = await make_customer(db_session)
     now = utc(2026, 7, 2, 6)
     r = await create_reminder(
-        session, customer=customer, medicine_name="Paused one",
+        db_session, customer=customer, medicine_name="Paused one",
         times=["08:00"], start_date=date(2026, 7, 1), now=utc(2026, 7, 2, 5),
     )
-    await pause_reminder(session, r)
+    await pause_reminder(db_session, r)
     await create_reminder(
-        session, customer=customer, medicine_name="No consent",
+        db_session, customer=customer, medicine_name="No consent",
         times=["08:00"], start_date=date(2026, 7, 1),
         source=ReminderSource.PHARMACIST.value, now=utc(2026, 7, 2, 5),
     )
-    assert await collect_due(session, now=now) == []
+    assert await collect_due(db_session, now=now) == []
 
 
-async def test_record_send_result(session):
-    customer = await make_customer(session)
+async def test_record_send_result(db_session):
+    customer = await make_customer(db_session)
     r = await create_reminder(
-        session, customer=customer, medicine_name="X",
+        db_session, customer=customer, medicine_name="X",
         times=["08:00"], start_date=date(2026, 7, 1), now=utc(2026, 7, 2, 5),
     )
     at = utc(2026, 7, 2, 7)
-    ok = record_send_result(session, r, at)
+    ok = record_send_result(db_session, r, at)
     assert ok.status == ReminderEventStatus.SENT.value and ok.sent_at is not None
-    failed = record_send_result(session, r, at + timedelta(days=1), error="boom")
+    failed = record_send_result(db_session, r, at + timedelta(days=1), error="boom")
     assert failed.status == ReminderEventStatus.FAILED.value and failed.error == "boom"

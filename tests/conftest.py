@@ -8,7 +8,7 @@ from app.models import Base
 
 
 @pytest_asyncio.fixture
-async def session() -> AsyncSession:
+async def db_session() -> AsyncSession:
     engine = create_async_engine("sqlite+aiosqlite:///:memory:")
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
