@@ -44,6 +44,14 @@ class Product(Base, TimestampMixin):
     # Only listed products are shown as buyable to customers.
     is_listed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False, index=True)
 
+    # Photo of the real product, taken by staff (see bot/staff/products.py). Deliberately
+    # a bare FK with NO relationship(): `aliases` and `pricing` below are lazy="selectin",
+    # and a selectin relationship here would drag image bytes into every catalog query.
+    # Callers build the URL from this id alone — no join, no bytes.
+    image_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("media_assets.id", ondelete="SET NULL"), index=True
+    )
+
     aliases: Mapped[list["ProductAlias"]] = relationship(
         back_populates="product", cascade="all, delete-orphan", lazy="selectin"
     )

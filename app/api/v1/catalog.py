@@ -8,6 +8,7 @@ from pydantic import BaseModel
 from sqlalchemy import or_, select
 
 from app.api.deps import DbSession
+from app.api.v1.media import asset_url
 from app.models.catalog import Product
 
 router = APIRouter(tags=["catalog"])
@@ -25,6 +26,7 @@ class ProductOut(BaseModel):
     requires_prescription: bool
     selling_price: str | None
     is_in_stock: bool
+    image_url: str | None
 
     model_config = {"from_attributes": True}
 
@@ -43,6 +45,7 @@ def _out(p: Product) -> ProductOut:
         requires_prescription=p.requires_prescription,
         selling_price=str(pricing.selling_price) if pricing else None,
         is_in_stock=pricing.is_in_stock if pricing else False,
+        image_url=asset_url(p.image_id),
     )
 
 

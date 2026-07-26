@@ -18,6 +18,7 @@ from app.models.inventory_scan import (
     InventoryScanItem,
     InventoryScanSession,
 )
+from app.models.media import MediaAsset
 from app.models.logistics import (
     DeliveryOrder,
     DeliveryQuote,
@@ -106,6 +107,7 @@ __all__ = [
     "InventoryScanSession",
     "InventoryScanImage",
     "InventoryScanItem",
+    "MediaAsset",
     "CryptoPayment",
     "CryptoStatus",
     "Customer",

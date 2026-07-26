@@ -25,6 +25,7 @@ class ProductAdminFlow(StatesGroup):
     value = State()             # capture a new field value
     csv_wait = State()          # awaiting a CSV document upload
     csv_confirm = State()       # awaiting confirm to commit a parsed CSV
+    photo_wait = State()        # awaiting a product photo for the storefront
 
 
 class InventoryScanFlow(StatesGroup):

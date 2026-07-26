@@ -12,6 +12,8 @@ export interface Product {
   requires_prescription: boolean;
   selling_price: string | null;
   is_in_stock: boolean;
+  /** Path to the staff-taken product photo, or null to fall back to the DrugIcon. */
+  image_url: string | null;
 }
 
 export async function listCatalog(opts?: {

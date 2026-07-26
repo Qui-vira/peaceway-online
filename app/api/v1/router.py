@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.api.v1 import admin, ask, catalog, customers, dispatch, health, orders, otp, partner, prescriptions, reminders, requests, track, zones
+from app.api.v1 import admin, ask, catalog, customers, dispatch, health, media, orders, otp, partner, prescriptions, reminders, requests, track, zones
 
 router = APIRouter(prefix="/api/v1")
 router.include_router(health.router)
@@ -11,6 +11,7 @@ router.include_router(requests.router)
 router.include_router(ask.router)
 router.include_router(reminders.router)
 router.include_router(catalog.router)
+router.include_router(media.router)
 router.include_router(orders.router)
 router.include_router(prescriptions.router)
 router.include_router(track.router)

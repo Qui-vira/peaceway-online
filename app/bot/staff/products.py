@@ -16,12 +16,14 @@ from sqlalchemy import select
 
 from app.bot.staff.states import ProductAdminFlow
 from app.core.db import get_session
+from app.core.logging import get_logger
 from app.core.security import get_role_keys, has
-from app.models import PriceHistory, Product
-from app.services import catalog
+from app.models import AuditLog, PriceHistory, Product
+from app.services import catalog, file_storage
 from app.services.products_admin import VALID_CATEGORIES, apply_change
 
 router = Router(name="staff-products")
+log = get_logger(__name__)
 
 _FIELD_LABELS = {
     "selling_price": "Update Selling Price",
@@ -97,6 +99,7 @@ def _detail_text(p: Product) -> str:
     stock = pr.stock_qty if pr else 0
     avail = "✅ Available" if p.is_listed else "🚫 Hidden"
     rx = "💊 Prescription" if p.requires_prescription else "🟢 OTC"
+    photo = "✅ set" if p.image_id else "— not set"
     return (
         f"💊 <b>{p.name}</b>\n"
         f"{p.strength or ''} {p.dosage_form or ''}\n\n"
@@ -104,7 +107,8 @@ def _detail_text(p: Product) -> str:
         f"Selling price: <b>{sell}</b>\n"
         f"Cost price: {cost}\n"
         f"Stock: {stock}\n"
-        f"Status: {avail} · {rx}"
+        f"Status: {avail} · {rx}\n"
+        f"Photo: {photo}"
     )
 
 
@@ -122,6 +126,12 @@ def _detail_kb(p: Product):
         text=("🟢 Mark OTC" if p.requires_prescription else "💊 Mark Prescription"),
         callback_data=f"padmin:rx:{p.id}",
     )
+    kb.button(
+        text=("🖼 Replace Photo" if p.image_id else "📷 Add Photo"),
+        callback_data=f"padmin:photo:{p.id}",
+    )
+    if p.image_id:
+        kb.button(text="🗑 Remove Photo", callback_data=f"padmin:photodel:{p.id}")
     kb.button(text="🕘 View Price History", callback_data=f"padmin:hist:{p.id}")
     kb.button(text="🔎 Search Another", callback_data="padmin:search")
     kb.button(text="🏠 Staff Menu", callback_data="staff:home")
@@ -236,6 +246,117 @@ async def toggle_rx(call: CallbackQuery) -> None:
             await apply_change(session, p, "rx", not p.requires_prescription, call.from_user.id)
     await _show_product(call, UUID(pid))
     await call.answer("Updated ✅")
+
+
+# ── Product photo ─────────────────────────────────────────────────────────────
+# Photos come from staff shooting the real stock, one product per photo. They do NOT
+# come from the inventory scan pipeline: `InventoryScanItem.source_images` points at
+# *shelf* photos containing many products at once, with no bounding boxes to crop by.
+#
+# This path does not go through products_admin.apply_change() — that function
+# whitelists price/stock/category/availability/rx and raises on anything else. The
+# image is set directly and audited here.
+async def _log_photo_change(session, product: Product, action: str, admin_id: int) -> None:
+    session.add(
+        AuditLog(
+            actor_telegram_id=admin_id,
+            action=action,
+            entity="product",
+            entity_id=str(product.id),
+            detail={"product_name": product.name},
+        )
+    )
+
+
+@router.callback_query(F.data.startswith("padmin:photo:"))
+async def ask_photo(call: CallbackQuery, state: FSMContext) -> None:
+    if await _guard(call) is None:
+        return
+    pid = call.data.split("padmin:photo:", 1)[1]
+    await state.set_state(ProductAdminFlow.photo_wait)
+    await state.update_data(product_id=pid)
+    kb = InlineKeyboardBuilder()
+    kb.button(text="⬅️ Cancel", callback_data=f"padmin:view:{pid}")
+    await call.message.edit_text(
+        "📷 <b>Send one photo of this product.</b>\n\n"
+        "Shoot the actual pack on a plain surface, filling most of the frame. "
+        "It is resized and shown on the website exactly as sent, so make sure the "
+        "pack and strength match what customers receive.",
+        reply_markup=kb.as_markup(),
+    )
+    await call.answer()
+
+
+@router.message(ProductAdminFlow.photo_wait, F.photo | F.document)
+async def got_photo(message: Message, state: FSMContext) -> None:
+    data = await state.get_data()
+    pid = data.get("product_id")
+
+    if message.photo:
+        file_id = message.photo[-1].file_id           # highest resolution offered
+    elif message.document and (message.document.mime_type or "").startswith("image/"):
+        file_id = message.document.file_id
+    else:
+        await message.answer("⚠️ That is not an image. Send a photo, or tap Cancel.")
+        return
+
+    await state.clear()
+    try:
+        buf = await message.bot.download(file_id)
+        raw = buf.read()
+    except Exception as exc:
+        log.error("product_photo_download_failed", product_id=pid, error=str(exc))
+        await message.answer("⚠️ Could not download that photo from Telegram. Please try again.")
+        return
+
+    async with get_session() as session:
+        p = await catalog.get_product(session, UUID(pid))
+        if p is None:
+            await message.answer("Product not found.")
+            return
+        try:
+            asset = await file_storage.store_image(session, raw, message.from_user.id)
+        except file_storage.ImageRejected as exc:
+            await message.answer(f"⚠️ {exc}\n\nPlease try again from the product menu.")
+            return
+        p.image_id = asset.id
+        await _log_photo_change(session, p, "product_photo_set", message.from_user.id)
+        name, stored = p.name, asset.byte_size
+
+    kb = InlineKeyboardBuilder()
+    kb.button(text="⬅️ Back to product", callback_data=f"padmin:view:{pid}")
+    kb.button(text="🏠 Staff Menu", callback_data="staff:home")
+    kb.adjust(1)
+    await message.answer_photo(
+        file_id,
+        caption=(
+            f"✅ Photo saved for <b>{name}</b> ({stored // 1024} KB stored).\n"
+            "It is now live on the website."
+        ),
+        reply_markup=kb.as_markup(),
+    )
+
+
+@router.message(ProductAdminFlow.photo_wait)
+async def photo_wrong_type(message: Message) -> None:
+    """Anything that is not a photo/document while we're waiting for one."""
+    await message.answer("⚠️ Send a photo of the product, or tap Cancel on the message above.")
+
+
+@router.callback_query(F.data.startswith("padmin:photodel:"))
+async def remove_photo(call: CallbackQuery) -> None:
+    if await _guard(call) is None:
+        return
+    pid = call.data.split("padmin:photodel:", 1)[1]
+    async with get_session() as session:
+        p = await catalog.get_product(session, UUID(pid))
+        if p and p.image_id:
+            # The MediaAsset row is left in place — it may be shared with another
+            # product via sha256 dedup. Only the link is cleared.
+            p.image_id = None
+            await _log_photo_change(session, p, "product_photo_removed", call.from_user.id)
+    await _show_product(call, UUID(pid))
+    await call.answer("Photo removed ✅")
 
 
 # ── Price history ─────────────────────────────────────────────────────────────

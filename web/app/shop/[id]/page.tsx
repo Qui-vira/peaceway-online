@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { AlertTriangle, Check } from "lucide-react";
-import { isNotFound } from "@/lib/api";
+import { isNotFound, mediaSrc } from "@/lib/api";
 import { getProduct, type Product } from "@/lib/api/catalog";
 import { addToCart, getCart } from "@/lib/cart";
 import { AppShell } from "@/components/app/app-shell";
@@ -107,7 +107,15 @@ export default function ProductDetailPage() {
                 className="pointer-events-none absolute inset-0 rounded-3xl"
                 style={{ background: "radial-gradient(circle at 50% 40%, rgba(52,217,138,0.18), transparent 70%)" }}
               />
-              <DrugIcon form={product.dosage_form ?? undefined} size={88} />
+              {product.image_url ? (
+                <img
+                  src={mediaSrc(product.image_url)}
+                  alt={product.name}
+                  className="h-full w-full rounded-3xl object-cover"
+                />
+              ) : (
+                <DrugIcon form={product.dosage_form ?? undefined} size={88} />
+              )}
             </div>
           </div>
 

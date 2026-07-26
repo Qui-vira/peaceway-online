@@ -12,6 +12,7 @@ from pydantic import BaseModel
 from sqlalchemy import func, or_, select
 
 from app.api.deps import AdminSessionDep, DbSession
+from app.api.v1.media import asset_url
 from app.core import rbac
 from app.core.config import get_settings
 from app.core.logging import get_logger
@@ -232,6 +233,7 @@ def _product_out(product: Product) -> dict:
         "selling_price": _money_out(pricing.selling_price) if pricing else None,
         "stock_qty": pricing.stock_qty if pricing else 0,
         "is_in_stock": pricing.is_in_stock if pricing else False,
+        "image_url": asset_url(product.image_id),
         "updated_at": product.updated_at.isoformat(),
     }
 

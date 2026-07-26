@@ -17,6 +17,20 @@ export function getApiBase(): string {
   return process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
 }
 
+/**
+ * Resolve an API-relative media path (e.g. "/api/v1/media/<uuid>") to something the
+ * browser can actually load.
+ *
+ * The backend returns these paths relative to /api/v1 because in production the
+ * Next.js rewrite proxies that prefix to Railway on the same origin. In local dev
+ * there is no proxy — the backend is on :8000 — so the path has to be rebased onto
+ * the same origin getApiBase() already picks for data requests.
+ */
+export function mediaSrc(path: string): string {
+  const prefix = "/api/v1";
+  return path.startsWith(`${prefix}/`) ? getApiBase() + path.slice(prefix.length) : path;
+}
+
 export type ApiError = {
   status: number;
   detail: string;

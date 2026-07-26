@@ -7,6 +7,7 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Check, Plus } from "lucide-react";
 import { DrugIcon } from "@/components/app/drug-icons";
 import { EASE } from "@/components/app/motion";
+import { mediaSrc } from "@/lib/api";
 import type { Product } from "@/lib/api/catalog";
 
 const FOCUS =
@@ -95,8 +96,21 @@ export function ProductCard({
     >
       <Link href={`/shop/${p.id}`} aria-label={p.name} className={`relative block ${FOCUS}`}>
         <div className="flex h-24 items-center justify-center overflow-hidden border-b border-white/6 bg-emerald-500/[0.06] sm:h-28">
-          <div ref={iconRef} className="will-change-transform">
-            <DrugIcon form={p.dosage_form ?? undefined} size={40} />
+          {/* iconRef stays on the wrapper either way so the GSAP hover scale applies
+              to a real photo exactly as it did to the fallback icon. */}
+          <div ref={iconRef} className="h-full w-full will-change-transform">
+            {p.image_url ? (
+              <img
+                src={mediaSrc(p.image_url)}
+                alt={p.name}
+                loading="lazy"
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center">
+                <DrugIcon form={p.dosage_form ?? undefined} size={40} />
+              </div>
+            )}
           </div>
         </div>
         {/* Hover CTA (fades in via GSAP on pointer devices; hidden otherwise) */}
