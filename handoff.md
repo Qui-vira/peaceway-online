@@ -1,53 +1,99 @@
-# Handoff
+# Handoff — product images
+
+Written 2026-07-27. Branch `chore/graphify-fixture-rename`, pushed. HEAD `a5229f2c`.
+661 tests pass.
+
+(Replaces the previous handoff covering the staff checklist / meeting tracker — that
+work shipped and had no blocking steps; see git history for `handoff.md` before this.)
 
 ## 1. Goal
-Extend the Telegram bot with a staff checklist and meeting tracker (per the spec agreed with the owner), reusing the permission service, role gating, and the audit_logs append-only pattern. This is the current thread. It follows a completed run of DB-layer access-control hardening (Gates 1 to 6, superuser removal, clinical RLS, dispatch portal) that is already live in prod.
 
-## 2. Current state — SHIPPED TO PROD (2026-07-21)
-- Prod alembic head: **`c7e4d9b1a3f2`** (confirmed from the DB). App runs as non-superuser `peaceway_app`; migrations run privileged via `MIGRATION_DATABASE_URL`. RLS live on clinical tables and `rider_assignments`.
-- **#17 MERGED** (`a5aa4aef`, squash) — schema slice: migration `b6d3f8a2c1e5` (4 tables + append-only trigger + own-completion CHECK), `pa` role, `/chatid`.
-- **#18 MERGED** (`92384ad7`, squash) — behaviour + orientation + daily nudge. Note: #18 was rebased onto the squashed `main` before merge (the stacked-squash otherwise re-applied the schema commit → conflict). See §7–§8 for contents.
-- **Web** auto-deployed, ran both migrations to head `c7e4d9b1a3f2`, booted clean. **Worker** deployed via `railway up --service worker` (it does NOT auto-deploy — see §5) — new cron jobs confirmed registered (`checklist_jobs_started`, in-container module has nudge/morning/sunday jobs), `/health` ok.
-- **Seeded prod** (idempotent, via `railway connect Postgres` piping SQL): **12 orientation topics + 20 checklist templates** (verified counts; 2nd run inserted 0).
-- **`STAFF_GROUP_CHAT_ID` = `-5555622050`** — SET on both `web` and `worker` (2026-07-21). Verified: worker parses it, and a live test post to the group succeeded (aiogram send, message_id 378). Group posts are fully enabled.
-- `STAFF_NUDGE_HOUR` unset → defaults to 18 (Lagos). Fine as-is.
-- Owner-approved rules (all implemented): `pa` = view_checklist_status + complete_own_checklist + set_meeting_example; append-only instances with supersedes_id; Africa/Lagos due_date; decision_text scanned for NG phone / 10+ digit run before posting; group status AGGREGATE only; Monday 08:00 group prep = open-decisions block; orientation topic computed from rotation (never manual), inactive topics skipped-with-audit; owner-only topic swap logged with reason; nudge private-only, one-per-person-per-day, silent on completion.
+Put real product photographs on the storefront for a 8,802-product catalogue, without
+ever showing a photo of the wrong pack, strength or manufacturer.
+
+## 2. Current state
+
+Production deployed and healthy (Railway `web` + `worker`, Vercel).
+
+| | |
+|---|---:|
+| Products | 8,802 |
+| With a photo | 201 |
+| Listed on the shop | 250 |
+| Candidates pending staff review | 101 |
+| Candidates approved | 25 |
+
+**Scraping cannot reach 8,500 — verified, not assumed.** Of 50 manufacturers checked,
+15 have no website and only 3 (Me Cure, Afrab-Chem, Jawa) publish NAFDAC registration
+numbers, the only identifier that reliably matches. Those 3 produced 109 of the 128
+candidates ever found. Realistic ceiling 200–400; the rest need staff photography via
+the live `📷 Add Photo` flow.
 
 ## 3. Active files
-- `app/models/checklist.py` (ChecklistTemplate, ChecklistInstance append-only, Meeting, MeetingDecision) + registered in `app/models/__init__.py`.
-- `alembic/versions/b6d3f8a2c1e5_add_checklist_and_meeting_tracker.py`.
-- `app/core/rbac.py` (PA role, 4 new perms, complete_own_checklist on all staff roles, PA menu).
-- `app/bot/staff/chatid.py` + `app/bot/dispatcher.py` (router registered).
-- Patterns to copy for the behaviour build: `app/scheduler/jobs.py` (APScheduler UTC in the worker `app/worker_app.py`; add cron jobs with Africa/Lagos tz), `app/models/ops.py` AuditLog + `deny_mutation` append-only trigger, `app/core/security.py` (has, get_role_keys, get_admin_id), `app/bot/staff/admins.py` and `app/bot/staff/riders.py` (handler + FSM pattern). Group target config: `staff_group_chat_id` in `app/core/config.py`. Staff DMs via `bot.send_message(admin.telegram_id, ...)`.
+
+Deployed (`app/services/`): `image_matching.py` (3-tier matcher),
+`catalogue_markdown.py` (generic parser for any crawled site), `greenbook.py`,
+`product_creation.py`, `image_candidates.py`, `file_storage.py`.
+Staff UI: `app/bot/staff/image_candidates.py`, `products.py`, `products_backfill.py`.
+
+Dev-only (`scripts/`, excluded from the container by `.railwayignore`):
+`crawl_manufacturer.py` → `ingest_crawled_catalogue.py` → `sweep_manufacturers.py`,
+plus `probe_nafdac_publishers.py`, `import_unmatched_products.py`,
+`import_greenbook.py`, `import_vitabiotics.py`, `clean_brand_names.py`,
+`approve_candidates.py`. Crawl→manufacturer map: `scripts/video/out/crawls/_map.json`.
+
+`FIRECRAWL_API_KEY` in `.env` (gitignored); placeholder in `.env.example`.
 
 ## 4. Changes made
-- This session merged and deployed to prod, in order: #10 Phase 1 gates, #11 Gate 1 activation + write-path + backfill, #12 restricted app role + connection split (then the 1b cutover to `peaceway_app`), #13 actor context, #14 clinical RLS + break-glass, #15 dispatch portal (backend + Gate 5 RLS + rider frontend + proof-of-delivery), #16 rider management command.
-- Seeded one rider in prod: Kehinde Damilare, kdammilare33@gmail.com, active.
-- Open, unmerged: #17 (this thread's schema slice).
 
-## 5. Failed attempts / gotchas
-- Prod DB is internal (`postgres.railway.internal`), not reachable from a laptop.
-- Cannot run the async seed scripts via `railway ssh` (the ssh shell is missing libstdc++ that greenlet needs). For one-off prod data, use `railway connect Postgres` and pipe SQL. To run app code in-container use `/opt/venv/bin/python` (base nix python lacks the app deps; `python -m alembic` fails, no __main__).
-- The browser screenshot tool hangs on the site's fixed film-grain overlay in the shared layout. Verify UI with get_page_text and read_console_messages instead.
-- Alembic runs multi-statement DDL through asyncpg, which rejects multiple statements per execute. Split trigger/function/view DDL into one statement per `op.execute` (see `app/core/gate_ddl.py`).
-- New tables whose rows are inserted by a trigger or raw SQL need a DB-level `gen_random_uuid()` default on id (the model's Python uuid4 default does not apply). Done on `checklist_instances.id` and `orientation_topics.id` (NOT on `checklist_templates.id` — seed SQL supplies `gen_random_uuid()` explicitly).
-- **The `worker` service does NOT auto-deploy on push — only `web` does.** After merging, `web` redeployed but `worker` stayed on old code (new cron jobs missing from the live scheduler — a silent failure). Deploy it manually: `railway up --service worker` (`.railwayignore` already trims to the lean Python backend). Verify: `railway ssh --service worker "/opt/venv/bin/python -c 'import app.scheduler.jobs as j; print(hasattr(j,\"checklist_nudge\"))'"` and the `checklist_jobs_started` log. `railway redeploy` only restarts the OLD image.
-- Stacked squash-merge gotcha: after squash-merging the base PR, the stacked branch still carries the original (un-squashed) base commit, so retargeting it to `main` conflicts. Fix: `git rebase --onto origin/main <old-base-tip> <branch>`, force-push, then merge.
-- `railway domain` only CREATES (bare invocation generates another); no CLI/API delete with the CLI's session token (403/1010) — remove a service domain from the Railway dashboard.
+- Image pipeline end to end: `media_assets` (BYTEA + sha256 dedup), `products.image_id`,
+  Pillow normalisation (800px WebP, EXIF stripped), `GET /api/v1/media/{id}`,
+  storefront rendering with DrugIcon fallback
+- `products.pack_size` + staff backfill flow
+- Vitabiotics import: 178 products with photos, all unlisted/unpriced
+- 496 brand names and 440 product names repaired (QA annotations, truncation)
+- Unpriced products now show "Price on request" with no Add button (they showed ₦0)
+- Matching: NAFDAC → brand+strength+form → brand+form (opt-in, flagged, extra gate)
 
-## 7. Behaviour build (this session) — done on `feat/staff-checklist-behaviour`
-New: `app/core/timeutil.py` (Lagos date/now), `app/services/checklist.py` (templates_due, generate_instances idempotent, latest_states, complete_item append-only+audit+own-only guard, aggregate_status, per_person_status, open/overdue/closed decisions), `app/services/checklist_messages.py` (group-safe builders — counts/names only), `app/services/decision_scan.py` (NG phone + 10+ digit scan), `app/bot/staff/checklist.py` (/checklist, /status group-vs-private, /meeting, /decision FSM with scan→rephrase), `scripts/seed_checklist.py` (19 starter templates incl. PA's 3 meeting-prep), `tests/test_checklist.py` (21), `tests/test_checklist_pg.py` (2, trigger).
-Modified: `app/scheduler/jobs.py` (3 cron jobs, Africa/Lagos: morning 06:00, Mon 08:00 prep, Mon 18:00 owner summary — verified they register), `app/bot/staff/states.py` (ChecklistFlow, DecisionFlow), `app/bot/dispatcher.py` (router), `app/services/checklist.py`.
-Status: MERGED (#18) + DEPLOYED + SEEDED in prod. `/status` regular-staffer branch shows own count only (team aggregate gated behind view_checklist_status). Group posts skip when STAFF_GROUP_CHAT_ID unset (still unset — see §2/§6).
+## 5. Failed attempts
 
-## 8. Orientation topics + daily nudge (same branch, from Marketing-Team-Plan docx)
-New migration `c7e4d9b1a3f2` (down_revision b6d3f8a2c1e5): `orientation_topics` table + `meetings.topic_id/example_text/swapped_from_topic_id/swapped_by`. Verified on real PG via `upgrade head`.
-New: `app/services/orientation.py` (ANCHOR_MONDAY=2026-07-27; week_index; computed_topic — skips inactive + returns them so caller audits; ensure_week_meeting; set_example; swap_topic; add_topic/set_topic_active), `app/bot/staff/orientation.py` (/orientation view + PA example FSM + owner swap FSM + /orientationtopics manage), `scripts/seed_orientation.py` (12 topics from §10.5), `tests/test_orientation.py` (9).
-Modified: `app/models/checklist.py` (OrientationTopic + Meeting cols) + `__init__`, `app/core/rbac.py` (3 perms: manage_orientation_topics/swap_meeting_topic = owner via wildcard, set_meeting_example added to PA; PA menu +Orientation), `app/core/config.py` (`staff_nudge_hour: int = 18`), `app/scheduler/jobs.py` (2 jobs: `checklist_nudge` weekdays @staff_nudge_hour — DMs only staff with pending, one-per-day via checklist_nudge_sent audit, never group; `checklist_sunday_prep` Sun 18:00 — computes next week's topic, ensures meeting, DMs PA to fill example), `app/services/checklist.py` (admins_with_pending, nudged_admin_ids), `app/bot/staff/states.py` (OrientationFlow), `app/bot/dispatcher.py` (router), `scripts/seed_checklist.py` (CM twice-daily = 2 rows morning/evening).
-Rules honoured: topic computed from rotation (never manual), inactive topics skipped-with-audit (never silent), swaps audited with reason, nudge private-only + one-per-person-per-day + silence on completion. Suite: 224 passed (incl. PG). Rotation dry-run wks 0–13 confirmed. Twelve topics are in `scripts/seed_orientation.py`.
+Do not retry:
+- **Pinterest / image search / DailyMed** — copyright, and DailyMed is a US registry
+  (Afrab 0, Emzor 0, Chemiron 0 hits)
+- **NAFDAC Greenbook for photos** — detail pages carry only the NAFDAC logo (verified)
+- **Re-importing from PharmaOS to fix brands** — the pollution is in PharmaOS and in
+  the Greenbook above it; `import_pharmaos.py` now strips on import
+- **Crawling down the product-count ranking** — wrong sort; Me Cure ranks 13th and beat
+  the other nineteen combined. Probe for NAFDAC publishers instead.
+- **Firecrawl `onlyMainContent: true`** — strips the description holding the NRN, form
+  and pack size. Must stay `False`.
+- **Scrapling `css_first`** — does not exist; also no `robots_txt_obey` (enforced
+  manually with Protego, fails closed), `adaptive` is class-level, `async_fetch`
+  required under asyncio
 
-## 6. Next steps — NONE blocking; feature fully live
-Everything in the build spec (checklists, /status, /meeting, /decision, Monday jobs, orientation rotation, nudge, seeds, tests) is implemented, tested (224 green incl. PG), merged (#17+#18), deployed, seeded, and `STAFF_GROUP_CHAT_ID` set + group-post verified. Remaining are watch-items / optional polish:
-1. First real cron fires (Lagos → UTC): morning generate+DM 06:00 (05:00 UTC); nudge weekdays 18:00 (17:00 UTC); Sunday prep Sun 18:00; Monday group prep 08:00 + owner summary 18:00. After the first morning run, spot-check worker logs for `checklist_morning_sent` and confirm staff got DMs.
-2. Optional: a "close decision" flow (sets `MeetingDecision.status='closed'` + `closed_at`) so the Monday owner summary's "decisions closed this week" populates; currently only open/overdue decisions surface.
-3. Reminder for future scheduler changes: the `worker` does NOT auto-deploy — `railway up --service worker` after merging (see §5).
+Bugs fixed, worth knowing:
+- Block-bleed paired a caplet photo with a suspension. Block text is trusted only when
+  the image has its own heading; NRNs only within 400 chars.
+- `pack=<none>` in `match_basis` made Telegram reject the whole review message, so the
+  buttons looked dead. Now `pack=(none)` + every interpolation HTML-escaped.
+- `_title_for` fell back to stripped markdown, producing names like `)](https://…` —
+  ~100 of a first 216-row dry run were debris.
+
+## 6. Next steps
+
+1. **Review the 101 pending candidates** — Telegram → Products → 🖼 Review Image
+   Candidates. Nothing else adds value until this moves. 85 are NAFDAC-matched
+   (pack-size confirmation only); the rest also ask about strength.
+2. **559 draft products ready to create** from 17 crawls. Dry-run only, NOT written.
+   `python -m scripts.import_unmatched_products <crawl.json> --manufacturer "<name>" --commit`
+   Check a sample of names first — the last two dry runs both surfaced quality problems,
+   and some titles still come from alt text (e.g. lowercase "coatal soft gelatin tablet").
+3. **Greenbook data import** — `import_greenbook.py` built, run only as far as applicant
+   discovery. 9,021 registry records join on `nafdac_number`; **1,273 of our products
+   lack a form or strength and have an NRN**. Fills empty fields only, reports conflicts.
+   Also raises future match rates.
+4. **Demo video still paused** — `docs/video/RECORDING-GUIDE.md`; resumes once hero
+   products have photos.
+5. Untouched issues: `peacewayonline.com.ng` DNS-fails but is hardcoded in
+   `app/core/config.py` and `web/public/sitemap.xml`; `app/api/v1/prescriptions.py`
+   discards web-uploaded prescription images.
