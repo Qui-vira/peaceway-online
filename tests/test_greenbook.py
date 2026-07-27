@@ -114,3 +114,79 @@ def test_empty_input_is_safe():
 
 def test_duplicate_nrn_deduped():
     assert len(parse_applicant_page(REAL + REAL)) == 6
+
+
+def test_agreeing_duplicates_keep_their_values():
+    recs = {r.nafdac: r for r in parse_applicant_page(REAL + REAL)}
+    assert recs["A4-7551"].form.lower() == "syrup"
+    assert recs["A4-7551"].strength == "5 mg/5 mL"
+
+
+# The registry lists one NRN twice for genuinely different packs. Real example from
+# https://greenbook.nafdac.gov.ng/applicant/products/167 (Emzor), fetched 2026-07-27:
+# A4-7579 is both a 125 mg/5 mL suspension and 100 mg/15 mL drops.
+CONFLICTING = r"""[**Emcap Suspension\*\* (duplicate) Suspension** Paracetamol \\
+\\
+125 mg/5 mL\\
+\\
+NRN: A4-7579](https://greenbook.nafdac.gov.ng/products/details/1)
+
+[**Emzor Paracetamol Drops\#\# (see A4-7579) Drops** Paracetamol \\
+\\
+100mg/15ml\\
+\\
+NRN: A4-7579](https://greenbook.nafdac.gov.ng/products/details/2)
+"""
+
+
+# 04-0268 covers two unrelated products; only one carries a strength.
+DIFFERENT_PRODUCTS = r"""[**Folic Acid Tablet Tablet** Folic Acid \\
+\\
+5 mg\\
+\\
+NRN: 04-0268](https://greenbook.nafdac.gov.ng/products/details/1)
+
+[**Bcosam Tablet\#\# (duplicate) Tablet** Vitamin B Complex \\
+\\
+NRN: 04-0268](https://greenbook.nafdac.gov.ng/products/details/2)
+"""
+
+
+def test_a_value_is_not_borrowed_across_two_different_products():
+    """One NRN, two products: Bcosam must not inherit folic acid's 5 mg."""
+    recs = parse_applicant_page(DIFFERENT_PRODUCTS)
+    assert len(recs) == 1
+    assert recs[0].strength is None
+
+
+def test_same_product_listed_twice_may_complete_itself():
+    """A re-registration of one product can fill in what the other entry omits."""
+    twice = r"""[**Omega-3 Fish Oil Capsules Capsule** Fish Oil \\
+\\
+NRN: A4-8330](https://greenbook.nafdac.gov.ng/products/details/1)
+
+[**Omega-3 Fish Oil Capsules\*\* Capsule** Fish Oil \\
+\\
+1000 mg\\
+\\
+NRN: A4-8330](https://greenbook.nafdac.gov.ng/products/details/2)
+"""
+    assert parse_applicant_page(twice)[0].strength == "1000 mg"
+
+
+def test_pending_strength_is_a_placeholder_not_a_value():
+    entry = r"""[**Krishat Multivitamin Capsules Capsule** Multivitamins \\
+\\
+Pending\\
+\\
+NRN: A11-100180](https://greenbook.nafdac.gov.ng/products/details/1)
+"""
+    assert parse_applicant_page(entry)[0].strength is None
+
+
+def test_conflicting_duplicates_report_the_field_as_unknown():
+    """Never pick one of two disagreeing strengths for a medicine — say we don't know."""
+    recs = parse_applicant_page(CONFLICTING)
+    assert len(recs) == 1
+    assert recs[0].form is None
+    assert recs[0].strength is None

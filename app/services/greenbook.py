@@ -68,17 +68,56 @@ def _split_name_and_form(label: str) -> tuple[str, str | None]:
     return label, None
 
 
+def _same_product(a: str, b: str) -> bool:
+    """Do two entry names refer to the same product, ignoring registry noise?"""
+    def key(s: str) -> str:
+        s = re.sub(r"[^a-z0-9 ]", " ", (s or "").lower())
+        return re.sub(r"\s+", " ", s).strip()
+
+    return key(a) == key(b)
+
+
+def merge_records(first: GreenbookRecord, later: GreenbookRecord) -> GreenbookRecord:
+    """Two entries share one NRN. Keep only what they agree on.
+
+    The registry lists a single registration number twice for genuinely different
+    packs — A4-7579 is both "Emcap Suspension 125 mg/5 mL" and "Emzor Paracetamol
+    Drops 100mg/15ml". Taking whichever came first would write one pack's strength
+    onto the other. Disagreement means we do not know, so the field goes empty and
+    the importer, which only fills empty fields, leaves the product alone.
+
+    When the two names are different products (04-0268 is both "Folic Acid Tablet"
+    and "Bcosam Tablet"), a value present on only one of them says nothing about the
+    other, so it is dropped too. Only same-named entries — re-registrations of one
+    product — may complete each other.
+    """
+    strict = not _same_product(first.name, later.name)
+
+    def agreed(a: str | None, b: str | None) -> str | None:
+        if a and b:
+            return a if a.casefold() == b.casefold() else None
+        return None if strict else (a or b)
+
+    return GreenbookRecord(
+        nafdac=first.nafdac,
+        name=first.name,
+        form=agreed(first.form, later.form),
+        strength=agreed(first.strength, later.strength),
+        ingredients=agreed(first.ingredients, later.ingredients),
+        detail_url=first.detail_url,
+    )
+
+
 def parse_applicant_page(markdown: str) -> list[GreenbookRecord]:
-    """Every product record on one applicant page."""
+    """Every product record on one applicant page, one per registration number."""
     out: list[GreenbookRecord] = []
-    seen: set[str] = set()
+    at: dict[str, int] = {}
 
     for m in _ENTRY.finditer(markdown or ""):
         body = re.sub(r"\\+", "\n", m.group("body"))
         nrn = extract_nafdac(body) or extract_nafdac(m.group("label"))
-        if not nrn or nrn in seen:
+        if not nrn:
             continue
-        seen.add(nrn)
 
         raw_name, form = _split_name_and_form(m.group("label"))
         # NAFDAC's own review notes are not part of the product name.
@@ -89,16 +128,23 @@ def parse_applicant_page(markdown: str) -> list[GreenbookRecord]:
         lines = [ln for ln in lines if not re.match(r"^NRN\s*[:#]", ln, re.IGNORECASE)]
         ingredients = lines[0] if lines else None
         strength = lines[1] if len(lines) > 1 else None
-        # "NA" and "see Composition" are placeholders, not values.
-        if strength and strength.strip().lower() in ("na", "n/a", "see composition"):
+        # "NA", "see Composition" and "Pending" are placeholders, not values.
+        if strength and strength.strip().lower() in (
+            "na", "n/a", "see composition", "pending", "nil", "none"
+        ):
             strength = None
 
-        out.append(GreenbookRecord(
+        record = GreenbookRecord(
             nafdac=nrn,
             name=(clean_name or raw_name).strip(),
             form=form,
             strength=strength,
             ingredients=ingredients,
             detail_url=m.group("url") or None,
-        ))
+        )
+        if nrn in at:
+            out[at[nrn]] = merge_records(out[at[nrn]], record)
+        else:
+            at[nrn] = len(out)
+            out.append(record)
     return out

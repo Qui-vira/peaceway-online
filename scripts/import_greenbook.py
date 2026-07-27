@@ -31,11 +31,11 @@ from collections import Counter
 from pathlib import Path
 
 import httpx
-from sqlalchemy import select
+from sqlalchemy import or_, select
 
-from app.core.db import get_session
+from app.core.db import engine, get_session
 from app.models import Product
-from app.services.greenbook import parse_applicant_page
+from app.services.greenbook import merge_records, parse_applicant_page
 from app.services.products_admin import apply_change
 
 API = "https://api.firecrawl.dev/v2"
@@ -43,6 +43,24 @@ CACHE = Path("scripts/video/out/greenbook")
 BASE = "https://greenbook.nafdac.gov.ng"
 ADMIN_ID = 0
 REASON = "NAFDAC Greenbook (authoritative registry), filled empty field"
+
+
+def run_async(coro):
+    """asyncio.run() a coroutine, then drop the connection pool.
+
+    This script enters the event loop twice — once to read our manufacturers, once
+    to apply the records — with an hour of scraping in between. app.core.db.engine
+    is a module-level singleton, so without this the second asyncio.run() inherits
+    pooled connections belonging to the first, already-closed loop and dies with
+    "Event loop is closed" after the crawl has finished.
+    """
+    async def wrapped():
+        try:
+            return await coro
+        finally:
+            await engine.dispose()
+
+    return asyncio.run(wrapped())
 
 
 def _key() -> str:
@@ -105,12 +123,26 @@ def _norm(s: str) -> str:
     return re.sub(r"\s+", " ", s).strip()
 
 
-async def our_manufacturers() -> list[str]:
+async def our_manufacturers(*, only_gaps: bool = False) -> list[str]:
+    """Distinct manufacturer names. With only_gaps, just those holding a fillable row.
+
+    A product is fillable only if it carries an NRN and an empty form or strength, so
+    an applicant whose products are all complete costs a scrape and writes nothing.
+    Restricting to gap-holders cuts the crawl from ~1,000 pages to ~350 without
+    losing a single fill.
+    """
+    where = [Product.manufacturer.is_not(None)]
+    if only_gaps:
+        where += [
+            Product.nafdac_number.is_not(None),
+            or_(
+                Product.dosage_form.is_(None), Product.dosage_form == "",
+                Product.strength.is_(None), Product.strength == "",
+            ),
+        ]
     async with get_session() as s:
         rows = (
-            await s.execute(
-                select(Product.manufacturer).where(Product.manufacturer.is_not(None)).distinct()
-            )
+            await s.execute(select(Product.manufacturer).where(*where).distinct())
         ).scalars().all()
     return [r for r in rows if r]
 
@@ -154,6 +186,8 @@ def main() -> int:
     ap.add_argument("--applicants", action="store_true",
                     help="Only discover and cache the applicant list, then stop.")
     ap.add_argument("--limit", type=int, help="Max applicant pages to fetch.")
+    ap.add_argument("--only-gaps", action="store_true",
+                    help="Fetch only applicants holding a product with an empty field.")
     ap.add_argument("--commit", action="store_true")
     args = ap.parse_args()
 
@@ -166,9 +200,10 @@ def main() -> int:
             print(f"saved {len(applicants)} applicants")
             return 0
 
-        ours = {_norm(m): m for m in asyncio.run(our_manufacturers())}
+        ours = {_norm(m): m for m in run_async(our_manufacturers(only_gaps=args.only_gaps))}
         matched = {n: v for n, v in applicants.items() if _norm(n) in ours and v["products"]}
-        print(f"of those, in our catalogue and holding products: {len(matched)}")
+        scope = "with a fillable product" if args.only_gaps else "in our catalogue"
+        print(f"of those, {scope} and holding products: {len(matched)}")
 
         # Biggest first, so a --limit run covers the most catalogue rows.
         ordered = sorted(matched.items(), key=lambda kv: -kv[1]["products"])
@@ -179,12 +214,15 @@ def main() -> int:
             md = scrape(client, f"{BASE}/applicant/products/{aid}", f"applicant_{aid}.md")
             recs = parse_applicant_page(md)
             for r in recs:
-                records[r.nafdac] = r
+                # One NRN can surface under two applicants; keep only what they agree
+                # on, exactly as duplicates within a single page are treated.
+                prior = records.get(r.nafdac)
+                records[r.nafdac] = merge_records(prior, r) if prior else r
             print(f"  [{i}/{len(targets)}] {name[:44]:46} {len(recs):>4} records", flush=True)
             time.sleep(1.0)
 
     print(f"\ntotal registry records collected: {len(records)}")
-    result = asyncio.run(apply_records(records, commit=args.commit))
+    result = run_async(apply_records(records, commit=args.commit))
 
     print("\n" + "=" * 68)
     print(f"{'FILLED' if args.commit else 'WOULD FILL'}: {result['touched']}")
