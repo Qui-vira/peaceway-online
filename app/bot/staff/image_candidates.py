@@ -32,6 +32,10 @@ log = get_logger(__name__)
 
 DOWNLOAD_TIMEOUT = 40.0
 MAX_DOWNLOAD_BYTES = 15 * 1024 * 1024
+BROWSER_UA = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+    "(KHTML, like Gecko) Chrome/126.0 Safari/537.36"
+)
 
 
 async def _guard(call: CallbackQuery) -> set[str] | None:
@@ -45,7 +49,10 @@ async def _guard(call: CallbackQuery) -> set[str] | None:
 async def _download(url: str) -> bytes | None:
     try:
         async with httpx.AsyncClient(timeout=DOWNLOAD_TIMEOUT, follow_redirects=True) as client:
-            resp = await client.get(url)
+            # Manufacturers serve 403 to a client with no User-Agent — chemironcare.com
+            # does exactly that — and the reviewer then sees a card with no photo at all,
+            # which reads as a broken bot rather than an unreachable image.
+            resp = await client.get(url, headers={"User-Agent": BROWSER_UA})
             if resp.status_code != 200:
                 log.error("candidate_image_http_error", url=url, status=resp.status_code)
                 return None

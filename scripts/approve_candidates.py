@@ -28,6 +28,11 @@ from app.services import image_candidates as svc
 
 ADMIN_ID = 0  # scripted approval; the audit row records this
 
+BROWSER_UA = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+    "(KHTML, like Gecko) Chrome/126.0 Safari/537.36"
+)
+
 
 async def run(*, commit: bool, nafdac_only: bool, limit: int | None) -> int:
     async with get_session() as session:
@@ -47,7 +52,14 @@ async def run(*, commit: bool, nafdac_only: bool, limit: int | None) -> int:
     async with httpx.AsyncClient(timeout=45, follow_redirects=True) as client:
         for c in pending:
             try:
-                resp = await client.get(c.image_url)
+                # Some manufacturers serve 403 to a bare client — chemironcare.com
+                # returns 403 with no User-Agent and 200 with a browser one. The
+                # Referer is the page the image was published on, which is what a
+                # browser would send when loading it.
+                resp = await client.get(c.image_url, headers={
+                    "User-Agent": BROWSER_UA,
+                    "Referer": c.source_url or "",
+                })
                 if resp.status_code != 200:
                     print(f"  SKIP  HTTP {resp.status_code}  {c.scraped_title[:48]}")
                     failed += 1
