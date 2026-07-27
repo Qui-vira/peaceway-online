@@ -63,10 +63,24 @@ def main() -> int:
     ap.add_argument("--commit", action="store_true")
     ap.add_argument("--skip", action="append", default=[],
                     help="Manufacturer to skip (repeatable).")
+    ap.add_argument("--from-probe", action="store_true",
+                    help="Crawl only the manufacturers probe_nafdac_publishers found "
+                         "to publish NAFDAC numbers, instead of the top N.")
     args = ap.parse_args()
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    targets = asyncio.run(top_manufacturers(args.top))
+    if args.from_probe:
+        probe = Path("scripts/video/out/probes/probe_results.json")
+        if not probe.exists():
+            print(f"{probe} not found — run scripts.probe_nafdac_publishers first.")
+            return 1
+        rows = json.loads(probe.read_text(encoding="utf-8"))
+        # A registration number is the only identifier that reliably survives the
+        # naming mismatch, so these are the sites worth a full crawl.
+        targets = [(r["manufacturer"], r["missing"]) for r in rows if r.get("nafdac")]
+        print(f"from probe: {len(targets)} NAFDAC publishers to crawl")
+    else:
+        targets = asyncio.run(top_manufacturers(args.top))
     results: list[dict] = []
 
     for i, (mfr, missing) in enumerate(targets, 1):
