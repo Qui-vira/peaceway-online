@@ -91,14 +91,38 @@ def brand_from_title(title: str, form: str | None, strength: str | None,
     return s or None
 
 
+def looks_like_a_product_name(text: str | None) -> bool:
+    """Reject markdown debris that is not a product name.
+
+    Falling back to stripped block text produced titles like ")](https://…/coatal"
+    and ") [", which would have become 100+ junk medicine records. A name must have
+    real words and must not be a URL fragment.
+    """
+    if not text:
+        return False
+    t = text.strip()
+    if len(t) < 3 or len(t) > 200:
+        return False
+    if t[0] in "()[]{}<>|/\\.,;:-–—*_#!":
+        return False
+    if "http://" in t or "https://" in t or "](" in t or "www." in t:
+        return False
+    letters = sum(c.isalpha() for c in t)
+    return letters >= 3 and letters / len(t) > 0.4
+
+
 def _title_for(block: str, alt: str) -> str:
-    """Prefer the heading that follows the image; fall back to alt, then body text."""
+    """The heading beneath the image, else its alt text. Never scraped body text.
+
+    Body text as a last resort is what produced the markdown debris above, and a
+    product with no readable name is better skipped than invented.
+    """
     h = _HEADING.search(block)
     if h:
-        return (h.group("linked") or h.group("plain") or "").strip()
-    if alt.strip():
-        return alt.strip()
-    return _strip_markdown(block)[:200]
+        candidate = (h.group("linked") or h.group("plain") or "").strip()
+        if looks_like_a_product_name(candidate):
+            return candidate
+    return alt.strip() if looks_like_a_product_name(alt) else ""
 
 
 def parse_catalogue_markdown(
@@ -122,6 +146,10 @@ def parse_catalogue_markdown(
         seen.add(image_url)
 
         title = _title_for(block, alt)
+        if not title:
+            # No heading and no usable alt: there is no way to say what this image
+            # shows, so it can neither be matched nor turned into a product.
+            continue
         body = _strip_markdown(block)
         if len(body) < min_text and not title:
             continue

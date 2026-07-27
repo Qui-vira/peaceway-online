@@ -139,3 +139,47 @@ def test_unrecognised_words_are_kept():
     from app.services.catalogue_markdown import brand_from_title
 
     assert brand_from_title("Fenal 50 Mystery", None, None, None) == "Fenal 50 Mystery"
+
+
+# ── Markdown debris must never become a product name ─────────────────────────
+def test_rejects_markdown_debris_as_a_name():
+    """These are real fallback outputs that would have become medicine records."""
+    from app.services.catalogue_markdown import looks_like_a_product_name
+
+    for junk in (
+        ") [",
+        ")](https://www.geneithpharm.com/product/coatal",
+        "](https://x.test/y)",
+        "https://www.geneithpharm.com/product/x",
+        "www.example.com",
+        "()",
+        "-",
+        "12345",
+        "",
+        None,
+    ):
+        assert looks_like_a_product_name(junk) is False, junk
+
+
+def test_accepts_real_product_names():
+    from app.services.catalogue_markdown import looks_like_a_product_name
+
+    for good in (
+        "Camosunate Adult Tablets",
+        "Coatal Soft Gelatin Cap 20/120mg by 24",
+        "Emcap 500mg Caplet",
+        "Iron Dex Syrup",
+        "P-Alaxin",
+    ):
+        assert looks_like_a_product_name(good) is True, good
+
+
+def test_image_with_no_heading_and_no_alt_is_skipped():
+    """No way to say what it shows, so it can be neither matched nor created."""
+    md = "![](https://x.test/mystery.png)\n\n)](https://x.test/product/foo)\n"
+    assert _parse(md) == []
+
+
+def test_image_with_junk_alt_is_skipped():
+    md = "![](https://x.test/a.png)\n\n![](https://x.test/b.png)\n"
+    assert _parse(md) == []
