@@ -1,8 +1,7 @@
 # Handoff — product images
 
-Written 2026-07-27. Branch `chore/graphify-fixture-rename`. HEAD `1cdb2dcf`, plus
-uncommitted changes to `app/services/greenbook.py`, `scripts/import_greenbook.py`
-and `tests/test_greenbook.py` (see §4). 666 tests pass.
+Written 2026-07-27. Branch `chore/graphify-fixture-rename`, now **fast-forwarded into
+`main`**; both point at `ba569dd4`. Pushed. 666 tests pass.
 
 (Replaces the previous handoff covering the staff checklist / meeting tracker — that
 work shipped and had no blocking steps; see git history for `handoff.md` before this.)
@@ -19,23 +18,39 @@ Production deployed and healthy (Railway `web` + `worker`, Vercel).
 | | |
 |---|---:|
 | Products | 8,802 |
-| With a photo | 283 |
+| With a photo | 305 |
 | Listed on the shop | 250 |
-| Listed **and** photographed | 201 |
-| Candidates pending staff review | 16 |
-| Candidates approved | 109 |
-| Candidates rejected | 1 |
-
-The 82 photographed-but-unlisted products are mostly the Vitabiotics import, which
-came in unlisted and unpriced deliberately.
+| **Listed and photographed** | **214** |
+| Listed, still no photo | 36 |
+| Candidates approved / rejected / pending | 131 / 5 / 4 |
 
 **Scraping cannot reach 8,500 — verified, not assumed.** Of 50 manufacturers checked,
 15 have no website and only 3 (Me Cure, Afrab-Chem, Jawa) publish NAFDAC registration
-numbers, the only identifier that reliably matches. Those 3 produced 109 of the 128
-candidates ever found. Realistic ceiling 200–400; the rest need staff photography via
-the live `📷 Add Photo` flow.
+numbers, the only identifier that reliably matches. Realistic ceiling 200–400; the
+rest need staff photography via the live `📷 Add Photo` flow.
 
-## 3. Active files
+**The number that matters is 36, not 8,497.** 8,461 photoless products are unlisted —
+no customer ever sees them. See §8.
+
+## 3. How this is deployed (read before touching the deploy)
+
+- **`web` auto-deploys from `main`** on push. It is the FastAPI app *and* the Telegram
+  bot (the webhook is registered at startup).
+- **`worker` does NOT auto-deploy.** Ship it with `railway up --service worker` from a
+  checkout of the branch you want. This is why the image-candidate review flow was
+  live in Telegram for days while `main` did not contain the code for it.
+- **Vercel** builds the Next.js frontend from `web/`; project `web`
+  (`prj_Yp0yprOrunjFwCeWK0tUFux1Ogzq`). Check `.vercel/project.json` before any
+  `vercel` command.
+
+### Reaching the production database from a laptop
+
+Railway's `DATABASE_URL` is an internal hostname that only resolves inside their
+network, so `railway run python -m scripts.…` fails with `getaddrinfo failed`. Run
+under `railway run --service Postgres`, which injects `DATABASE_PUBLIC_URL`, and
+rewrite it to the asyncpg dialect before importing `app.core.db`.
+
+## 4. Active files
 
 Deployed (`app/services/`): `image_matching.py` (3-tier matcher),
 `catalogue_markdown.py` (generic parser for any crawled site), `greenbook.py`,
@@ -52,31 +67,6 @@ applicant index). Re-running the import costs no Firecrawl credits while it exis
 
 `FIRECRAWL_API_KEY` in `.env` (gitignored); placeholder in `.env.example`.
 
-### Reaching the production database from a laptop
-
-Railway's `DATABASE_URL` is an internal hostname that only resolves inside their
-network, so `railway run python -m scripts.…` fails with `getaddrinfo failed`. Run
-under `railway run --service Postgres`, which injects `DATABASE_PUBLIC_URL`, and
-rewrite it to the asyncpg dialect before importing `app.core.db`.
-
-## 4. Changes made
-
-- Image pipeline end to end: `media_assets` (BYTEA + sha256 dedup), `products.image_id`,
-  Pillow normalisation (800px WebP, EXIF stripped), `GET /api/v1/media/{id}`,
-  storefront rendering with DrugIcon fallback
-- `products.pack_size` + staff backfill flow
-- Vitabiotics import: 178 products with photos, all unlisted/unpriced
-- 496 brand names and 440 product names repaired (QA annotations, truncation)
-- Unpriced products now show "Price on request" with no Add button (they showed ₦0)
-- Matching: NAFDAC → brand+strength+form → brand+form (opt-in, flagged, extra gate)
-- **72 NAFDAC-matched candidates bulk-approved** via
-  `python -m scripts.approve_candidates --nafdac-only --commit`, which routes through
-  the same service function as the Telegram flow (photos 201 → 283)
-- **Greenbook import run to completion** — see §5 for what it actually yielded
-
-Uncommitted (`app/services/greenbook.py`, `scripts/import_greenbook.py`,
-`tests/test_greenbook.py`): the three bug fixes in §5, plus `--only-gaps`.
-
 ## 5. The Greenbook import — done, and what it really gave us
 
 Run 2026-07-27 against production. **It filled 4 fields, not 1,273.** The earlier
@@ -88,68 +78,82 @@ put in them.
 | Applicant pages crawled (`--only-gaps`) | 344 |
 | Registry records collected | 4,059 |
 | Our products with an NRN and an empty field | 1,273 |
-| …whose NRN the crawl found | 1,265 |
 | …**blank in the registry too** | 1,256 |
 | Actually filled | **4** |
 | Conflicts reported and left alone | 345 |
 
-The reason is category, not crawl coverage:
+1,070 of the un-fillable rows are **medical devices** — glucose monitors, lancets,
+diapers, sanitary pads — which have no dosage form or strength, and NAFDAC records
+none either. **Do not re-run this expecting a bulk fill.**
 
-| category of the 1,261 un-fillable rows | |
-|---|---:|
-| Medical Devices | 1,070 |
-| Veterinary | 76 |
-| Supplements | 71 |
-| Medicines | 30 |
-| Vaccines | 13 |
-
-Glucose monitors, lancets, baby diapers, sanitary pads and wipes have no dosage form
-or strength, and NAFDAC records none either. **Do not re-run this expecting a bulk
-fill.** 1,269 rows still have an empty form or strength and that is mostly correct.
-
-The 4 writes (all `strength`, all reversible via `price_history`):
-`B4-1398` De-Shalom Multivitamin Syrup, `04-3926` Lady's Own Tonic,
-`04-9610` Zevit Liqui-Tab Float Caps, `A11-100708` Reventin Blood Tonic.
-
-The 345 conflicts are all one benign pattern — **ours is more specific than the
-registry's**: `Powder for injection` vs `injection`, `Vaginal capsule` vs `capsule`,
-`Granules for suspension` vs `Granules`. Correctly left alone. Nothing to fix.
+The 345 conflicts are all one benign pattern — ours is more specific than the
+registry's (`Powder for injection` vs `injection`). Correctly left alone.
 
 ### One NAFDAC number is not always one product
 
-Measured across the 4,058 distinct NRNs crawled: **313 are listed more than once, and
-107 of those disagree on form or strength** (58 on form, 79 on strength).
+Across the 4,058 numbers crawled, **313 appear more than once and 107 of those
+disagree on form or strength** (58 form, 79 strength).
 
     03-3183  Avro Antibacterial Handwash 0.5%  vs  Avro Hand Sanitizer 70%
     04-0396  Emcillin Suspension               vs  Emcillin Powder for Oral Suspension
     04-0268  Folic Acid Tablet 5 mg            vs  Bcosam Tablet (no strength)
 
-This matters wherever an NRN alone is treated as proof of identity. Only 4 of the 126
-image candidates sit on such an NRN, and all 4 are now approved. One deserves a look:
-**`A11-0662` Zing C Tablet**, whose number covers both *Tablet* and *Chewable tablet*
-while our record says Tablet. If the live photo shows the chewable pack, clearing
-`products.image_id` on that row reverts it.
+`greenbook.merge_records()` drops any field two entries disagree on. Five of the
+first nine candidate fills were wrong before this existed.
 
-### Three bugs found and fixed while running it
+**The Greenbook publishes no product photographs.** Re-verified: the
+`admin.greenbook.nafdac.gov.ng/uploadImage/smpc_files/…` URLs that look like photos
+are SmPC **documents**.
 
-- **Wrong-strength writes.** 5 of the first 9 candidate fills were wrong. *Bcosam
-  Tablet* would have taken `5 mg` from a registry row named *Folic Acid Tablet*, and
-  *Emzoron Capsules* a `160 mg/15 mL` liquid strength from *Emzoron Tonic*. A value is
-  no longer carried between entries whose names differ; only same-named entries
-  (re-registrations of one product) may complete each other.
-- **`'Pending'` parsed as a strength.** Now a placeholder alongside `NA` and
-  `see Composition`.
-- **`Event loop is closed` after the hour-long crawl.** The script enters asyncio
-  twice around the module-level `app.core.db.engine`, so the second run inherited
-  pooled connections from a dead loop. `run_async()` disposes the pool each time.
-  Latent since the script was written — only the `--applicants` path had ever run.
+## 6. The listed-49 push — what scraping can and cannot reach
 
-## 6. Failed attempts
+Started at 49 listed products with no photo, 41 of them with no manufacturer recorded.
+Ended with **13 photographed and 25 manufacturers identified**.
+
+**An empty `manufacturer` column means our record is incomplete, not that the maker is
+unknowable.** Four came straight from the pharmacy; the rest from the maker's own site
+or the registry.
+
+Sources that worked, cheapest first:
+
+1. **The cached Greenbook applicant pages** — free, on disk, authoritative. Exact
+   product-name matches gave Durex→Reckitt, DE-DEON'S→Daily-Need, Orheptal→Farmex
+   Meyer, Tuxil-D→Fidson, Liquid Iron→Adler, Nutracid→Sabiz, Dr. Fizzo→Juvee.
+2. **Firecrawl image search** (`sources:["images"]`) — found Sygen (Colipan,
+   Broncholyte) and the Dabur clove gel. Plain web search had missed all three.
+3. **Filtering hits by the maker's own domain**, not a hand-written noise list. This
+   is what caught that the top "Colipan" images were an unrelated Italian supplement.
+
+Sources that returned nothing: all 17 existing crawls (860 parsed items, zero real
+matches), Wayback for `ruzushop.com` (the availability API says archived; the snapshot
+serves archive.org's own interstitial), and the sites of Fidson, Glenmark, Dana,
+Juvee, Sabiz and Farmex Meyer — all JS shells or dead domains.
+
+Photos published: Calamine Lotion (Ugo Lab), Canderm + Polygel (Shalina), Chemiron,
+MenthoDex (Bell's), Astymin (Tablets India), Colipan + Broncholyte (Sygen), AC-Drex +
+AC-Ibu (A.C. Drugs), DE-DEON'S (Daily-Need), and three Dabur toothpastes.
+
+**Rejected rather than guessed:** Oak-Faith's calamine (the image sits on a generic
+products page, not a calamine page), IBUCAP Sachet (Shalina publishes Caps, Forte,
+Gel, Night — no sachet), and Durex (the UK shop sells Intensity/Nude in 10–25 packs;
+ours is a Fetherlite 3-pack).
+
+### 4 candidates are stuck on the manufacturers' own TLS
+
+| host | problem | products |
+|---|---|---|
+| `chezresourcespharma.com` | certificate **expired** | Bioszime ×2, Chexol |
+| `tabletsindia.com` | omits its intermediate certificate | Astymin |
+
+Both serve the image with verification disabled. **Do not add `verify=False`** to the
+download path — it publishes medicine photos, and that trades a visible failure for a
+silent one. These need the manufacturer to fix their cert, or a staff photo.
+
+## 7. Failed attempts
 
 Do not retry:
 - **Pinterest / image search / DailyMed** — copyright, and DailyMed is a US registry
-  (Afrab 0, Emzor 0, Chemiron 0 hits)
-- **NAFDAC Greenbook for photos** — detail pages carry only the NAFDAC logo (verified)
+- **NAFDAC Greenbook for photos** — §5, re-verified
 - **Greenbook for bulk form/strength backfill** — §5. The gap is real but the registry
   cannot close it.
 - **Re-importing from PharmaOS to fix brands** — the pollution is in PharmaOS and in
@@ -161,30 +165,42 @@ Do not retry:
 - **Scrapling `css_first`** — does not exist; also no `robots_txt_obey` (enforced
   manually with Protego, fails closed), `adaptive` is class-level, `async_fetch`
   required under asyncio
+- **Photographing the commodity rows by crawling** — Yeast, Hydrogen Peroxide B.P.,
+  Vitamin C (White), Glucose D, Success Methylated Spirit. The Greenbook lists several
+  companies under near-identical names (Hydrogen Peroxide: SKG, Ugo Lab, De-Shalom).
+  Nothing online identifies which bottle is on the shelf. Only the pharmacy knows.
 
 Bugs fixed, worth knowing:
+- **A bare HTTP client gets a blank review card.** `chemironcare.com` answers 403 with
+  no `User-Agent` and 200 with a browser one; `_download` turned that into `None` and
+  the reviewer saw text with no photo — indistinguishable from a broken bot. Both the
+  bot and `approve_candidates.py` now send a browser UA.
+- **A root `package.json` silently turns the backend into a Node build.** Merging into
+  `main` carried `4d703c3d`'s root `package.json` (playwright, video tooling only) onto
+  the branch `web` builds from; Nixpacks switched providers and every container start
+  died with `alembic: command not found`. `nixpacks.toml` now pins
+  `providers = ["python"]`. `.railwayignore` lists `/package.json` but only filters
+  **CLI uploads** — it has no effect on a GitHub-source build.
 - Block-bleed paired a caplet photo with a suspension. Block text is trusted only when
-  the image has its own heading; NRNs only within 400 chars.
+  the image has its own heading; NRNs only within 400 chars. **Still live on third-party
+  pages**: `dailyneedgroup.com` puts the "DE-DEON'S SYRUP" heading above a *damox*
+  photo. Trust the filename over the heading there.
 - `pack=<none>` in `match_basis` made Telegram reject the whole review message, so the
   buttons looked dead. Now `pack=(none)` + every interpolation HTML-escaped.
-- `_title_for` fell back to stripped markdown, producing names like `)](https://…` —
-  ~100 of a first 216-row dry run were debris. Related: many approved candidates still
-  carry marketing copy as `scraped_title` ("An Ideal Stool Softener"). The title is
-  cosmetic — matching used the NRN — but it makes eyeballing a batch useless.
+- `_title_for` fell back to stripped markdown, producing names like `)](https://…`.
+  Related: many approved candidates still carry marketing copy as `scraped_title`
+  ("An Ideal Stool Softener"). Cosmetic, but it makes eyeballing a batch useless.
 
-## 7. Next steps
+## 8. Next steps
 
-1. **16 candidates still pending**, all matched on brand+form only with
-   `STRENGTH NOT MATCHED` in the basis (Bioszime Injection, Chexol Tablets, Iron Dex,
-   Larykul, Ketineal Cream…). These are exactly the ones a human should judge:
-   Telegram → Products → 🖼 Review Image Candidates.
-   Lotexin was the first rejection: we do not stock it, and the product row stays
-   unlisted rather than deleted so the rejection survives the next Geneith crawl.
+1. **36 listed products still have no photo**, 16 of them with no manufacturer. This
+   is the only photo gap a customer can see. The fastest close is the `📷 Add Photo`
+   flow — an afternoon with a phone. Naming the maker for any of the 16 unlocks a
+   crawl; that route has by far the best hit rate.
 2. **559 draft products ready to create** from 17 crawls. Dry-run only, NOT written.
    `python -m scripts.import_unmatched_products <crawl.json> --manufacturer "<name>" --commit`
-   Check a sample of names first — the last two dry runs both surfaced quality problems,
-   and some titles still come from alt text (e.g. lowercase "coatal soft gelatin tablet").
-3. **82 products have a photo but are not listed** (mostly Vitabiotics, unpriced).
+   Check a sample of names first — the last two dry runs both surfaced quality problems.
+3. **91 products have a photo but are not listed** (mostly Vitabiotics, unpriced).
    Pricing them is what turns those photos into storefront value.
 4. **Demo video still paused** — `docs/video/RECORDING-GUIDE.md`; resumes once hero
    products have photos.
