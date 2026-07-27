@@ -10,6 +10,7 @@ tools for scripts/, and .railwayignore keeps that whole tree out of the containe
 """
 from __future__ import annotations
 
+from html import escape
 from uuid import UUID
 
 import httpx
@@ -57,6 +58,18 @@ async def _download(url: str) -> bytes | None:
         return None
 
 
+def _e(value) -> str:
+    """HTML-escape a value for Telegram's HTML parse mode.
+
+    Everything shown here is either a scraped string or a free-text catalogue field.
+    An unescaped "<" makes Telegram reject the ENTIRE message, and because the
+    callback then errors after the tap, the button looks dead rather than broken.
+    That is exactly what happened: match_basis contained the literal "pack=<none>",
+    Telegram read "<none>" as an unknown tag, and the review flow stopped responding.
+    """
+    return escape(str(value))
+
+
 def _review_text(c: ImageCandidate, p: Product) -> str:
     weak = (c.match_basis or "").startswith(BASIS_BRAND_FORM)
     return (
@@ -64,15 +77,15 @@ def _review_text(c: ImageCandidate, p: Product) -> str:
         + ("\n⚠️ <b>Brand + form only — strength NOT verified</b>" if weak else "")
         + "\n\n"
         f"<b>Product in our catalogue</b>\n"
-        f"{p.name}\n"
-        f"Brand: {p.brand_name or '—'} · Form: {p.dosage_form or '—'}\n"
-        f"Strength: {p.strength or '—'} · Pack: <b>{p.pack_size or '— not recorded'}</b>\n\n"
+        f"{_e(p.name)}\n"
+        f"Brand: {_e(p.brand_name or '—')} · Form: {_e(p.dosage_form or '—')}\n"
+        f"Strength: {_e(p.strength or '—')} · Pack: <b>{_e(p.pack_size or '— not recorded')}</b>\n\n"
         f"<b>What the manufacturer published</b>\n"
-        f"{c.scraped_title}\n"
-        f"Pack on their page: <b>{c.scraped_pack_size or '— none given'}</b>\n\n"
+        f"{_e(c.scraped_title)}\n"
+        f"Pack on their page: <b>{_e(c.scraped_pack_size or '— none given')}</b>\n\n"
         f"<b>Why these were paired</b>\n"
-        f"<code>{c.match_basis or '—'}</code>\n\n"
-        f"Source: {c.manufacturer}"
+        f"<code>{_e(c.match_basis or '—')}</code>\n\n"
+        f"Source: {_e(c.manufacturer)}"
     )
 
 
@@ -206,8 +219,8 @@ async def confirm_pack_size(call: CallbackQuery) -> None:
     await call.message.answer(
         "🔍 <b>Check before this goes live.</b>\n\n"
         "The automatic match did <b>not</b> compare pack size.\n\n"
-        f"Our catalogue says: <b>{ours}</b>\n"
-        f"Their page says: <b>{theirs}</b>\n\n"
+        f"Our catalogue says: <b>{_e(ours)}</b>\n"
+        f"Their page says: <b>{_e(theirs)}</b>\n\n"
         "Look at the photograph again. Does it show the pack we actually dispense?\n\n"
         "If our pack size is not recorded, check the physical pack before answering."
         + (
@@ -245,9 +258,9 @@ async def confirm_strength(call: CallbackQuery) -> None:
 
     await call.message.answer(
         "⚠️ <b>Strength check — this one was not matched automatically.</b>\n\n"
-        f"<b>{name}</b>\n\n"
-        f"Our catalogue: <b>{ours}</b>\n"
-        f"Their page: <b>{theirs}</b>\n\n"
+        f"<b>{_e(name)}</b>\n\n"
+        f"Our catalogue: <b>{_e(ours)}</b>\n"
+        f"Their page: <b>{_e(theirs)}</b>\n\n"
         "This photo was paired on brand and dosage form only. Manufacturers write "
         "strength differently from us, so the system could not compare it.\n\n"
         "<b>Read the strength printed on the pack in the photo.</b> Is it the same "
@@ -291,7 +304,7 @@ async def approve(call: CallbackQuery) -> None:
     kb.button(text="🏠 Staff Menu", callback_data="staff:home")
     kb.adjust(1)
     await call.message.edit_text(
-        f"✅ <b>Published.</b>\n\n<b>{name}</b> now shows this photo on the website.\n\n"
+        f"✅ <b>Published.</b>\n\n<b>{_e(name)}</b> now shows this photo on the website.\n\n"
         "Source and match basis were recorded against the image.",
         reply_markup=kb.as_markup(),
     )

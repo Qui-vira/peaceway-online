@@ -331,3 +331,50 @@ async def test_brand_form_candidate_is_visibly_flagged(db_session: AsyncSession)
     candidate.match_basis = "brandform=ceflonac|form=tablet [STRENGTH NOT MATCHED]"
     text = _review_text(candidate, product)
     assert "strength NOT verified" in text
+
+
+# ── Telegram HTML safety ──────────────────────────────────────────────────────
+@pytest.mark.asyncio
+async def test_review_text_escapes_angle_brackets(db_session: AsyncSession):
+    """An unescaped "<" makes Telegram reject the whole message, and the tap then
+    looks like a dead button. match_basis really did contain "pack=<none>"."""
+    from app.bot.staff.image_candidates import _review_text
+
+    product, candidate = await _seed(db_session)
+    candidate.match_basis = "brandform=emcap|form=suspension|pack=<none>"
+    candidate.scraped_title = "EMCAP <500MG> 10*10"
+    product.name = "Emcap <Paracetamol> Suspension"
+
+    text = _review_text(candidate, product)
+    assert "<none>" not in text
+    assert "&lt;none&gt;" in text
+    assert "<500MG>" not in text
+    assert "<Paracetamol>" not in text
+
+
+@pytest.mark.asyncio
+async def test_review_text_keeps_its_own_markup(db_session: AsyncSession):
+    """Escaping the data must not escape the template's own tags."""
+    from app.bot.staff.image_candidates import _review_text
+
+    product, candidate = await _seed(db_session)
+    text = _review_text(candidate, product)
+    assert "<b>" in text and "<code>" in text
+
+
+def test_pack_basis_uses_no_angle_brackets():
+    """The source of the bug: match_basis is persisted, then rendered as HTML."""
+    from app.services.image_matching import normalize_pack
+
+    basis = normalize_pack(None).as_basis()
+    assert "<" not in basis and ">" not in basis
+    assert basis == "pack=(none)"
+
+
+def test_every_interpolation_in_the_review_flow_is_escaped():
+    """Static guard: no raw {value} of scraped or catalogue text in an HTML message."""
+    import re
+
+    src = (ROOT / "app" / "bot" / "staff" / "image_candidates.py").read_text(encoding="utf-8")
+    raw = re.findall(r"\{(ours|theirs|name|p\.name|p\.brand_name|c\.scraped_title|c\.match_basis)\}", src)
+    assert not raw, f"unescaped interpolation(s) in a Telegram HTML message: {raw}"

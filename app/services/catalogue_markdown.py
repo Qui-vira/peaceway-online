@@ -42,6 +42,11 @@ _IMAGE = re.compile(r"!\[(?P<alt>[^\]]*)\]\((?P<url>[^)\s]+)")
 _HEADING = re.compile(r"^#{1,6}\s+(?:\[(?P<linked>[^\]]+)\]\([^)]*\)|(?P<plain>.+?))\s*$", re.M)
 
 # Site furniture that is never a product photo.
+# How far after an image a NAFDAC number may appear and still be trusted as that
+# product's. Afrab-Chem prints it ~120 chars after the heading; beyond this the
+# text usually belongs to the next product on the page.
+NAFDAC_PROXIMITY_CHARS = 400
+
 _CHROME = re.compile(r"logo|icon|favicon|banner|placeholder|avatar|sprite|spacer|footer|header",
                      re.IGNORECASE)
 
@@ -121,13 +126,22 @@ def parse_catalogue_markdown(
         if len(body) < min_text and not title:
             continue
 
-        # Search the heading first, then the surrounding text: a strength printed in
-        # the product name is more reliable than one mentioned in marketing copy.
-        haystack = f"{title} {body}"
+        # Block text is only this product's description when the image is followed
+        # by its OWN heading:
+        #
+        #   [![](img)](url)  #### [Loratadine Tablet](url)  _Tablet_ (NRN: A4-7347)…
+        #
+        # Where there is no heading the block is just the next images' alt text, and
+        # reading fields out of it takes a NEIGHBOUR's values. That is what paired a
+        # caplet photo ("EMCAP 500MG 10*10", no form in the title) with Emcap
+        # Paracetamol Suspension 120 mg/5 mL: "suspension" bled in from another
+        # product. A missing field only blocks a match, which is the safe failure.
+        described = _HEADING.search(block) is not None
+        near = block[:NAFDAC_PROXIMITY_CHARS] if described else ""
 
-        form = extract_form(title) or extract_form(body)
-        strength = extract_strength(title) or extract_strength(body)
-        pack = extract_pack(haystack)
+        form = extract_form(title) or (extract_form(near) if described else None)
+        strength = extract_strength(title) or (extract_strength(near) if described else None)
+        pack = extract_pack(f"{title} {near}")
 
         items.append(
             ScrapedItem(
@@ -139,7 +153,7 @@ def parse_catalogue_markdown(
                 strength=strength,
                 form=form,
                 pack_size=pack,
-                nafdac=extract_nafdac(haystack),
+                nafdac=extract_nafdac(f"{title} {near}"),
             )
         )
     return items

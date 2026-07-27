@@ -67,8 +67,11 @@ class PackNormalization:
     notes: list[str] = field(default_factory=list)
 
     def as_basis(self) -> str:
+        # Parentheses, never angle brackets: match_basis is rendered inside <code>
+        # in Telegram's HTML parse mode, where "<none>" reads as an unknown tag and
+        # kills the whole message — the button then appears to do nothing.
         if not self.raw:
-            return "pack=<none>"
+            return "pack=(none)"
         if self.display != self.raw:
             return f"pack={self.raw}->{self.display}"
         return f"pack={self.raw}"

@@ -178,7 +178,8 @@ def test_ml_and_mL_are_identical_after_normalisation():
 
 def test_pack_none_is_handled():
     n = normalize_pack(None)
-    assert n.display is None and n.as_basis() == "pack=<none>"
+    # Parentheses, not angle brackets: match_basis is rendered as Telegram HTML.
+    assert n.display is None and n.as_basis() == "pack=(none)"
 
 
 @pytest.mark.parametrize("pack", ["10*10", "10 x 10", "30's", "100 mL", None])
