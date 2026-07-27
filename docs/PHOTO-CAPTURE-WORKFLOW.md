@@ -64,6 +64,46 @@ So the order of preference is:
 Whichever route: **the raw photo is the record.** Keep it. If the processed version is
 ever in doubt, the raw file settles it.
 
+## GPT Image 2 — the settings that matter
+
+The owner's chosen model. Verified against the Higgsfield catalogue, 2026-07-28:
+
+    model:        gpt_image_2      (provider: OpenAI)
+    resolution:   1k | 2k | 4k     default 1k
+    quality:      low | medium | high   default LOW
+    aspect_ratio: 1:1 | 4:3 | 3:4 | 3:2 | 2:3 | 16:9 | 9:16
+    media role:   image
+    tagged:       text-rendering, editing, typography, photorealistic
+
+**The default `quality` is `low`.** Leave it and the small print on the pack is the
+first thing to go. Always pass `quality: "high"` for these.
+
+Settings for this job:
+
+| param | use | why |
+|---|---|---|
+| `quality` | `high` | the default is `low`; pack fine print does not survive it |
+| `resolution` | `2k` or `4k` | generate large, then downscale to 800×800. Downscaling sharpens text; upscaling invents it |
+| `aspect_ratio` | `1:1` | matches the house 800×800 square |
+
+It is tagged for **text rendering and typography**, which is why it is a defensible
+choice here — it is among the better models at holding type. "Better" is not "exact".
+It still re-renders, so the word-by-word check against the raw photo is not optional.
+
+**If the fine print drifts, in order:**
+
+1. `openai_hazel` — the catalogue's other OpenAI model, described as *"powerful
+   editing, best text rendering"*. Worth a head-to-head on one pack.
+2. `image_background_remover` — the non-generative cutout. Nothing is redrawn.
+3. `topaz_image` with `variant: "Text Refine"` — a non-generative sharpener aimed at
+   text. Keep `face_enhancement: false`, per the owner's lock. Note the separate
+   `topaz_image_generative` model *does* invent detail — not that one.
+
+**Test one pack before committing 36.** Pick the busiest label you own — dense small
+type, foil or gloss — and read every line of the output against the original. That one
+generation decides whether the batch goes through `gpt_image_2` or falls back to the
+cutout route. Finding out at product 30 is the expensive version of this.
+
 ## The pass
 
 **1. Shoot** (owner does this). One product per photo, front of pack, whole pack in
