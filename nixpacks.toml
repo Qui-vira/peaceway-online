@@ -1,2 +1,10 @@
+# Both Railway services here are Python. Without this, Nixpacks auto-detects the
+# root package.json (playwright, used only by the video capture tooling) and builds
+# a Node app instead: no venv, no alembic, and the container dies on start with
+# "alembic: command not found". Leaving "..." out of the array overrides detection
+# rather than adding to it. .railwayignore cannot prevent this — it applies to CLI
+# uploads, and the web service builds from the GitHub source.
+providers = ["python"]
+
 [phases.setup]
 aptPkgs = ["tesseract-ocr"]
