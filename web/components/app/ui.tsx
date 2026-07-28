@@ -375,10 +375,13 @@ const BUTTON_VARIANTS: Record<ButtonVariant, string> = {
   secondary: "pw-btn-2",
   // No pw- class for these two: they are deliberately not filled surfaces. They
   // still take the system's height, radius and focus ring.
+  // font-semibold and disabled:opacity-50 live here rather than in the shared
+  // string below: these two variants have no .pw-btn class to inherit weight or
+  // disabled dimming from, so they must state both themselves.
   ghost:
-    "min-h-[44px] rounded-2xl px-5 text-[#b1bdb0] hover:text-white focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[rgba(52,217,138,0.5)]",
+    "font-semibold disabled:opacity-50 min-h-[44px] rounded-2xl px-5 text-[#b1bdb0] hover:text-white focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[rgba(52,217,138,0.5)]",
   danger:
-    "min-h-[44px] rounded-2xl border border-red-500/30 px-5 text-red-300 hover:bg-red-500/10 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[rgba(52,217,138,0.5)]",
+    "font-semibold disabled:opacity-50 min-h-[44px] rounded-2xl border border-red-500/30 px-5 text-red-300 hover:bg-red-500/10 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[rgba(52,217,138,0.5)]",
 };
 
 export function Button({
@@ -391,8 +394,8 @@ export function Button({
     <button
       {...props}
       className={[
-        "inline-flex items-center justify-center gap-2 text-sm font-semibold",
-        "disabled:cursor-not-allowed disabled:opacity-50",
+        "inline-flex items-center justify-center gap-2 text-sm",
+        "disabled:cursor-not-allowed",
         BUTTON_VARIANTS[variant],
         className,
       ].join(" ")}

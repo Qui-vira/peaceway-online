@@ -751,100 +751,105 @@ button:not(:disabled):not([aria-disabled="true"]),
    A solid darker bottom EDGE (not a blur) gives real physical depth; the button
    visibly depresses on press (translateY + the edge collapses). Shared by every
    primary/secondary CTA in the app so the whole UI feels tactile, not flat. */
-.pw-btn,
-.pw-btn-sm,
-.pw-btn-2 {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  border: 0;
-  cursor: pointer;
-  font-weight: 700;
-  line-height: 1;
-  text-align: center;
-  transition: transform 0.12s cubic-bezier(0.22, 0.61, 0.36, 1),
-    box-shadow 0.12s ease, background-color 0.2s ease, border-color 0.2s ease;
-}
-.pw-btn {
-  min-height: 48px;
-  padding: 0 24px;
-  border-radius: 16px;
-  font-size: 14px;
-}
-.pw-btn-sm {
-  min-height: 40px;
-  padding: 0 14px;
-  border-radius: 12px;
-  font-size: 12px;
-}
+@layer components {
+  /* Layered so the utility classes emitted at `@tailwind utilities` can
+     override these. Unlayered, these rules sit AFTER the utilities at equal
+     specificity and silently win, which made `min-h-[52px]` inert. */
+  .pw-btn,
+  .pw-btn-sm,
+  .pw-btn-2 {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border: 0;
+    cursor: pointer;
+    font-weight: 700;
+    line-height: 1;
+    text-align: center;
+    transition: transform 0.12s cubic-bezier(0.22, 0.61, 0.36, 1),
+      box-shadow 0.12s ease, background-color 0.2s ease, border-color 0.2s ease;
+  }
+  .pw-btn {
+    min-height: 48px;
+    padding: 0 24px;
+    border-radius: 16px;
+    font-size: 14px;
+  }
+  .pw-btn-sm {
+    min-height: 40px;
+    padding: 0 14px;
+    border-radius: 12px;
+    font-size: 12px;
+  }
 
-/* Primary — emerald face over a darker bottom edge. */
-.pw-btn,
-.pw-btn-sm {
-  background: #1aa35a;
-  color: #05130b;
-  box-shadow: 0 4px 0 0 #0f673c, 0 6px 14px -6px rgba(0, 0, 0, 0.55);
-}
-.pw-btn-sm {
-  box-shadow: 0 3px 0 0 #0f673c, 0 5px 10px -6px rgba(0, 0, 0, 0.5);
-}
-.pw-btn:hover,
-.pw-btn-sm:hover {
-  background: #23bd6a;
-}
-.pw-btn:active {
-  transform: translateY(4px);
-  box-shadow: 0 0 0 0 #0f673c, 0 1px 3px rgba(0, 0, 0, 0.4);
-}
-.pw-btn-sm:active {
-  transform: translateY(3px);
-  box-shadow: 0 0 0 0 #0f673c;
-}
-.pw-btn:focus-visible,
-.pw-btn-sm:focus-visible {
-  outline: none;
-  box-shadow: 0 4px 0 0 #0f673c, 0 0 0 3px rgba(52, 217, 138, 0.55);
-}
-.pw-btn:disabled,
-.pw-btn-sm:disabled {
-  opacity: 0.55;
-}
-.pw-btn:disabled:active,
-.pw-btn-sm:disabled:active {
-  transform: none;
-  box-shadow: 0 4px 0 0 #0f673c, 0 6px 14px -6px rgba(0, 0, 0, 0.55);
-}
-
-/* Secondary — outline with a light bottom edge on dark surfaces. */
-.pw-btn-2 {
-  min-height: 48px;
-  padding: 0 24px;
-  border-radius: 16px;
-  font-size: 14px;
-  background: rgba(255, 255, 255, 0.03);
-  color: rgba(255, 255, 255, 0.9);
-  border: 2px solid rgba(255, 255, 255, 0.14);
-  box-shadow: 0 4px 0 0 rgba(255, 255, 255, 0.08);
-}
-.pw-btn-2:hover {
-  border-color: rgba(255, 255, 255, 0.28);
-  color: #fff;
-}
-.pw-btn-2:active {
-  transform: translateY(4px);
-  box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.08);
-}
-.pw-btn-2:focus-visible {
-  outline: none;
-  box-shadow: 0 4px 0 0 rgba(255, 255, 255, 0.08), 0 0 0 3px rgba(52, 217, 138, 0.5);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .pw-btn:active,
-  .pw-btn-sm:active,
-  .pw-btn-2:active {
+  /* Primary — emerald face over a darker bottom edge. */
+  .pw-btn,
+  .pw-btn-sm {
+    background: #1aa35a;
+    color: #05130b;
+    box-shadow: 0 4px 0 0 #0f673c, 0 6px 14px -6px rgba(0, 0, 0, 0.55);
+  }
+  .pw-btn-sm {
+    box-shadow: 0 3px 0 0 #0f673c, 0 5px 10px -6px rgba(0, 0, 0, 0.5);
+  }
+  .pw-btn:hover,
+  .pw-btn-sm:hover {
+    background: #23bd6a;
+  }
+  .pw-btn:active {
+    transform: translateY(4px);
+    box-shadow: 0 0 0 0 #0f673c, 0 1px 3px rgba(0, 0, 0, 0.4);
+  }
+  .pw-btn-sm:active {
+    transform: translateY(3px);
+    box-shadow: 0 0 0 0 #0f673c;
+  }
+  .pw-btn:focus-visible,
+  .pw-btn-sm:focus-visible {
+    outline: none;
+    box-shadow: 0 4px 0 0 #0f673c, 0 0 0 3px rgba(52, 217, 138, 0.55);
+  }
+  .pw-btn:disabled,
+  .pw-btn-sm:disabled {
+    opacity: 0.55;
+  }
+  .pw-btn:disabled:active,
+  .pw-btn-sm:disabled:active {
     transform: none;
+    box-shadow: 0 4px 0 0 #0f673c, 0 6px 14px -6px rgba(0, 0, 0, 0.55);
+  }
+
+  /* Secondary — outline with a light bottom edge on dark surfaces. */
+  .pw-btn-2 {
+    min-height: 48px;
+    padding: 0 24px;
+    border-radius: 16px;
+    font-size: 14px;
+    background: rgba(255, 255, 255, 0.03);
+    color: rgba(255, 255, 255, 0.9);
+    border: 2px solid rgba(255, 255, 255, 0.14);
+    box-shadow: 0 4px 0 0 rgba(255, 255, 255, 0.08);
+  }
+  .pw-btn-2:hover {
+    border-color: rgba(255, 255, 255, 0.28);
+    color: #fff;
+  }
+  .pw-btn-2:active {
+    transform: translateY(4px);
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.08);
+  }
+  .pw-btn-2:focus-visible {
+    outline: none;
+    box-shadow: 0 4px 0 0 rgba(255, 255, 255, 0.08), 0 0 0 3px rgba(52, 217, 138, 0.5);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pw-btn:active,
+    .pw-btn-sm:active,
+    .pw-btn-2:active {
+      transform: none;
+    }
   }
 }
 
