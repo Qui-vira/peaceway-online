@@ -43,3 +43,17 @@ Thumbs.db
 
 # Generated screenshots from scripts/video/*.mjs
 scripts/video/out/
+
+# Local design-tooling state. The one artefact worth keeping — the web-app
+# critique — lives in tasks/ instead.
+.impeccable/
+
+# Slide decks: the build scripts and their manifest are the source and are
+# tracked. Dependencies and every rendered artefact are not. Matched by
+# extension so future renders are caught without editing this file.
+presentations/node_modules/
+presentations/*.pdf
+presentations/*.pptx
+presentations/*.jpg
+presentations/*.png
+presentations/qa-slides/
