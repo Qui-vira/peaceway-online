@@ -82,6 +82,32 @@ Cards 16px · large cards/panels 20px · pills/buttons 22–32px · inputs 10–
 - **Disabled:** opacity 0.4 + `cursor: not-allowed` + semantic `disabled`.
 - **Loading:** skeleton/shimmer for >300ms; buttons show spinner + disabled during async.
 
+## Buttons — two sanctioned components, split by audience
+One *visual* button. Two components, because the two audiences differ in interaction
+richness, not in appearance. Both resolve to the same `.pw-btn*` classes, so size, colour,
+radius and focus are identical by construction; only the press behaviour differs.
+
+- **Customer surfaces** (`/app`, `/shop`, `/cart`, `/checkout`, `/reminders`, `/track`,
+  `/start`, `/profile`, `/referral`, `/request`, `/prescription`) →
+  `TactileButton` / `TactileLink`. Adds Framer Motion press physics and a haptic on
+  primary. The app is a phone-first surface; the press is part of the product.
+- **Admin and partner surfaces** (`/admin/*`, `/partners`) → `Button` from
+  `components/app/ui`. No motion. These are dense operational tables where a spring on
+  every row action is noise, not feedback.
+
+Rules:
+- Never hand-roll a button with `bg-emerald-500` and ad-hoc radius/padding. If neither
+  component fits, reach for `.pw-btn-sm` directly — it is the shared foundation both are
+  built on — rather than inventing a new look.
+- `TactileButton` sets `style` for its edge shadow. Never pass a `style` prop to it; the
+  spread would overwrite the shadow. Use a class (e.g. `min-h-[52px]`).
+- Not every emerald fill is a button. Status badges, count badges, progress dots and radio
+  fills use tinted `bg-emerald-500/NN` and are **not** in scope for this rule.
+
+Still unowned (no primitive yet — do not force these into the button components):
+segmented controls / tab actives, the reminder end-date toggle, and the circular icon-send
+affordance in `/ask-pharmacist`.
+
 ## Breakpoints
 375 (small phone) · 768 (tablet, current mobile cutover is 800px) · 1024 (sidebar threshold) · 1440.
 Container max-width 1240px, gutters 56px desktop / 20px mobile (matches `.con`).
