@@ -1,8 +1,11 @@
 # Handoff — product images
 
-Written 2026-07-27, updated 2026-07-28. Branch `chore/graphify-fixture-rename` was
-**fast-forwarded into `main`**; `main` is now ahead at `223b5446`. Pushed. 666 tests
-pass. Latest `web` deploy green.
+Written 2026-07-27, updated 2026-07-28. `main` is at `7077f272`, pushed, `web` deploy
+green, 666 tests pass.
+
+**There is unmerged work.** Branch `refactor/button-system` (5 commits, pushed, Vercel
+preview only — nothing deployed to production) carries the button-system refactor and
+two repo-hygiene changes. See §9 before merging it.
 
 (Replaces the previous handoff covering the staff checklist / meeting tracker — that
 work shipped and had no blocking steps; see git history for `handoff.md` before this.)
@@ -229,3 +232,62 @@ Bugs fixed, worth knowing:
 5. Untouched issues: `peacewayonline.com.ng` DNS-fails but is hardcoded in
    `app/core/config.py` and `web/public/sitemap.xml`; `app/api/v1/prescriptions.py`
    discards web-uploaded prescription images.
+
+## 9. Unmerged: `refactor/button-system`
+
+Five commits, pushed, **not merged**. A Vercel *preview* fired; no production deploy
+on either host. `main` was never touched.
+
+    58a63dd8  docs: tell agents to query the knowledge graph first
+    b705812f  refactor(web): replace hand-rolled buttons with the sanctioned components
+    c78373c4  docs(design): document the two sanctioned button components
+    8b3693bf  fix(ui): layer .pw-btn so documented class overrides actually apply
+    f703adb5  chore: ignore local tool state and generated slide renders
+
+### What it changes on screen
+
+`8b3693bf` is the one to read before merging. `.pw-btn*` was emitted *after*
+`@tailwind utilities` at equal specificity, so it silently won every collision: a
+`min-h-[52px]` on a `.pw-btn` resolved to 48px and nothing errored. DESIGN.md tells
+contributors to override with a class rather than a `style` prop — that rule was
+simply untrue. Wrapping the block in `@layer components` makes it true, and in doing
+so lets ~25 previously inert call-site utilities take effect at once:
+
+| | |
+|---|---|
+| 5 heights restored to 52px | start ×2, profile, request, reminders/new |
+| 13 admin/partner padding sites | `0 24px` → `8px 16px` (3 of them `6px 12px`) |
+| 3 admin font sizes | 14px → 12px via `text-xs` |
+| 9 disabled opacities | 0.55 → the call site's 0.40 / 0.50 / 0.60 |
+| disabled cursor | now `not-allowed`, which it always claimed to be |
+
+The disabled-opacity shifts are disabled-state only; resting appearance is unchanged.
+All of it was measured against computed styles in a browser, not read off the source.
+
+`font-semibold` and `disabled:opacity-50` were moved out of `Button`'s shared class
+string into the `ghost` and `danger` variants — those two have no `.pw-btn` class to
+inherit weight and dimming from. Left in the shared string they would have overridden
+`.pw-btn`'s own `font-weight:700` and `opacity:.55` on all 17 `Button` call sites.
+
+**The lesson generalises: this repo's `.pw-btn*` was not the only unlayered block.**
+Any bare class written after `@tailwind utilities` in `globals.css` beats the
+utilities and fails silently, with no error and no visual warning. `.pw-tile*` sits in
+the same file under the same conditions and has not been audited.
+
+### Open on that branch
+
+- **`npm run lint` fails** — 2 `@next/next/no-img-element` warnings against
+  `--max-warnings=0`, in `web/app/shop/[id]/page.tsx:120` and
+  `web/components/app/product-card.tsx:116`. **Pre-existing on `main`**, last touched
+  in `1f459897`; a clean checkout fails the same way. Typecheck and production build
+  both pass. Agreed fix: `next/image` where the image has known dimensions, otherwise
+  an eslint-disable with a written reason — as its own commit, without changing
+  rendering.
+- **8 files still untracked**: `presentations/build-01..06.js`, `package.json`,
+  `package-lock.json`. `.gitignore` now permits exactly these and excludes the
+  renders; nothing has added them yet.
+- **The slide renders are not reproducible.** The six build scripts emit `.pptx` only.
+  `04-wholesalers.pptx`, the six PDFs and the 89 jpg/png renders have **no generator
+  in this repo**, and the scripts hardcode `C:\Projects\peaceway-online\presentations\`
+  so they only run from that absolute path. They are ignored, so a fresh clone will
+  not have them and cannot rebuild them.
