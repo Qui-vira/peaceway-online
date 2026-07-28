@@ -1,7 +1,8 @@
 # Handoff — product images
 
-Written 2026-07-27. Branch `chore/graphify-fixture-rename`, now **fast-forwarded into
-`main`**; both point at `ba569dd4`. Pushed. 666 tests pass.
+Written 2026-07-27, updated 2026-07-28. Branch `chore/graphify-fixture-rename` was
+**fast-forwarded into `main`**; `main` is now ahead at `223b5446`. Pushed. 666 tests
+pass. Latest `web` deploy green.
 
 (Replaces the previous handoff covering the staff checklist / meeting tracker — that
 work shipped and had no blocking steps; see git history for `handoff.md` before this.)
@@ -66,6 +67,11 @@ Greenbook page cache: `scripts/video/out/greenbook/` (344 applicant pages + the
 applicant index). Re-running the import costs no Firecrawl credits while it exists.
 
 `FIRECRAWL_API_KEY` in `.env` (gitignored); placeholder in `.env.example`.
+
+`docs/PHOTO-CAPTURE-WORKFLOW.md` — the shelf-photo → catalogue-shot pass (§8.1).
+Higgsfield MCP is connected and authenticated (checked 2026-07-28: `max` plan, ~1,786
+credits). Its tools are served under a long server id, **not** the entry literally
+named `higgsfield`, which shows as unauthenticated and is a red herring.
 
 ## 5. The Greenbook import — done, and what it really gave us
 
@@ -194,9 +200,25 @@ Bugs fixed, worth knowing:
 ## 8. Next steps
 
 1. **36 listed products still have no photo**, 16 of them with no manufacturer. This
-   is the only photo gap a customer can see. The fastest close is the `📷 Add Photo`
-   flow — an afternoon with a phone. Naming the maker for any of the 16 unlocks a
-   crawl; that route has by far the best hit rate.
+   is the only photo gap a customer can see, and it is **in progress**: the owner is
+   photographing the packs, then running them through Higgsfield (`gpt_image_2`) in
+   Claude Code, using each photo as a reference to produce a clean catalogue shot.
+
+   Everything for that pass — the owner's strict-lock prompt, the shoot list, the
+   measured house style, the model settings and the fallbacks — is in
+   **`docs/PHOTO-CAPTURE-WORKFLOW.md`**. A reminder is set on `@QuivExecution_Bot`
+   for 2026-07-28.
+
+   Two things from that doc that decide whether the output is usable:
+   - **`gpt_image_2`'s `quality` defaults to `low`**, which is where pack fine print
+     dies. Pass `high`, render at 2k/4k, downscale to the 800px house size.
+   - **A generative model redraws text**, and on a pack the text is the strength, the
+     NAFDAC number and the pack size. Every output is checked word-by-word against the
+     raw photo, and the raw photo is kept as the record. `image_background_remover`
+     redraws nothing and is the fallback if the print drifts.
+
+   Naming the maker for any of the 16 also unlocks a crawl; that route had by far the
+   best hit rate of anything tried.
 2. **559 draft products ready to create** from 17 crawls. Dry-run only, NOT written.
    `python -m scripts.import_unmatched_products <crawl.json> --manufacturer "<name>" --commit`
    Check a sample of names first — the last two dry runs both surfaced quality problems.
