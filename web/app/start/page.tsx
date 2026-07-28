@@ -14,6 +14,7 @@ import {
 import { getMe, invalidateMeCache } from "@/lib/api/customers";
 import { sendOtp, verifyOtp } from "@/lib/api/otp";
 import { OtpInput } from "@/components/app/otp-input";
+import { TactileButton, TactileLink } from "@/components/app/tactile-button";
 import type { ApiError } from "@/lib/api";
 
 type Tab = "signup" | "login";
@@ -264,13 +265,10 @@ export default function StartPage() {
             </p>
           </div>
           <div className="flex flex-col gap-3">
-            <Link
-              href="/app"
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-6 py-3.5 text-sm font-semibold text-black transition hover:bg-emerald-400"
-            >
+            <TactileLink href="/app">
               Open the Web App
               <ChevronRight className="h-4 w-4" />
-            </Link>
+            </TactileLink>
             <a
               href="https://t.me/Peacewayonline_bot"
               target="_blank"
@@ -403,11 +401,10 @@ export default function StartPage() {
                 </p>
               )}
 
-              <button
+              <TactileButton
                 type="submit"
                 disabled={loading}
-                className="mt-1 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 px-6 py-3.5 text-sm font-semibold text-black transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
-                style={{ minHeight: 52 }}
+                className="mt-1 w-full min-h-[52px] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {loading ? (
                   <>
@@ -420,7 +417,7 @@ export default function StartPage() {
                     <ChevronRight className="h-4 w-4" />
                   </>
                 )}
-              </button>
+              </TactileButton>
             </form>
           )}
 
@@ -466,12 +463,11 @@ export default function StartPage() {
                 )}
               </div>
 
-              <button
+              <TactileButton
                 type="button"
                 onClick={handleVerifyOtp}
                 disabled={otp.trim().length < 6 || loading}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 px-6 py-3.5 text-sm font-semibold text-black transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
-                style={{ minHeight: 52 }}
+                className="w-full min-h-[52px] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {loading ? (
                   <>
@@ -481,7 +477,7 @@ export default function StartPage() {
                 ) : (
                   "Verify →"
                 )}
-              </button>
+              </TactileButton>
 
               <button
                 type="button"

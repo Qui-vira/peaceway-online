@@ -10,6 +10,7 @@ import {
   adminFetch, setAdminToken, clearAdminToken, getAdminToken, anyPermission,
   isAdminAuthError,
 } from "@/lib/admin-auth";
+import { Button } from "@/components/app/ui";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 interface AdminMe {
@@ -280,13 +281,13 @@ function StaffOtpGate({ onLogin }: { onLogin: (admin: AdminMe) => void }) {
                 </div>
               )}
               {error && <p className="text-[13px] text-red-400">{error}</p>}
-              <button
+              <Button
                 onClick={handleSendCode}
                 disabled={loading || (channel === "telegram" ? !telegramId.trim() : !email.trim())}
-                className="w-full rounded-xl bg-emerald-500 py-3.5 text-sm font-semibold text-black disabled:opacity-50"
+                className="w-full"
               >
                 {loading ? "Sending…" : channel === "telegram" ? "Send Code via Telegram" : "Send Code via Email"}
-              </button>
+              </Button>
             </>
           ) : (
             <>
@@ -310,13 +311,13 @@ function StaffOtpGate({ onLogin }: { onLogin: (admin: AdminMe) => void }) {
                 </p>
               </div>
               {error && <p className="text-[13px] text-red-400">{error}</p>}
-              <button
+              <Button
                 onClick={handleVerify}
                 disabled={loading || code.trim().length !== 6}
-                className="w-full rounded-xl bg-emerald-500 py-3.5 text-sm font-semibold text-black disabled:opacity-50"
+                className="w-full"
               >
                 {loading ? "Verifying…" : "Verify & Sign In"}
-              </button>
+              </Button>
               <button
                 onClick={() => { setStep("identifier"); setCode(""); setError(""); }}
                 className="w-full text-center text-[12px] text-[#b1bdb0] hover:text-[#dcdddb]"
@@ -443,7 +444,7 @@ function Dashboard({ admin }: { admin: AdminMe }) {
             <div className="rounded-2xl border border-white/8 bg-white/4 p-5 text-sm text-white/60">
               Track out-of-stock rescue workflows, confirm partner stock, and keep the customer under Peaceway tracking.
               <div className="mt-4">
-                <Link href="/admin/sourcing" className="inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-2 font-semibold text-black">
+                <Link href="/admin/sourcing" className="pw-btn-sm">
                   Open Sourcing Control
                 </Link>
               </div>
@@ -456,7 +457,7 @@ function Dashboard({ admin }: { admin: AdminMe }) {
             <div className="rounded-2xl border border-white/8 bg-white/4 p-5 text-sm text-white/60">
               View pickup-ready partner orders and keep last-mile delivery under Peaceway verification.
               <div className="mt-4">
-                <Link href="/admin/dispatch" className="inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-2 font-semibold text-black">
+                <Link href="/admin/dispatch" className="pw-btn-sm">
                   Open Dispatch Queue
                 </Link>
               </div>
@@ -757,7 +758,7 @@ function CatalogTab() {
                     <button
                       onClick={() => saveProduct(product)}
                       disabled={saving}
-                      className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-500 px-3 text-[12px] font-bold text-black disabled:opacity-50"
+                      className="pw-btn-sm flex-1 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       <Save className="h-3.5 w-3.5" />
                       {saving ? "Saving…" : "Save"}

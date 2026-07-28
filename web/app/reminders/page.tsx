@@ -18,6 +18,7 @@ import {
   SkeletonCard,
 } from "@/components/app/ui";
 import { GenericIcon } from "@/components/app/drug-icons";
+import { TactileLink } from "@/components/app/tactile-button";
 
 type State =
   | { kind: "loading" }
@@ -66,13 +67,10 @@ export default function RemindersPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <h1 className="font-syne text-[22px] font-bold text-white">My Medications</h1>
-          <Link
-            href="/reminders/new"
-            className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500 px-3.5 py-1.5 text-[12px] font-semibold text-black transition hover:bg-emerald-400"
-          >
+          <TactileLink href="/reminders/new" variant="sm">
             <Plus className="h-3.5 w-3.5" />
             Add
-          </Link>
+          </TactileLink>
         </div>
 
         {state.kind === "loading" && (

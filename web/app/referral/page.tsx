@@ -6,6 +6,7 @@ import { Copy, Share2, Gift } from "lucide-react";
 import { apiFetch, isAuthError } from "@/lib/api";
 import { AppShell } from "@/components/app/app-shell";
 import { GuestWall, LoadFailed, SectionLabel } from "@/components/app/ui";
+import { TactileButton } from "@/components/app/tactile-button";
 
 interface MeResponse {
   full_name: string | null;
@@ -123,13 +124,10 @@ export default function ReferralPage() {
         </div>
 
         {/* CTAs */}
-        <button
-          onClick={share}
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 py-3.5 text-sm font-semibold text-black transition hover:bg-emerald-400"
-        >
+        <TactileButton onClick={share} className="w-full">
           <Share2 className="h-4 w-4" />
           Share my code
-        </button>
+        </TactileButton>
         <button
           onClick={copyLink}
           className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 py-3 text-[13px] text-white/50 transition hover:border-white/20 hover:text-white/70"

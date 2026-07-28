@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowLeft, Upload, CheckCircle2, AlertTriangle } from "lucide-react";
 import { submitPrescription } from "@/lib/api/orders";
 import { AppShell } from "@/components/app/app-shell";
+import { TactileButton } from "@/components/app/tactile-button";
 
 type State = "idle" | "submitting" | "done" | "error";
 
@@ -160,13 +161,13 @@ export default function PrescriptionPage() {
           <p className="text-[13px] text-red-400">{error}</p>
         )}
 
-        <button
+        <TactileButton
           disabled={(!description.trim() && !file) || state === "submitting"}
           onClick={handleSubmit}
-          className="w-full rounded-xl bg-emerald-500 py-3.5 text-sm font-semibold text-black transition hover:bg-emerald-400 disabled:opacity-40"
+          className="w-full disabled:opacity-40"
         >
           {state === "submitting" ? "Sending…" : "Send Prescription →"}
-        </button>
+        </TactileButton>
       </div>
     </AppShell>
   );

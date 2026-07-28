@@ -21,6 +21,7 @@ import { isAuthError, type ApiError } from "@/lib/api";
 import { AppShell } from "@/components/app/app-shell";
 import { GuestWall, LoadFailed, StatusChip } from "@/components/app/ui";
 import { TabletIcon } from "@/components/app/drug-icons";
+import { TactileButton } from "@/components/app/tactile-button";
 
 type Field = "product_name" | "strength" | "form" | "quantity" | "urgency" | "note";
 type Errors = Partial<Record<Field | "form_error", string>>;
@@ -210,7 +211,7 @@ export default function RequestPage() {
               )}
             </div>
             <div className="flex flex-col gap-3">
-              <button
+              <TactileButton
                 onClick={() => {
                   setSubmitted(null);
                   setForm({
@@ -222,11 +223,10 @@ export default function RequestPage() {
                     note: "",
                   });
                 }}
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-6 py-3.5 text-sm font-semibold text-black transition hover:bg-emerald-400"
               >
                 <ClipboardList className="h-4 w-4" />
                 Submit Another Request
-              </button>
+              </TactileButton>
               <Link
                 href="/requests"
                 className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 px-6 py-3.5 text-sm font-semibold text-white/70 transition hover:border-white/20 hover:text-white"
@@ -370,11 +370,10 @@ export default function RequestPage() {
             </p>
           )}
 
-          <button
+          <TactileButton
             type="submit"
             disabled={loading}
-            className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-6 py-3.5 text-sm font-semibold text-black transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
-            style={{ minHeight: 52 }}
+            className="w-full min-h-[52px] disabled:cursor-not-allowed disabled:opacity-60"
           >
             {loading ? (
               <>
@@ -387,7 +386,7 @@ export default function RequestPage() {
                 <ChevronRight className="h-4 w-4" />
               </>
             )}
-          </button>
+          </TactileButton>
 
           <p className="text-center text-[11px] leading-relaxed text-[#b1bdb0]">
             A Peaceway pharmacist will review your request and contact you to confirm availability.

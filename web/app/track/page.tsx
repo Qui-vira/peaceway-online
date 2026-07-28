@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Search, CheckCircle2 } from "lucide-react";
 import { trackOrder } from "@/lib/api/orders";
+import { TactileButton } from "@/components/app/tactile-button";
 
 type TrackResult = {
   code: string;
@@ -115,13 +116,13 @@ function TrackPageContent() {
             <p className="text-[13px] text-red-400">{error}</p>
           )}
 
-          <button
+          <TactileButton
             onClick={handleTrack}
             disabled={loading || !code.trim() || !phone.trim()}
-            className="w-full rounded-xl bg-emerald-500 py-3.5 text-sm font-semibold text-black transition hover:bg-emerald-400 disabled:opacity-50"
+            className="w-full disabled:opacity-50"
           >
             {loading ? "Searching…" : "Track Order"}
-          </button>
+          </TactileButton>
         </div>
 
         {result && (

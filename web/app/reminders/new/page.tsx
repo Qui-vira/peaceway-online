@@ -8,6 +8,7 @@ import { localDateKey } from "@/lib/date";
 import { AppShell } from "@/components/app/app-shell";
 import { SectionLabel } from "@/components/app/ui";
 import { createReminder } from "@/lib/api/reminders";
+import { TactileButton } from "@/components/app/tactile-button";
 
 type Step = 1 | 2 | 3;
 
@@ -136,13 +137,13 @@ export default function NewReminderPage() {
               </p>
             </div>
 
-            <button
+            <TactileButton
               disabled={!name.trim()}
               onClick={() => setStep(2)}
-              className="w-full rounded-xl bg-emerald-500 py-3.5 text-sm font-semibold text-black transition hover:bg-emerald-400 disabled:opacity-40"
+              className="w-full disabled:opacity-40"
             >
               Next
-            </button>
+            </TactileButton>
           </div>
         )}
 
@@ -254,13 +255,13 @@ export default function NewReminderPage() {
               )}
             </div>
 
-            <button
+            <TactileButton
               disabled={times.length === 0}
               onClick={() => setStep(3)}
-              className="w-full rounded-xl bg-emerald-500 py-3.5 text-sm font-semibold text-black transition hover:bg-emerald-400 disabled:opacity-40"
+              className="w-full disabled:opacity-40"
             >
               Next
-            </button>
+            </TactileButton>
           </div>
         )}
 
@@ -305,14 +306,13 @@ export default function NewReminderPage() {
               <p className="text-center text-[13px] text-red-400">{error}</p>
             )}
 
-            <button
+            <TactileButton
               disabled={submitting}
               onClick={handleSubmit}
-              style={{ minHeight: 52 }}
-              className="w-full rounded-xl bg-emerald-500 py-3.5 text-sm font-semibold text-black transition hover:bg-emerald-400 disabled:opacity-60"
+              className="w-full min-h-[52px] disabled:opacity-60"
             >
               {submitting ? "Setting reminder…" : "Set Reminder"}
-            </button>
+            </TactileButton>
 
             <button
               onClick={() => setStep(2)}

@@ -20,6 +20,7 @@ import {
   TimeChip,
 } from "@/components/app/ui";
 import { GenericIcon } from "@/components/app/drug-icons";
+import { TactileButton } from "@/components/app/tactile-button";
 
 type State =
   | { kind: "loading" }
@@ -247,13 +248,13 @@ export default function ReminderDetailPage() {
 
           {isPaused && (
             <>
-              <button
+              <TactileButton
                 disabled={acting}
                 onClick={() => act(() => resumeReminder(id))}
-                className="w-full rounded-xl bg-emerald-500 py-3.5 text-sm font-semibold text-black transition hover:bg-emerald-400 disabled:opacity-50"
+                className="w-full disabled:opacity-50"
               >
                 {acting ? "Resuming…" : "Resume Reminder"}
-              </button>
+              </TactileButton>
               <button
                 disabled={acting}
                 onClick={() => act(() => stopReminder(id))}

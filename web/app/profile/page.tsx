@@ -15,6 +15,7 @@ import {
 import { isAuthError, type ApiError } from "@/lib/api";
 import { AppShell } from "@/components/app/app-shell";
 import { GuestWall, LoadFailed, SectionLabel, Spinner } from "@/components/app/ui";
+import { TactileButton } from "@/components/app/tactile-button";
 
 function FieldShell({
   icon,
@@ -215,11 +216,10 @@ export default function ProfilePage() {
                 </p>
               )}
 
-              <button
+              <TactileButton
                 type="submit"
                 disabled={saving}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 px-6 py-3.5 text-sm font-semibold text-black transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
-                style={{ minHeight: 52 }}
+                className="w-full min-h-[52px] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {saving ? (
                   <>
@@ -234,7 +234,7 @@ export default function ProfilePage() {
                 ) : (
                   "Save Changes"
                 )}
-              </button>
+              </TactileButton>
             </form>
 
             {/* Divider */}
