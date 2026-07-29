@@ -3,9 +3,10 @@
 Written 2026-07-27, updated 2026-07-28. `main` is at `7077f272`, pushed, `web` deploy
 green, 666 tests pass.
 
-**There is unmerged work.** Branch `refactor/button-system` (5 commits, pushed, Vercel
-preview only — nothing deployed to production) carries the button-system refactor and
-two repo-hygiene changes. See §9 before merging it.
+**There is unmerged work.** Branch `refactor/button-system` (7 commits, pushed, Vercel
+preview only — nothing deployed to production) carries the button-system refactor, two
+repo-hygiene changes and the lint fix. Lint, typecheck and build all pass there; lint
+fails on `main`. See §9 before merging it.
 
 (Replaces the previous handoff covering the staff checklist / meeting tracker — that
 work shipped and had no blocking steps; see git history for `handoff.md` before this.)
@@ -235,9 +236,12 @@ Bugs fixed, worth knowing:
 
 ## 9. Unmerged: `refactor/button-system`
 
-Five commits, pushed, **not merged**. A Vercel *preview* fired; no production deploy
-on either host. `main` was never touched.
+Seven commits, pushed, **not merged**. A Vercel *preview* fired; no production deploy
+on either host. `main` was never touched. `npm run lint`, `typecheck` and `build` all
+pass on this branch — lint had been failing on `main`, see below.
 
+    4aa3f558  chore(web): silence no-img-element with the reason, not with next/image
+    20e93656  docs: record the unmerged button-system branch and what merging it moves
     58a63dd8  docs: tell agents to query the knowledge graph first
     b705812f  refactor(web): replace hand-rolled buttons with the sanctioned components
     c78373c4  docs(design): document the two sanctioned button components
@@ -276,13 +280,18 @@ the same file under the same conditions and has not been audited.
 
 ### Open on that branch
 
-- **`npm run lint` fails** — 2 `@next/next/no-img-element` warnings against
-  `--max-warnings=0`, in `web/app/shop/[id]/page.tsx:120` and
-  `web/components/app/product-card.tsx:116`. **Pre-existing on `main`**, last touched
-  in `1f459897`; a clean checkout fails the same way. Typecheck and production build
-  both pass. Agreed fix: `next/image` where the image has known dimensions, otherwise
-  an eslint-disable with a written reason — as its own commit, without changing
-  rendering.
+- ~~`npm run lint` fails~~ **fixed in `4aa3f558`.** It had been failing on `main`
+  since `1f459897` on 2 `@next/next/no-img-element` warnings against
+  `--max-warnings=0` — invisible unless you ran lint, because typecheck and build
+  both passed. Resolved with an eslint-disable carrying the reason, not `next/image`:
+  `file_storage` already serves 800px WebP with EXIF stripped, the client never
+  receives intrinsic dimensions (`MediaAsset` has width/height but the API returns
+  only `image_url`, and a long-edge cap means the aspect varies), and `mediaSrc()`
+  points at the API host so it would need `images.remotePatterns` plus per-image
+  Vercel billing to re-encode an already-normalized asset. `fill` would have worked
+  around the missing dimensions — both sites render into fixed containers with
+  `object-cover` — but it changes layout mechanics for an optimization these images
+  do not need. Rendering is unchanged; the commit is comments only.
 - **8 files still untracked**: `presentations/build-01..06.js`, `package.json`,
   `package-lock.json`. `.gitignore` now permits exactly these and excludes the
   renders; nothing has added them yet.
