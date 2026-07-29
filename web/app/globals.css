@@ -108,6 +108,171 @@ body::before {
   }
 }
 
+/* ==========================================================================
+   App-open loader.
+
+   Plays the commissioned logo animation full-screen, once, then fades out.
+   Everything that decides *when* it runs lives in components/brand/app-loader.tsx;
+   this file only decides how it looks.
+
+   Scope is one screen on purpose. A branded curtain used to sweep the viewport
+   on every route change as well; it was removed. The first question to ask of
+   any animation is how often it will be seen, and a route transition in a
+   pharmacy app fires dozens of times per session, where motion reads as latency
+   rather than craft. Route changes keep the 180ms fade in `.pw-route` above.
+
+   Fails OPEN. The overlay only exists while the component renders it, and the
+   component has four independent ways to stop rendering it (video end, hard
+   cap, stall watchdog, user tap). Nothing here can strand a visitor.
+   ========================================================================== */
+
+:root {
+  /* Sampled from the supplied animation at both its first and last frame.
+     The video is 16:9 and phones are portrait, so `contain` always letterboxes;
+     matching this colour is what makes the letterbox invisible instead of a
+     black bar. Re-render the animation on another ground and this is the one
+     value to change. */
+  --pw-loader-bg: #f3f3f3;
+  --pw-loader-fade: 240ms;
+  /* The app's own ground. The loader ends on this colour rather than cutting to
+     it, because the jump from the loader's near-white to the app's near-black is
+     a 17.7:1 luminance flip and is the single biggest reason a splash reads as a
+     title card sitting in front of the product instead of the product opening. */
+  --pw-app-bg: #0b0c09;
+  /* The handoff travel. Long enough to read as one object moving, short enough
+     to stay inside the 200-500ms band for a full-screen transition. */
+  --pw-loader-handoff: 480ms;
+}
+
+/* Hidden pre-paint by the inline script in layout.tsx for a returning visitor
+   in the same session, so they never see a frame of it. */
+.pw-loader-skip .pw-loader {
+  display: none;
+}
+
+.pw-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  background: var(--pw-loader-bg);
+  opacity: 1;
+  /* Exponential ease-out. The built-in easings are too weak to read as
+     intentional, and an exit should feel like it is already leaving by the
+     time you notice it. */
+  transition: opacity var(--pw-loader-fade) cubic-bezier(0.23, 1, 0.32, 1),
+    background-color var(--pw-loader-handoff) cubic-bezier(0.22, 0.61, 0.36, 1);
+  /* Tapping anywhere dismisses, so the whole surface is a target. */
+  cursor: pointer;
+  /* The no-JS backstop. This overlay is server-rendered so it covers the first
+     painted frame; if scripting never arrives, nothing else would take it away.
+     `steps(1, end)` holds the loader fully visible and then, once, hides it.
+     Cancelled by `.js-ready` the instant React mounts, so the animation and the
+     JS-driven transitions never fight over opacity. */
+  animation: pwLoaderBackstop 6400ms steps(1, end) forwards;
+}
+
+.pw-loader.js-ready {
+  animation: none;
+}
+
+@keyframes pwLoaderBackstop {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+}
+
+/* Second beat: the ground becomes the app's ground while the logo travels. By
+   the time the overlay fades there is nothing left to jump to. */
+.pw-loader.is-handoff {
+  background-color: var(--pw-app-bg);
+  pointer-events: none;
+}
+
+.pw-loader.is-leaving {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Third beat: the final frame, held as a still, travels to the resting position
+   of the app's own header logo and shrinks to its size. This is the shared
+   element - the thing that carries across the seam - and it is why the loader
+   resolves into the app rather than disappearing in front of it.
+
+   The still is the video's own last frame at the same size in the same box, so
+   the swap from <video> to <img> is not visible. Easing is the app's route
+   curve, deliberately: the handoff should sound like the rest of the product,
+   not like the video's internal timing. */
+/* The travelling cut-out. Positioned absolutely at the exact rect the video was
+   drawing the lockup into, so the handover is invisible, then transformed to the
+   app's own logo. transform-origin is the centre of that rect, which is what the
+   translate/scale pair in the component solves for. */
+.pw-loader-mark {
+  position: fixed;
+  margin: 0;
+  transform-origin: center center;
+  /* Belt and braces against a half-pixel seam on fractional device ratios. */
+  backface-visibility: hidden;
+}
+
+.pw-loader-mark.is-travelling {
+  transition: transform var(--pw-loader-handoff) cubic-bezier(0.22, 0.61, 0.36, 1);
+  will-change: transform;
+}
+
+/* Sized deliberately rather than stretched to the viewport.
+   
+   This used to be width/height 100% with `object-fit: contain`, which is the
+   reflex answer and the wrong one here: a 16:9 source in a portrait phone
+   letterboxed to about a quarter of the screen height, so the logo rendered
+   small and adrift with vast empty margins above and below. The shipped video
+   is cropped to its own content (1080x990) and given a size, so the element IS
+   the artwork and there is no letterbox to hide. The overlay's matching ground
+   does the rest.
+   
+   aspect-ratio reserves the box before the video's metadata arrives, so nothing
+   reflows when it loads. */
+.pw-loader-media {
+  display: block;
+  width: min(74vw, 380px);
+  max-height: 62vh;
+  aspect-ratio: 1080 / 990;
+  object-fit: contain;
+}
+
+/* Tablet and up: the logo can afford more presence without dominating. */
+@media (min-width: 768px) {
+  .pw-loader-media {
+    width: min(46vw, 460px);
+  }
+}
+
+@media (min-width: 1280px) {
+  .pw-loader-media {
+    width: 420px;
+  }
+}
+
+/* Reduced motion still gets the finished lockup and a fade, because a hard cut
+   to the app is its own kind of jolt. Movement is what goes, not feedback. */
+@media (prefers-reduced-motion: reduce) {
+  .pw-loader {
+    transition: opacity 120ms linear, background-color 120ms linear;
+  }
+  /* No travel under reduced motion: the ground still resolves to the app's
+     colour, but nothing flies across the screen. */
+  .pw-loader-mark.is-travelling {
+    transition: none;
+    transform: none !important;
+  }
+}
+
 #spbar {
   position: fixed;
   left: 0;

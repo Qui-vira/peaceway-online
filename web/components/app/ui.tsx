@@ -4,10 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ChevronRight, RefreshCw, UserPlus, WifiOff } from "lucide-react";
 import { DrugIcon } from "@/components/app/drug-icons";
-import { PeacewayLoader } from "@/components/app/peaceway-loader";
 import type { MedicationReminder } from "@/lib/api/reminders";
 
-export { PeacewayLoader };
 
 export const STATUS_LABELS: Record<string, string> = {
   NEW: "Received",
@@ -70,8 +68,33 @@ export function ActionCard({
   );
 }
 
+/**
+ * The waiting state for any screen fetching data.
+ *
+ * This used to be a full-screen overlay of the logo mark, pulsing, pinned over
+ * the whole viewport. Two problems with that. It blocked the screen behind a
+ * brand moment the user had already seen seconds earlier on the splash, and it
+ * told them nothing about what was coming. A skeleton that traces the shape of
+ * the content answers "what am I waiting for" while a logo only answers "whose
+ * app is this", which they already know.
+ *
+ * Skeletons over spinners for anything past ~1s is the standard position in
+ * both Apple's HIG and Material; a spinner is honest only when the wait is
+ * short and the resulting shape is unknowable.
+ *
+ * Deliberately not full-screen and not fixed: it renders in the flow so
+ * surrounding chrome (header, bottom nav) stays visible and usable. Nothing
+ * about loading data should take the app away from the user.
+ */
 export function Spinner() {
-  return <PeacewayLoader />;
+  return (
+    <div className="space-y-3 px-5 py-6" role="status" aria-label="Loading">
+      <SkeletonCard lines={3} />
+      <SkeletonCard lines={2} />
+      <SkeletonCard lines={2} />
+      <span className="sr-only">Loading</span>
+    </div>
+  );
 }
 
 export function GuestWall({ message }: { message?: string }) {
