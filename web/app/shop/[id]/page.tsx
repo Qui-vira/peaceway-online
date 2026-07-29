@@ -117,6 +117,12 @@ export default function ProductDetailPage() {
                 style={{ background: "radial-gradient(circle at 50% 40%, rgba(52,217,138,0.18), transparent 70%)" }}
               />
               {product.image_url ? (
+                /* Same reasoning as components/app/product-card.tsx: file_storage
+                   already serves these at 800px WebP with EXIF stripped, the client
+                   never receives intrinsic dimensions, and mediaSrc() points at the
+                   API host. next/image would add remotePatterns config and per-image
+                   optimization billing to re-encode an already-normalized asset. */
+                // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={mediaSrc(product.image_url)}
                   alt={product.name}

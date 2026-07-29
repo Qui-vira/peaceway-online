@@ -113,6 +113,16 @@ export function ProductCard({
               to a real photo exactly as it did to the fallback icon. */}
           <div ref={iconRef} className="h-full w-full will-change-transform">
             {p.image_url ? (
+              /* next/image is the wrong tool for these. file_storage already
+                 normalizes every upload to 800px on the long edge, WebP, EXIF
+                 stripped, so the optimizer would re-encode an asset that is
+                 already optimal. Intrinsic dimensions never reach the client
+                 either: MediaAsset stores width/height but the API returns only
+                 image_url, and the long-edge cap means the aspect ratio varies
+                 per photo. mediaSrc() also resolves to the API host, so this
+                 would need images.remotePatterns and would bill per source
+                 image on Vercel for no gain. */
+              // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={mediaSrc(p.image_url)}
                 alt={p.name}
