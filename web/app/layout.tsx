@@ -23,7 +23,9 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://peacewayonline.com.ng"),
+  // Single source of truth in lib/constants.ts, so this cannot drift from the
+  // sitemap and robots.txt again.
+  metadataBase: new URL(siteConfig.url),
   title: siteConfig.title,
   description: siteConfig.description,
   openGraph: {

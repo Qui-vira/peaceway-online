@@ -1,5 +1,19 @@
 export const siteConfig = {
   name: "Peaceway Online",
+  /**
+   * The canonical origin, and the base every absolute URL in the metadata is
+   * resolved against.
+   *
+   * `www` is not cosmetic here: the apex 308-redirects to it, so `www` is the
+   * host that actually serves the site and therefore the one canonical tags and
+   * OG images must point at.
+   *
+   * This was `https://peacewayonline.com.ng` until 2026-07-29 - a domain that
+   * does not resolve at all. Every canonical tag, every OG image URL and the
+   * sitemap were pointing at dead DNS, so nothing that crawls or unfurls the
+   * site could reach the referenced pages or preview images.
+   */
+  url: "https://www.peacewayonline.com",
   title: "Peaceway Online | Lagos Pharmacy - Order Medicine on Telegram",
   description:
     "Genuine medicines, pharmacist guidance, and delivery across Lagos. Order through Telegram from Peaceway Pharmacy, Igando.",
