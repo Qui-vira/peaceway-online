@@ -8,6 +8,7 @@ import { Check, Plus } from "lucide-react";
 import { DrugIcon } from "@/components/app/drug-icons";
 import { EASE } from "@/components/app/motion";
 import { mediaSrc } from "@/lib/api";
+import { productSlug } from "@/lib/product-slug";
 import type { Product } from "@/lib/api/catalog";
 
 const FOCUS =
@@ -107,7 +108,7 @@ export function ProductCard({
       ref={cardRef}
       className="pw-tile group relative flex flex-col overflow-hidden active:scale-[0.98] motion-reduce:active:scale-100"
     >
-      <Link href={`/shop/${p.id}`} aria-label={p.name} className={`relative block ${FOCUS}`}>
+      <Link href={`/shop/${productSlug(p)}`} aria-label={p.name} className={`relative block ${FOCUS}`}>
         <div className="flex h-24 items-center justify-center overflow-hidden border-b border-white/6 bg-emerald-500/[0.06] sm:h-28">
           {/* iconRef stays on the wrapper either way so the GSAP hover scale applies
               to a real photo exactly as it did to the fallback icon. */}
@@ -145,7 +146,7 @@ export function ProductCard({
         </span>
       </Link>
       <div className="flex flex-1 flex-col gap-1.5 p-3">
-        <Link href={`/shop/${p.id}`} className={`rounded ${FOCUS}`}>
+        <Link href={`/shop/${productSlug(p)}`} className={`rounded ${FOCUS}`}>
           <p className="line-clamp-2 text-[13px] font-semibold leading-snug text-white">{p.name}</p>
           {p.strength && <p className="text-[11px] text-[#b1bdb0]">{p.strength}</p>}
         </Link>

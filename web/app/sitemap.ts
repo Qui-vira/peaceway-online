@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { siteConfig } from "@/lib/constants";
+import { fetchCatalog, productSlug } from "@/lib/product-slug";
 
 /**
  * The sitemap, generated from the routes rather than hand-maintained.
@@ -33,26 +34,32 @@ import { siteConfig } from "@/lib/constants";
  *   /showcase
  *       Internal.
  *
- * WHY THE 250 PRODUCT PAGES ARE NOT HERE
+ * THE PRODUCT PAGES
  *
- * They are the biggest SEO opportunity in this app and they are not ready.
- * `/shop/[id]` is a client component with no `generateMetadata`, so all 250
- * products currently serve the same <title> as the homepage. Listing them would
- * submit 250 duplicate-title pages, which suppresses a site rather than
- * promoting it. Two things have to land first:
+ * Included now that they earn it. They were held back while `/shop/[id]` was a
+ * client component with no `generateMetadata`, which made all 250 serve the
+ * homepage's <title> - submitting 250 duplicate-title pages suppresses a site
+ * rather than promoting it. Each product now describes itself and sits on a
+ * keyword-bearing slug, so they belong here. For a pharmacy this is where the
+ * search traffic actually is: people search medicine names, not "pharmacy".
  *
- *   1. per-product `generateMetadata` (title, description, OG image)
- *   2. ideally slugs instead of UUIDs - `/shop/paracetamol-500mg` carries the
- *      search term, `/shop/4094c822-8450-...` carries nothing
- *
- * Once those exist, add them here by fetching `/catalog` inside a try/catch that
- * degrades to these static routes, so a backend hiccup can never fail the build.
+ * The catalogue fetch cannot fail the build. `fetchCatalog` swallows its own
+ * errors and returns an empty array, so a backend hiccup degrades this to the
+ * static routes below rather than breaking the deploy.
  *
  * `lastModified` is intentionally omitted. Stamping every entry with the build
  * time would tell Google the whole site changed on every deploy, which is not
  * true and which teaches it to distrust the signal.
  */
-export default function sitemap(): MetadataRoute.Sitemap {
+/**
+ * Rebuilt hourly rather than pinned at deploy time, so a medicine added to the
+ * catalogue appears in the sitemap without anyone shipping code - and so a
+ * catalogue that was unreachable during a build is not baked into a
+ * products-less sitemap until the next deploy.
+ */
+export const revalidate = 3600;
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = siteConfig.url;
 
   const routes: Array<{
@@ -78,9 +85,22 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: "/partners", priority: 0.4, changeFrequency: "monthly" },
   ];
 
-  return routes.map(({ path, priority, changeFrequency }) => ({
-    url: `${base}${path}`,
-    priority,
-    changeFrequency,
+  const staticEntries: MetadataRoute.Sitemap = routes.map(
+    ({ path, priority, changeFrequency }) => ({
+      url: `${base}${path}`,
+      priority,
+      changeFrequency,
+    })
+  );
+
+  // Priority 0.6: below the service pages that describe what the pharmacy does,
+  // above /partners. Weekly, because what moves on a product page is price and
+  // stock rather than the medicine itself.
+  const productEntries: MetadataRoute.Sitemap = (await fetchCatalog()).map((p) => ({
+    url: `${base}/shop/${productSlug(p)}`,
+    priority: 0.6,
+    changeFrequency: "weekly" as const,
   }));
+
+  return [...staticEntries, ...productEntries];
 }

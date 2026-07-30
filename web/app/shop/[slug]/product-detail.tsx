@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
 import Link from "next/link";
 import { AlertTriangle, Check } from "lucide-react";
 import { isNotFound, mediaSrc } from "@/lib/api";
@@ -11,6 +10,22 @@ import { AppShell } from "@/components/app/app-shell";
 import { LoadFailed, Spinner } from "@/components/app/ui";
 import { DrugIcon } from "@/components/app/drug-icons";
 import { TactileButton, TactileLink } from "@/components/app/tactile-button";
+
+/**
+ * The interactive half of the product page.
+ *
+ * Split out of what used to be a single `"use client"` page so the route could
+ * export `generateMetadata` (see page.tsx). Everything below is unchanged from
+ * that version except how it gets its product.
+ *
+ * `initialProduct` arrives already resolved from the server, so in the normal
+ * case there is no loading state and no second request. When the server could
+ * not reach the catalogue it passes null and this falls back to fetching by ref
+ * exactly as before - which only works for a UUID ref, since the by-id endpoint
+ * is all the API offers. That is the correct degradation: a slug URL with an
+ * unreachable backend shows the load-failed state rather than claiming the
+ * medicine does not exist.
+ */
 
 const FOCUS =
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0b0c09]";
@@ -27,12 +42,15 @@ function fmt(price: string | null) {
   return isPriced(price) ? `₦${Number(price).toLocaleString("en-NG")}` : "Price on request";
 }
 
-export default function ProductDetailPage() {
-  const params = useParams();
-  const id = params?.id as string;
+type ProductDetailProps = {
+  productRef: string;
+  initialProduct: Product | null;
+  isUuidRef: boolean;
+};
 
-  const [product, setProduct] = useState<Product | null>(null);
-  const [loading, setLoading] = useState(true);
+export function ProductDetail({ productRef, initialProduct, isUuidRef }: ProductDetailProps) {
+  const [product, setProduct] = useState<Product | null>(initialProduct);
+  const [loading, setLoading] = useState(initialProduct === null);
   // Distinct from `product === null`, which renders "not found".
   const [failed, setFailed] = useState(false);
   const [added, setAdded] = useState(false);
@@ -40,8 +58,20 @@ export default function ProductDetailPage() {
 
   useEffect(() => {
     setCartCount(getCart().reduce((s, c) => s + c.quantity, 0));
-    if (!id) return;
-    getProduct(id)
+
+    // Server already resolved it: nothing to fetch.
+    if (initialProduct) return;
+
+    // The API can only look up by id. A slug got here without the server being
+    // able to resolve it, which means the catalogue was unreachable, not that
+    // the product is missing - so this is a failure, not a 404.
+    if (!isUuidRef) {
+      setFailed(true);
+      setLoading(false);
+      return;
+    }
+
+    getProduct(productRef)
       .then((p) => setProduct(p))
       .catch((e) => {
         // Only a 404 means this medicine does not exist. Anything else and we
@@ -51,7 +81,7 @@ export default function ProductDetailPage() {
         else setFailed(true);
       })
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [productRef, initialProduct, isUuidRef]);
 
   function handleAdd() {
     // isPriced, not a truthy check: "0.00" would otherwise pass and put a ₦0 line
