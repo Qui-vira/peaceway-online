@@ -342,11 +342,11 @@ would otherwise hold the screen for the whole cap), tap or Escape, and the CSS b
 
 `LOADER_SCOPE` defaults to `"every-app-open"`. The tighter `"first-visit-per-session"`
 gate is implemented and tested but **not** the default, deliberately: it hid the loader
-twice during the build and both times read as "the animation is gone". A brand moment you
-cannot reliably see is worse than one seen slightly too often. Note that neither setting
-replays on client-side navigation — the component lives in the root layout, which
-survives routing and never re-mounts. Only crossing between the marketing site and the
-app (a real document load) replays it.
+twice during the build and both times read as "the animation is gone". A brand moment
+you cannot reliably see is worse than one seen slightly too often. Note that neither
+setting replays on client-side navigation — the component lives in the root layout,
+which survives routing and never re-mounts. Only crossing between the marketing site and
+the app (a real document load) replays it.
 
 **The asset.** Delivered at 40.7 MB, 1920x1080, 46 Mbps, 7.04s — with content occupying
 only the middle 50% of the frame, so on a phone the logo rendered ~195px wide adrift in
@@ -365,11 +365,12 @@ re-measured — it is the lockup's position as fractions of the delivered frame,
 handoff geometry is derived from it.
 
 **The exit.** On finishing, the transparent cut-out is laid exactly where the video drew
-the lockup (imperceptible swap) and travels to the app's own header logo while the ground
-resolves from the animation's `#F3F3F3` to the app's `#0b0c09`. Without that the loader
-ends and the app begins across a 17.7:1 luminance flip with nothing carried over, which
-is what made it read as a title card in front of the product rather than the product
-opening. Routes with no header logo take the plain fade rather than an invented target.
+the lockup (imperceptible swap) and travels to the app's own header logo while the
+ground resolves from the animation's `#F3F3F3` to the app's `#0b0c09`. Without that the
+loader ends and the app begins across a 17.7:1 luminance flip with nothing carried over,
+which is what made it read as a title card in front of the product rather than the
+product opening. Routes with no header logo take the plain fade rather than an invented
+target.
 
 Two traps, both hit and both fixed, worth knowing before editing this:
 
@@ -386,15 +387,16 @@ is in the shipped CSS, correctly ordered, at the right specificity, and it resol
 hunting the cascade, the handoff assigns the colour inline, which wins unconditionally.
 The class remains as the no-JS path. If you ever need to debug that: the stylesheet is
 cross-origin to the apex host so `cssRules` is unreadable from the page, and a browser
-pane that is not compositing freezes transitions while timers keep firing — both produced
-convincing false readings during this work.
+pane that is not compositing freezes transitions while timers keep firing — both
+produced convincing false readings during this work.
 
 ### 10.2 Removed, because the loader replaces them
 
-- **The route curtain.** A branded full-screen interstitial used to sweep the viewport on
-  every navigation. It fired dozens of times per session, where motion reads as latency
-  rather than craft. `app/template.tsx` is back to the 180ms `.pw-route` fade and nothing
-  else. Do not re-add it; the brand moment belongs on app open, where it happens once.
+- **The route curtain.** A branded full-screen interstitial used to sweep the viewport
+  on every navigation. It fired dozens of times per session, where motion reads as
+  latency rather than craft. `app/template.tsx` is back to the 180ms `.pw-route` fade
+  and nothing else. Do not re-add it; the brand moment belongs on app open, where it
+  happens once.
 - **`components/app/peaceway-loader.tsx`.** The data-loading state was a full-screen
   overlay of the logo mark, pinned over the viewport, hiding the header and bottom nav
   behind a brand moment the user saw seconds earlier on the splash. `Spinner` in
@@ -412,10 +414,10 @@ convincing false readings during this work.
 Found while verifying the deploy, all pre-existing, all fixed.
 
 1. **`metadataBase` pointed at `https://peacewayonline.com.ng`, a domain with no DNS at
-   all** (`curl` returns 000). Every canonical tag and every OpenGraph image URL the site
-   emitted was therefore unreachable. The live host is `www.peacewayonline.com` — the
-   apex 308-redirects to it, so `www` is what canonicals must name. The origin now lives
-   in `siteConfig.url` (`web/lib/constants.ts`) and `metadataBase` reads it.
+   all** (`curl` returns 000). Every canonical tag and every OpenGraph image URL the
+   site emitted was therefore unreachable. The live host is `www.peacewayonline.com` —
+   the apex 308-redirects to it, so `www` is what canonicals must name. The origin now
+   lives in `siteConfig.url` (`web/lib/constants.ts`) and `metadataBase` reads it.
 2. **`robots.txt` and `sitemap.xml` named the same dead domain.** A `Sitemap:` directive
    on unreachable DNS means a crawler cannot fetch the sitemap at all.
 3. **The sitemap listed one URL.** Now generated from the routes — `web/app/sitemap.ts`,
@@ -424,9 +426,10 @@ Found while verifying the deploy, all pre-existing, all fixed.
    shadows the generated route.
 
    Note for anyone extending it: "returns 200" is **not** a usable test for what belongs
-   in a sitemap here. Every route answers 200 anonymously because they are client-rendered
-   shells whose guest wall appears only after hydration. Personal surfaces, staff
-   surfaces, `/offline` and `/showcase` are excluded on judgement, not status code.
+   in a sitemap here. Every route answers 200 anonymously because they are
+   client-rendered shells whose guest wall appears only after hydration. Personal
+   surfaces, staff surfaces, `/offline` and `/showcase` are excluded on judgement, not
+   status code.
 4. **All 250 product pages served the root layout's title.** `/shop/[id]` was a client
    component, so `generateMetadata` could not run. 250 pages sharing one title is
    duplicate content, which is why they were initially kept out of the sitemap.
@@ -443,13 +446,13 @@ to the slug, so bookmarks and anything already indexed transfer rather than comp
 **No database change.** There is no `slug` column and adding one means an Alembic
 migration plus a backfill against production. Slugs are derived from name + strength and
 resolved by matching the catalogue, which is 250 items in one ~90KB response, fetched
-server-side via `INTERNAL_API_URL` (not `NEXT_PUBLIC_API_URL` — a server component cannot
-fetch the relative `/api/v1` proxy path the browser uses) and cached for an hour.
+server-side via `INTERNAL_API_URL` (not `NEXT_PUBLIC_API_URL` — a server component
+cannot fetch the relative `/api/v1` proxy path the browser uses) and cached for an hour.
 
 **The 8-character id suffix is unconditional**, and measured against the live catalogue
 there are currently **zero** base-slug collisions, so it is redundant today. It stays
-because suffixing only on collision requires the whole catalogue to build a link, and the
-pages that render product links hold a *filtered* list — two products would silently
+because suffixing only on collision requires the whole catalogue to build a link, and
+the pages that render product links hold a *filtered* list — two products would silently
 share a URL and both 404. Validated across all 250: 250 unique slugs, none unusable.
 
 `fetchCatalog` swallows its own errors and returns `[]`, so an unreachable backend
@@ -458,9 +461,9 @@ fetch. It can never fail a build or a render.
 
 ### 10.5 Search Console and DNS
 
-Both `peacewayonline.com` and `bigquivdigitals.com` are verified as **Domain** properties
-(DNS TXT). Domain properties cover apex, `www`, http and https in one property, which
-matters here because the apex redirects to `www`.
+Both `peacewayonline.com` and `bigquivdigitals.com` are verified as **Domain**
+properties (DNS TXT). Domain properties cover apex, `www`, http and https in one
+property, which matters here because the apex redirects to `www`.
 
 Two things that cost time and are worth writing down:
 
@@ -468,9 +471,10 @@ Two things that cost time and are worth writing down:
   `https://www.peacewayonline.com/sitemap.xml`. Relative paths only work for URL-prefix
   properties.
 - **Which control panel a DNS record goes in is a consequence of the nameservers, not a
-  choice.** `peacewayonline.com` is on Namecheap BasicDNS (`dns1/dns2.registrar-servers.com`)
-  so its records are edited at Namecheap. `bigquivdigitals.com` is on
-  `ns1/ns2.vercel-dns.com` so its records are edited in Vercel.
+  choice.** `peacewayonline.com` is on Namecheap BasicDNS
+  (`dns1/dns2.registrar-servers.com`) so its records are edited at Namecheap.
+  `bigquivdigitals.com` is on `ns1/ns2.vercel-dns.com` so its records are edited in
+  Vercel.
 
 **Incident, resolved.** `bigquivdigitals.com`'s nameservers were switched to Namecheap
 BasicDNS, which orphaned everything living only in the Vercel zone: DKIM, DMARC, the
@@ -484,8 +488,8 @@ nameservers decide which zone is authoritative at all. `peacewayonline.com` carr
 pharmacy site **and** Zoho MX — do not touch its nameservers.
 
 Also note `nslookup` on this machine cannot query CAA (`unknown query type: CAA`) and
-`dig` is not installed, which produced a false "CAA missing" reading during the incident.
-Use PowerShell's `Resolve-DnsName -Type CAA` or a web tool.
+`dig` is not installed, which produced a false "CAA missing" reading during the
+incident. Use PowerShell's `Resolve-DnsName -Type CAA` or a web tool.
 
 ### 10.6 Open items
 
@@ -496,15 +500,15 @@ Use PowerShell's `Resolve-DnsName -Type CAA` or a web tool.
    re-rendered on `#0b0c09`, this becomes a one-value change** — `--pw-loader-bg` in
    `globals.css` plus swapping the two video files. `APP_GROUND` in `app-loader.tsx`
    would then be redundant.
-2. **Indexing lag.** 250 new URLs will take days to weeks and Google will not necessarily
-   accept all of them. The sitemap reads **Success**; its "discovered pages" count lagged
-   at 8 because Google read a cached copy from before the product deploy. Check **Pages**
-   in Search Console in a week to see what was actually accepted.
+2. **Indexing lag.** 250 new URLs will take days to weeks and Google will not
+   necessarily accept all of them. The sitemap reads **Success**; its "discovered pages"
+   count lagged at 8 because Google read a cached copy from before the product deploy.
+   Check **Pages** in Search Console in a week to see what was actually accepted.
 3. **`/impeccable audit` scored 13/20** ("acceptable, significant work needed") against
-   the brand-motion work. The two live findings were the light loader ground
-   (item 1) and the client-bundle cost of the vector logo path data — the latter
-   is resolved, since that system was deleted in §10.2. The remaining ~50 detector advisories in
+   the brand-motion work. The two live findings were the light loader ground (item 1)
+   and the client-bundle cost of the vector logo path data — the latter is resolved,
+   since that system was deleted in §10.2. The remaining ~50 detector advisories in
    `globals.css` are colour, radius and font-size values predating this work.
 4. **Product pages could go further.** Slugs and metadata are in; structured data
-   (`Product` / `Offer` JSON-LD, price and availability) is not, and for a
-   pharmacy that is what produces rich results. The obvious next SEO step.
+   (`Product` / `Offer` JSON-LD, price and availability) is not, and for a pharmacy that
+   is what produces rich results. The obvious next SEO step.
