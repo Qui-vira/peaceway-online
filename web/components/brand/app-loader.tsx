@@ -93,6 +93,19 @@ const APP_LOGO_SELECTOR = 'img.nlogo, img[alt="Peaceway Pharmacy"]';
 
 const MARK_SRC = "/branding/loader/peaceway-loader-mark.webp";
 
+/**
+ * The app's ground, applied as an inline style rather than left to the
+ * `.pw-loader.is-handoff` class.
+ *
+ * The class route is in the shipped CSS, correctly ordered and at the right
+ * specificity, and it resolves to this colour in a local dev build - and it
+ * still did not repaint in production: the overlay cut from light straight to
+ * the app instead of resolving into it. An inline style wins the cascade
+ * unconditionally, so the one beat that has to be right cannot be lost to
+ * whatever was outbidding the class.
+ */
+const APP_GROUND = "#0b0c09";
+
 type Phase = "playing" | "handoff" | "leaving" | "idle";
 
 export function AppLoader(): JSX.Element | null {
@@ -110,6 +123,7 @@ export function AppLoader(): JSX.Element | null {
     width: number;
     height: number;
   } | null>(null);
+  const overlayRef = useRef<HTMLDivElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const timers = useRef<number[]>([]);
   const lastTime = useRef(0);
@@ -136,6 +150,11 @@ export function AppLoader(): JSX.Element | null {
    */
   const handoff = useCallback(() => {
     clearTimers();
+
+    // First, unconditionally: the ground resolves to the app's colour whether or
+    // not this route has a logo to hand off to. It transitions because
+    // `.pw-loader` already declares `transition: ... background-color ...`.
+    if (overlayRef.current) overlayRef.current.style.backgroundColor = APP_GROUND;
 
     const media = videoRef.current;
     const target = document.querySelector(APP_LOGO_SELECTOR);
@@ -268,6 +287,7 @@ export function AppLoader(): JSX.Element | null {
 
   return (
     <div
+      ref={overlayRef}
       className={[
         "pw-loader",
         jsReady ? "js-ready" : "",
