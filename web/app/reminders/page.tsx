@@ -19,6 +19,7 @@ import {
 } from "@/components/app/ui";
 import { GenericIcon } from "@/components/app/drug-icons";
 import { TactileLink } from "@/components/app/tactile-button";
+import { PageTitle } from "@/components/app/page-title";
 
 type State =
   | { kind: "loading" }
@@ -62,11 +63,12 @@ export default function RemindersPage() {
 
   return (
     <AppShell>
+      <PageTitle title="Reminders" />
       <div className="space-y-6 px-5 pt-10 pb-6">
 
         {/* Header */}
         <div className="flex items-center justify-between">
-          <h1 className="font-syne text-[22px] font-bold text-white">My Medications</h1>
+          <h1 className="font-syne text-[22px] font-bold text-white">Reminders</h1>
           <TactileLink href="/reminders/new" variant="sm">
             <Plus className="h-3.5 w-3.5" />
             Add
@@ -91,7 +93,7 @@ export default function RemindersPage() {
             title="No medications yet"
             message="Add your first medication reminder to track your daily doses."
             ctaHref="/reminders/new"
-            ctaLabel="Add Medication"
+            ctaLabel="Add reminder"
           />
         )}
 

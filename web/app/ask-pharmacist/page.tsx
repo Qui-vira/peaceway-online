@@ -10,6 +10,7 @@ import {
 import { isAuthError, type ApiError } from "@/lib/api";
 import { AppShell } from "@/components/app/app-shell";
 import { GuestWall, LoadFailed, SectionLabel, Spinner } from "@/components/app/ui";
+import { PageTitle } from "@/components/app/page-title";
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("en-NG", {
@@ -62,6 +63,7 @@ export default function AskPharmacistPage() {
 
   return (
     <AppShell>
+      <PageTitle title="Ask a Pharmacist" />
       <div className="space-y-6 px-5 pt-10 pb-6">
 
         {/* Header */}
@@ -75,7 +77,7 @@ export default function AskPharmacistPage() {
           </div>
         </div>
 
-        {guest && <GuestWall message="Create a profile so our pharmacist can reply to you." />}
+        {guest && <GuestWall message="So our pharmacist can reply to you, and you can find the answer later." />}
         {failed && <LoadFailed what="your questions" onRetry={load} />}
         {!guest && !failed && questions === null && <Spinner />}
 
@@ -97,7 +99,7 @@ export default function AskPharmacistPage() {
                   placeholder="e.g. Can I take ibuprofen with my blood pressure medicine?"
                   value={question}
                   onChange={(e) => setQuestion(e.target.value)}
-                  className="w-full resize-none bg-transparent text-sm text-white placeholder-[#b1bdb0] outline-none"
+                  className="w-full resize-none bg-transparent text-base text-white placeholder-[#b1bdb0] outline-none"
                 />
                 <button
                   type="submit"

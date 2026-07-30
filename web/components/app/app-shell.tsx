@@ -8,27 +8,40 @@ import { motion, useReducedMotion } from "framer-motion";
 import {
   ArrowLeft,
   Bell,
-  ClipboardList,
   Home,
   MessageCircle,
   ShoppingCart,
+  Store,
   User,
 } from "lucide-react";
 import { getCart } from "@/lib/cart";
 import { media } from "@/lib/media";
 import { siteConfig } from "@/lib/constants";
+import { OfflineBanner } from "@/components/app/offline-banner";
 
+/**
+ * Five destinations plus the cart, which is the documented ceiling.
+ *
+ * "Shop" replaces "Requests" here. The catalogue is how the product makes
+ * money and it was the one commercial surface with no nav slot - reachable only
+ * from a card on the home screen or a link in the footer - while Requests, the
+ * slower "ask us to find it" path, had one. Requests has not gone anywhere: it
+ * lives on the home screen and in the footer, one tap from where it was.
+ */
 const NAV_ITEMS = [
   { href: "/app", label: "Home", icon: Home },
+  { href: "/shop", label: "Shop", icon: Store },
   { href: "/reminders", label: "Reminders", icon: Bell },
   { href: "/ask-pharmacist", label: "Ask", icon: MessageCircle },
-  { href: "/requests", label: "Requests", icon: ClipboardList },
   { href: "/profile", label: "Profile", icon: User },
 ];
 
-// AA-safe focus ring (DESIGN.md: visible 3px ring on every interactive element).
+// DESIGN.md: visible 3px ring on every interactive element. This said 3px in
+// the comment and shipped `ring-2` - so the nav, the most-tapped control in the
+// product, had the only 2px ring in it. Matches `.pw-btn:focus-visible` and
+// PageHeader now: 3px, same green, same alpha.
 const FOCUS =
-  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0b0c09]";
+  "focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[rgba(52,217,138,0.5)] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0b0c09]";
 
 function isActive(pathname: string, href: string): boolean {
   return pathname === href || (href !== "/app" && pathname.startsWith(href + "/"));
@@ -257,7 +270,7 @@ function Footer() {
             padding, on every route in the product. */}
         <nav
           aria-label="Footer"
-          className="-my-2 flex flex-wrap items-center gap-x-6 [&>*]:inline-flex [&>*]:min-h-[36px] [&>*]:items-center"
+          className="-my-2 flex flex-wrap items-center gap-x-6 gap-y-1 [&>*]:inline-flex [&>*]:min-h-[44px] [&>*]:items-center"
         >
           <Link href="/shop" className={`rounded transition-colors hover:text-white ${FOCUS}`}>Shop</Link>
           <Link href="/ask-pharmacist" className={`rounded transition-colors hover:text-white ${FOCUS}`}>Ask a Pharmacist</Link>
@@ -295,6 +308,7 @@ export function AppShell({
 
   return (
     <div className="flex min-h-screen flex-col bg-[#0b0c09] pt-[env(safe-area-inset-top)]">
+      <OfflineBanner />
       <TopNav pathname={pathname} cartCount={cartCount} />
       {backProps !== null && <BackBar {...backProps} />}
       <main className="flex-1">{children}</main>

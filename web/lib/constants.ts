@@ -25,13 +25,17 @@ export const siteConfig = {
   footerNote: "Peaceway Online is an online service of Peaceway Pharmacy."
 } as const;
 
-export const navLinks = [
-  { label: "About", href: "#problem" },
-  { label: "Services", href: "#services" },
-  { label: "How It Works", href: "#how-it-works" },
-  { label: "Delivery", href: "#delivery" },
-  { label: "Contact", href: "#contact" }
-] as const;
+/*
+ * `navLinks` was removed here. It listed five anchors - #problem, #services,
+ * #how-it-works, #delivery, #contact - and not one of those ids exists on the
+ * landing page, which uses #s2 through #s9. Nothing imported it, so nothing was
+ * broken; it was a loaded gun for whoever wired it up next.
+ *
+ * NOTE: `heroActions`, `sectionActions`, `sectionCopy`, `serviceCards` and
+ * `deliveryAreas` below are also unreferenced - `app/page.tsx` hardcodes all of
+ * it. They are left in place because, unlike navLinks, they are not wrong, and
+ * deleting live-looking content config is a bigger decision than this change.
+ */
 
 export const heroActions = [
   { label: "Order on Telegram", href: siteConfig.telegramBotUrl, variant: "primary" as const },

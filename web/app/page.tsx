@@ -342,13 +342,17 @@ export default function Page(): JSX.Element {
               <div className="fsa">
                 <a className="fsi" href={siteConfig.telegramChannelUrl} target="_blank" rel="noreferrer noopener" aria-label="Telegram Channel"><Send size={16} strokeWidth={2} /></a>
                 <a className="fsi" href={siteConfig.instagramUrl} target="_blank" rel="noreferrer noopener" aria-label="Instagram"><Camera size={16} strokeWidth={2} /></a>
-                <a className="fsi" href="#" aria-label="WhatsApp placeholder"><MessageCircle size={16} strokeWidth={2} /></a>
-                <a className="fsi" href="#" aria-label="Facebook placeholder"><Users size={16} strokeWidth={2} /></a>
+                {/* Not links until there is somewhere to link to. As anchors
+                    with href="#" they were keyboard-focusable, announced as
+                    links, and went nowhere. */}
+                <span className="fsi fsi-soon" aria-label="WhatsApp — coming soon" role="img"><MessageCircle size={16} strokeWidth={2} /></span>
+                <span className="fsi fsi-soon" aria-label="Facebook — coming soon" role="img"><Users size={16} strokeWidth={2} /></span>
               </div>
             </div>
             <div>
               <div className="fct">Services</div>
               <a className="fl" href={siteConfig.telegramBotUrl} target="_blank" rel="noreferrer noopener">OTC Medicine Delivery</a>
+              <a className="fl" href="/shop">Shop Medicines</a>
               <a className="fl" href="/request">Check Availability</a>
               <a className="fl" href={siteConfig.telegramBotUrl} target="_blank" rel="noreferrer noopener">Ask a Pharmacist</a>
               <a className="fl" href="#s7">Delivery Areas</a>
@@ -365,9 +369,14 @@ export default function Page(): JSX.Element {
             </div>
             <div>
               <div className="fct">Legal</div>
-              <a className="fl" href="#">Privacy Policy</a>
-              <a className="fl" href="#">Terms &amp; Conditions</a>
-              <a className="fl" href="#">Refund &amp; Delivery Policy</a>
+              {/* These were `href="#"` - three dead links on a pharmacy that
+                  also told customers at checkout they were agreeing to terms of
+                  service. Marked pending with the same affordance the social
+                  links already use, so nothing dead is clickable and nothing
+                  false is claimed, until the real pages exist. */}
+              <span className="fl fl-soon">Privacy Policy<span className="soon-tag">Soon</span></span>
+              <span className="fl fl-soon">Terms &amp; Conditions<span className="soon-tag">Soon</span></span>
+              <span className="fl fl-soon">Refund &amp; Delivery Policy<span className="soon-tag">Soon</span></span>
               <a className="fl" href="#s4">About Peaceway</a>
             </div>
           </div>

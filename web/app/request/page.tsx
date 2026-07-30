@@ -22,6 +22,7 @@ import { AppShell } from "@/components/app/app-shell";
 import { GuestWall, LoadFailed, StatusChip } from "@/components/app/ui";
 import { TabletIcon } from "@/components/app/drug-icons";
 import { TactileButton } from "@/components/app/tactile-button";
+import { PageTitle } from "@/components/app/page-title";
 
 type Field = "product_name" | "strength" | "form" | "quantity" | "urgency" | "note";
 type Errors = Partial<Record<Field | "form_error", string>>;
@@ -146,7 +147,9 @@ export default function RequestPage() {
     } catch (err) {
       const apiErr = err as ApiError;
       setErrors({
-        form_error: apiErr?.detail ?? "Something went wrong. Please try again.",
+        form_error:
+          apiErr?.detail ??
+          "We couldn't send your request. Nothing was submitted — please try again.",
       });
     } finally {
       setLoading(false);
@@ -176,7 +179,7 @@ export default function RequestPage() {
   if (!authed) {
     return (
       <AppShell>
-        <GuestWall message="Register first so we can contact you about your request." />
+        <GuestWall message="So we can tell you the moment we've checked stock for you." />
       </AppShell>
     );
   }
@@ -231,7 +234,7 @@ export default function RequestPage() {
                 href="/requests"
                 className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 px-6 py-3.5 text-sm font-semibold text-white/70 transition hover:border-white/20 hover:text-white"
               >
-                Track My Requests
+                View Requests
               </Link>
             </div>
           </div>
@@ -242,6 +245,7 @@ export default function RequestPage() {
 
   return (
     <AppShell>
+      <PageTitle title="Check Availability" />
       <div className="space-y-6 px-5 pt-8 pb-6">
 
         {/* Header */}
@@ -257,7 +261,7 @@ export default function RequestPage() {
               <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/12 border border-emerald-500/20">
                 <TabletIcon size={22} />
               </span>
-              <h1 className="font-syne text-xl font-bold text-white">Find a Medicine</h1>
+              <h1 className="font-syne text-[22px] font-bold text-white">Check Availability</h1>
             </div>
             <p className="text-sm text-white/50">
               We&apos;ll check stock and contact you to confirm.
@@ -276,7 +280,7 @@ export default function RequestPage() {
                 placeholder="e.g. Amoxicillin, Vitamin C, Panadol"
                 value={form.product_name}
                 onChange={(e) => setForm((f) => ({ ...f, product_name: e.target.value }))}
-                className="flex-1 bg-transparent text-sm text-white placeholder-[#b1bdb0] outline-none"
+                className="flex-1 bg-transparent text-base text-white placeholder-[#b1bdb0] outline-none"
                 autoFocus
               />
             </FieldWrap>
@@ -287,7 +291,7 @@ export default function RequestPage() {
                   placeholder="e.g. 500mg"
                   value={form.strength}
                   onChange={(e) => setForm((f) => ({ ...f, strength: e.target.value }))}
-                  className="flex-1 bg-transparent text-sm text-white placeholder-[#b1bdb0] outline-none"
+                  className="flex-1 bg-transparent text-base text-white placeholder-[#b1bdb0] outline-none"
                 />
               </FieldWrap>
               <FieldWrap label="Form" optional error={errors.form}>
@@ -296,7 +300,7 @@ export default function RequestPage() {
                   placeholder="e.g. Tablet"
                   value={form.form_type}
                   onChange={(e) => setForm((f) => ({ ...f, form_type: e.target.value }))}
-                  className="flex-1 bg-transparent text-sm text-white placeholder-[#b1bdb0] outline-none"
+                  className="flex-1 bg-transparent text-base text-white placeholder-[#b1bdb0] outline-none"
                 />
               </FieldWrap>
             </div>
@@ -306,7 +310,7 @@ export default function RequestPage() {
                 placeholder="e.g. 2 packs, 1 bottle"
                 value={form.quantity}
                 onChange={(e) => setForm((f) => ({ ...f, quantity: e.target.value }))}
-                className="flex-1 bg-transparent text-sm text-white placeholder-[#b1bdb0] outline-none"
+                className="flex-1 bg-transparent text-base text-white placeholder-[#b1bdb0] outline-none"
               />
             </FieldWrap>
           </SectionCard>
@@ -355,7 +359,7 @@ export default function RequestPage() {
                 placeholder="Brand preference, diagnosis, any other details…"
                 value={form.note}
                 onChange={(e) => setForm((f) => ({ ...f, note: e.target.value }))}
-                className="w-full resize-none bg-transparent text-sm text-white placeholder-[#b1bdb0] outline-none"
+                className="w-full resize-none bg-transparent text-base text-white placeholder-[#b1bdb0] outline-none"
                 maxLength={1000}
               />
             </div>
