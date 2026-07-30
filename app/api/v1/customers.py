@@ -14,6 +14,8 @@ from app.services.telegram_link import verify_telegram_login
 from app.services.web_customers import (
     SESSION_TTL_DAYS,
     clear_web_session,
+    count_referrals,
+    ensure_referral_code,
     get_delivery_area,
     get_or_create_web_customer,
     is_valid_phone,
@@ -91,11 +93,21 @@ class CustomerOut(BaseModel):
     delivery_area: str | None = None
     telegram_username: str | None = None
     telegram_linked: bool = False
+    # Absent unless the caller asked for it (see the /me endpoint). The referral
+    # screen is the only surface that needs these, and counting referrals is a
+    # query the sign-in path should not pay for.
+    referral_code: str | None = None
+    referral_count: int | None = None
 
     model_config = {"from_attributes": True}
 
 
-def _customer_out(customer) -> CustomerOut:
+def _customer_out(
+    customer,
+    *,
+    referral_code: str | None = None,
+    referral_count: int | None = None,
+) -> CustomerOut:
     return CustomerOut(
         id=str(customer.id),
         full_name=customer.full_name,
@@ -104,6 +116,8 @@ def _customer_out(customer) -> CustomerOut:
         delivery_area=get_delivery_area(customer),
         telegram_username=customer.telegram_username,
         telegram_linked=customer.telegram_id is not None,
+        referral_code=referral_code,
+        referral_count=referral_count,
     )
 
 
@@ -161,9 +175,25 @@ async def logout(
 
 
 @router.get("/me")
-async def get_me(customer: CurrentCustomer) -> CustomerOut:
-    """Return the authenticated customer's profile."""
-    return _customer_out(customer)
+async def get_me(
+    customer: CurrentCustomer,
+    db: DbSession,
+    referral: bool = False,
+) -> CustomerOut:
+    """Return the authenticated customer's profile.
+
+    `?referral=1` additionally mints (on first use) and returns the customer's
+    referral code plus how many people they have brought in. It is opt-in
+    because `/me` is called on nearly every page and the referral screen is the
+    only one that needs the extra query.
+    """
+    if not referral:
+        return _customer_out(customer)
+
+    code = await ensure_referral_code(db, customer)
+    count = await count_referrals(db, customer)
+    await db.commit()
+    return _customer_out(customer, referral_code=code, referral_count=count)
 
 
 @router.patch("/me")

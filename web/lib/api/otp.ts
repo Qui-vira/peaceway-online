@@ -22,6 +22,8 @@ export async function sendOtp(data: SendOtpPayload): Promise<SendOtpResponse> {
 export async function verifyOtp(data: {
   phone: string;
   code: string;
+  /** `?ref=` code this customer arrived on, if any. Ignored for existing customers. */
+  referral_code?: string;
 }): Promise<CustomerProfile> {
   return apiFetch<CustomerProfile>("/otp/verify", {
     method: "POST",
