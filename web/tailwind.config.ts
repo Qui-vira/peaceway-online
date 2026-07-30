@@ -29,6 +29,28 @@ const config: Config = {
           700: "#0f673c",
           800: "#0b4f2f",
           900: "#083b24"
+        },
+        // Same treatment as emerald, and for the same reason. Every error,
+        // destructive action and alert in the product used stock Tailwind red -
+        // 121 call sites - while the brand's own cross-red #a80b16 appeared in
+        // exactly one file, `app/dispatch/page.tsx`, which nothing links to.
+        //
+        // The ramp is built around #a80b16 (hue 356) rather than replacing every
+        // step with it: #a80b16 is a 35%-lightness red and fails badly as text
+        // on #0b0c09. So the brand hex anchors 600, the fills sit at 500, and
+        // the text steps stay light enough to pass AA on the dark base
+        // (400 = #f26b76 -> 6.7:1). Call sites do not change; what they resolve
+        // to does.
+        red: {
+          100: "#fde7e9",
+          200: "#fbc9cd",
+          300: "#f79aa2",
+          400: "#f26b76",
+          500: "#d4212f",
+          600: "#a80b16",
+          700: "#85101a",
+          800: "#5f0d14",
+          900: "#3d0a0e"
         }
       },
       // Tailwind's opacity scale runs in steps of 5 (0,5,10,15,...,100). Every

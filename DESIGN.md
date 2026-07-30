@@ -13,6 +13,20 @@ colors:
   signal-green: "#34d98a"
   signal-green-soft: "#4ade80"
   cross-red: "#a80b16"
+  # Error / destructive states, and the reason cross-red needed a ramp at all.
+  # #a80b16 is 35% lightness: correct as a fill, unreadable as text on
+  # counter-black. Every error string in the app used stock Tailwind red until
+  # `tailwind.config.ts` remapped the `red-*` scale onto these, so the two below
+  # are what `text-red-400` and `text-red-300` actually paint now.
+  cross-red-text: "#f26b76"      # 6.7:1 on counter-black - error copy
+  cross-red-text-soft: "#f79aa2" # secondary error copy, badges
+  cross-red-fill: "#d4212f"      # destructive borders and tinted fills
+  # Warning / pending. Undocumented until now despite 68 call sites across
+  # orders, prescriptions, reminders, sourcing and the partner portal. Amber is
+  # deliberately not red: "waiting on a pharmacist" is not "something failed",
+  # and collapsing the two would make every pending order look like an error.
+  caution-amber: "#fbbf24"       # 11:1 on counter-black - pending copy
+  caution-amber-fill: "#f59e0b"  # borders and tinted fills
   counter-black: "#0b0c09"
   raised-surface: "#191a17"
   ink: "#dcdddb"
