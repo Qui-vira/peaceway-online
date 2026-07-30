@@ -6,13 +6,16 @@ from uuid import UUID, uuid4
 
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
-from sqlalchemy import select
+from sqlalchemy import func, select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import CurrentCustomer, DbSession
 from app.models.catalog import Product
+from app.models.ops import DeliveryZone
 from app.models.orders import Order, PaymentMethod
 from app.services.orders import create_order as create_order_record
 from app.services.pricing import FeeConfig, QuoteItem, quote_order
+from app.services.web_customers import get_delivery_area
 
 router = APIRouter(tags=["orders"])
 
@@ -59,7 +62,40 @@ class OrderOut(BaseModel):
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
-DELIVERY_FEE = Decimal("500")  # flat ₦500 for now
+# The fallback when an order names no area, or names one we do not deliver to.
+# It is deliberately the most expensive real zone rather than a cheap round
+# number: under-quoting a delivery is a refund and a phone call, and the flat
+# ₦500 this replaced was below every zone the pharmacy actually serves.
+FALLBACK_DELIVERY_FEE = Decimal("2500")
+
+
+async def resolve_delivery_fee(db: AsyncSession, area: str | None) -> Decimal:
+    """Fee for *area* from the delivery_zones table.
+
+    The web checkout used to hardcode ₦500 on both sides of the wire while
+    `/profile` showed the customer the real per-area prices (₦700-₦3,500) from
+    this same table. One product quoting two numbers for the same delivery is
+    the kind of thing that reads as "not a real pharmacy", so the price now has
+    exactly one source and it is the one operations already maintain.
+
+    Matching is case-insensitive on the zone name because the area arrives from
+    a customer profile field, not from a foreign key.
+    """
+    if not area:
+        return FALLBACK_DELIVERY_FEE
+
+    zone = (
+        await db.execute(
+            select(DeliveryZone)
+            .where(
+                DeliveryZone.is_active.is_(True),
+                func.lower(DeliveryZone.name) == area.strip().lower(),
+            )
+            .limit(1)
+        )
+    ).scalar_one_or_none()
+
+    return Decimal(zone.fee) if zone else FALLBACK_DELIVERY_FEE
 
 
 def _order_out(order: Order) -> OrderOut:
@@ -155,9 +191,17 @@ async def create_order(
             }
         )
 
+    # `customer.delivery_area` used to be read straight off the model here. There
+    # is no such attribute - the area lives in the `addresses` JSONB list and has
+    # an accessor for exactly that reason - so every web order raised
+    # AttributeError and 500'd, and the customer was told to check their
+    # connection. Go through the accessor, like the rest of the codebase does.
+    delivery_area = body.delivery_area or get_delivery_area(customer)
+    delivery_fee = await resolve_delivery_fee(db, delivery_area)
+
     quote = quote_order(
         quote_items,
-        DELIVERY_FEE,
+        delivery_fee,
         FeeConfig(),
         payment_method,
     )
@@ -171,7 +215,7 @@ async def create_order(
             "full_name": customer.full_name,
             "phone": customer.phone,
             "address": body.delivery_address,
-            "area": body.delivery_area or customer.delivery_area,
+            "area": delivery_area,
             "note": body.delivery_note,
         },
         payment_method=payment_method,
