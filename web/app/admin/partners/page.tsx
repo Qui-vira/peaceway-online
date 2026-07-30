@@ -83,7 +83,7 @@ function CreatePartnerForm({ onCreated }: { onCreated: () => void }) {
             value={form.name}
             onChange={(e) => set("name", e.target.value)}
             placeholder="Acme Wholesale Ltd"
-            className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none focus:border-emerald-500/50"
+            className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-base text-white outline-none focus:border-emerald-500/50"
           />
         </label>
         <label className="space-y-1">
@@ -92,7 +92,7 @@ function CreatePartnerForm({ onCreated }: { onCreated: () => void }) {
             value={form.key}
             onChange={(e) => set("key", e.target.value)}
             placeholder="acme-wholesale"
-            className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none focus:border-emerald-500/50"
+            className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-base text-white outline-none focus:border-emerald-500/50"
           />
         </label>
         <label className="space-y-1">
@@ -100,7 +100,7 @@ function CreatePartnerForm({ onCreated }: { onCreated: () => void }) {
           <select
             value={form.partner_type}
             onChange={(e) => set("partner_type", e.target.value)}
-            className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none focus:border-emerald-500/50"
+            className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-base text-white outline-none focus:border-emerald-500/50"
           >
             <option value="wholesaler">Wholesaler</option>
             <option value="supplier">Supplier</option>
@@ -111,7 +111,7 @@ function CreatePartnerForm({ onCreated }: { onCreated: () => void }) {
           <select
             value={form.channel_type}
             onChange={(e) => set("channel_type", e.target.value)}
-            className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none focus:border-emerald-500/50"
+            className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-base text-white outline-none focus:border-emerald-500/50"
           >
             <option value="portal">Portal (email login)</option>
             <option value="api">API integration</option>
@@ -124,7 +124,7 @@ function CreatePartnerForm({ onCreated }: { onCreated: () => void }) {
             value={form.portal_login_email}
             onChange={(e) => set("portal_login_email", e.target.value)}
             placeholder="sourcing@acme.com"
-            className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none focus:border-emerald-500/50"
+            className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-base text-white outline-none focus:border-emerald-500/50"
           />
         </label>
         <label className="space-y-1">
@@ -133,7 +133,7 @@ function CreatePartnerForm({ onCreated }: { onCreated: () => void }) {
             value={form.portal_contact}
             onChange={(e) => set("portal_contact", e.target.value)}
             placeholder="Name / phone"
-            className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none focus:border-emerald-500/50"
+            className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-base text-white outline-none focus:border-emerald-500/50"
           />
         </label>
       </div>
@@ -221,7 +221,7 @@ function PartnerRowCard({ partner, onChanged }: { partner: PartnerRow; onChanged
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none focus:border-emerald-500/50"
+              className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-base text-white outline-none focus:border-emerald-500/50"
             />
           </label>
           <label className="block space-y-1">
@@ -229,7 +229,7 @@ function PartnerRowCard({ partner, onChanged }: { partner: PartnerRow; onChanged
             <input
               value={contact}
               onChange={(e) => setContact(e.target.value)}
-              className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none focus:border-emerald-500/50"
+              className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-base text-white outline-none focus:border-emerald-500/50"
             />
           </label>
           {error && <p className="text-[12px] text-red-400">{error}</p>}
@@ -271,7 +271,9 @@ export default function AdminPartnersPage() {
 
   useEffect(() => {
     if (!getAdminToken()) {
-      window.location.href = "/admin";
+      // Carry the destination, so signing in returns staff to the screen
+      // they asked for instead of dropping them on the dashboard.
+      window.location.href = "/admin?next=/admin/partners";
       return;
     }
     load();

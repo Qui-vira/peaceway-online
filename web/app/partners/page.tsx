@@ -114,7 +114,7 @@ function PartnerOtpGate({ onLogin }: { onLogin: (me: PartnerMe) => void }) {
                   onChange={(e) => setEmail(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSendCode()}
                   placeholder="sourcing@partner.com"
-                  className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-[#b1bdb0] outline-none focus:border-emerald-500/50"
+                  className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-base text-white placeholder-[#b1bdb0] outline-none focus:border-emerald-500/50"
                 />
                 <p className="text-[11px] text-[#b1bdb0]">Use the email linked to your approved Peaceway partner account.</p>
               </div>
@@ -135,7 +135,7 @@ function PartnerOtpGate({ onLogin }: { onLogin: (me: PartnerMe) => void }) {
                   onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
                   onKeyDown={(e) => e.key === "Enter" && handleVerify()}
                   placeholder="000000"
-                  className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm tracking-[0.3em] text-white placeholder-[#b1bdb0] outline-none focus:border-emerald-500/50"
+                  className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-base tracking-[0.3em] text-white placeholder-[#b1bdb0] outline-none focus:border-emerald-500/50"
                   autoFocus
                 />
                 <p className="text-[11px] text-[#b1bdb0]">Check your email inbox. The code expires in 5 minutes.</p>
@@ -157,6 +157,15 @@ function PartnerOtpGate({ onLogin }: { onLogin: (me: PartnerMe) => void }) {
             </>
           )}
         </div>
+        {/* Same dead end as the staff gate: no way back to the app. */}
+        <p className="text-center">
+          <Link
+            href="/app"
+            className="-my-2 inline-flex min-h-[44px] items-center rounded px-2 py-2 text-[12px] text-[#b1bdb0] transition hover:text-[#dcdddb]"
+          >
+            ← Back to Peaceway Online
+          </Link>
+        </p>
       </div>
     </div>
   );
@@ -207,7 +216,7 @@ function ConfirmForm({ row, onDone }: { row: SourcingRow; onDone: () => void }) 
             min={1}
             value={qty}
             onChange={(e) => setQty(e.target.value)}
-            className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none focus:border-emerald-500/50"
+            className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-base text-white outline-none focus:border-emerald-500/50"
           />
         </label>
         <label className="space-y-1">
@@ -217,7 +226,7 @@ function ConfirmForm({ row, onDone }: { row: SourcingRow; onDone: () => void }) 
             min={0}
             value={price}
             onChange={(e) => setPrice(e.target.value)}
-            className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none focus:border-emerald-500/50"
+            className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-base text-white outline-none focus:border-emerald-500/50"
           />
         </label>
       </div>
@@ -227,7 +236,7 @@ function ConfirmForm({ row, onDone }: { row: SourcingRow; onDone: () => void }) 
           value={batch}
           onChange={(e) => setBatch(e.target.value)}
           placeholder="e.g. Batch A23, expiry 2027-05"
-          className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none focus:border-emerald-500/50"
+          className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-base text-white outline-none focus:border-emerald-500/50"
         />
       </label>
       <label className="block space-y-1">
@@ -236,7 +245,7 @@ function ConfirmForm({ row, onDone }: { row: SourcingRow; onDone: () => void }) 
           type="datetime-local"
           value={pickup}
           onChange={(e) => setPickup(e.target.value)}
-          className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none focus:border-emerald-500/50"
+          className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-base text-white outline-none focus:border-emerald-500/50"
         />
       </label>
       {error && <p className="text-[12px] text-red-400">{error}</p>}

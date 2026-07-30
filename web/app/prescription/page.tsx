@@ -4,8 +4,10 @@ import { useState, useRef } from "react";
 import Link from "next/link";
 import { ArrowLeft, Upload, CheckCircle2, AlertTriangle } from "lucide-react";
 import { submitPrescription } from "@/lib/api/orders";
+import { isAuthError } from "@/lib/api";
 import { AppShell } from "@/components/app/app-shell";
 import { TactileButton } from "@/components/app/tactile-button";
+import { PageTitle } from "@/components/app/page-title";
 
 type State = "idle" | "submitting" | "done" | "error";
 
@@ -23,12 +25,16 @@ export default function PrescriptionPage() {
   const [file, setFile] = useState<File | null>(null);
   const [state, setState] = useState<State>("idle");
   const [error, setError] = useState("");
+  // Distinct from `error`: a prescription needs an account, and the recovery is
+  // a sign-in link rather than a retry button.
+  const [needsAuth, setNeedsAuth] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   async function handleSubmit() {
     if (!description.trim() && !file) return;
     setState("submitting");
     setError("");
+    setNeedsAuth(false);
     try {
       let file_b64: string | undefined;
       let file_type: string | undefined;
@@ -42,8 +48,20 @@ export default function PrescriptionPage() {
         file_type,
       });
       setState("done");
-    } catch {
-      setError("Something went wrong. Please try again.");
+    } catch (e) {
+      // The page renders for signed-out visitors on purpose: it is a public
+      // entry point in the sitemap and it carries the clearest statement in the
+      // product that a pharmacist reviews every script. What it must not do is
+      // let someone photograph a prescription, submit it, and be told
+      // "something went wrong" when the real answer is "we need an account to
+      // send the pharmacist's reply to".
+      if (isAuthError(e)) {
+        setNeedsAuth(true);
+      } else {
+        setError(
+          "We couldn't send your prescription. Nothing was submitted — please try again."
+        );
+      }
       setState("error");
     }
   }
@@ -51,6 +69,7 @@ export default function PrescriptionPage() {
   if (state === "done") {
     return (
       <AppShell>
+        <PageTitle title="Upload Prescription" />
         <div className="flex flex-col items-center gap-6 px-5 py-16 text-center">
           <div className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-emerald-500">
             <CheckCircle2 className="h-8 w-8 text-emerald-400" />
@@ -78,7 +97,7 @@ export default function PrescriptionPage() {
             href="/requests"
             className="inline-flex items-center gap-2 rounded-xl border border-white/10 px-5 py-3 text-sm text-white/50 transition hover:border-white/20 hover:text-white/70"
           >
-            View My Requests
+            View Requests
           </Link>
         </div>
       </AppShell>
@@ -145,7 +164,7 @@ export default function PrescriptionPage() {
             onChange={(e) => setDescription(e.target.value)}
             placeholder="e.g. Amoxicillin 500mg, 10 tablets - prescribed by Dr. Adeyemi"
             rows={3}
-            className="w-full resize-none rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-[#b1bdb0] outline-none focus:border-emerald-500/50"
+            className="w-full resize-none rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-base text-white placeholder-[#b1bdb0] outline-none focus:border-emerald-500/50"
           />
         </div>
 
@@ -157,8 +176,25 @@ export default function PrescriptionPage() {
           </p>
         </div>
 
-        {state === "error" && (
-          <p className="text-[13px] text-red-400">{error}</p>
+        {needsAuth && (
+          <div
+            role="alert"
+            className="space-y-2.5 rounded-2xl border border-emerald-500/25 bg-emerald-500/[0.06] px-4 py-3.5"
+          >
+            <p className="text-[13px] leading-relaxed text-[#dcdddb]">
+              Almost there — a prescription needs an account so the pharmacist
+              can send you their review. Your upload is still here.
+            </p>
+            <Link href="/start?next=/prescription" className="pw-btn-sm">
+              Sign in or create account
+            </Link>
+          </div>
+        )}
+
+        {state === "error" && !needsAuth && (
+          <p role="alert" className="text-[13px] text-red-400">
+            {error}
+          </p>
         )}
 
         <TactileButton

@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
   CheckCircle,
@@ -13,9 +13,11 @@ import {
 } from "lucide-react";
 import { getMe, invalidateMeCache } from "@/lib/api/customers";
 import { sendOtp, verifyOtp } from "@/lib/api/otp";
+import { clearReferral, readReferral } from "@/lib/referral";
 import { OtpInput } from "@/components/app/otp-input";
 import { TactileButton, TactileLink } from "@/components/app/tactile-button";
 import type { ApiError } from "@/lib/api";
+import { PageTitle } from "@/components/app/page-title";
 
 type Tab = "signup" | "login";
 
@@ -71,8 +73,41 @@ function FieldGroup({
   );
 }
 
-export default function StartPage() {
+/**
+ * Where to send someone after they sign in.
+ *
+ * Allowlisted rather than "any path starting with /": `next` arrives from the
+ * URL, so an unchecked value is an open redirect, and a protocol-relative
+ * "//evil.example" is a path by the naive test.
+ */
+const NEXT_ALLOWED = [
+  "/app",
+  "/cart",
+  "/checkout",
+  "/orders",
+  "/prescription",
+  "/profile",
+  "/referral",
+  "/reminders",
+  "/reminders/new",
+  "/request",
+  "/requests",
+  "/shop",
+  "/ask-pharmacist",
+] as const;
+
+function safeNext(raw: string | null): string {
+  if (!raw) return "/app";
+  return (NEXT_ALLOWED as readonly string[]).includes(raw) ? raw : "/app";
+}
+
+function StartPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  // Carries the destination through the sign-in round trip. Without it,
+  // "Proceed to Checkout" while signed out sent the customer to a registration
+  // form and then dropped them on the home screen, cart intact but forgotten.
+  const next = safeNext(searchParams.get("next"));
 
   // Auth check
   const [checkingAuth, setCheckingAuth] = useState(true);
@@ -101,9 +136,9 @@ export default function StartPage() {
 
   useEffect(() => {
     getMe()
-      .then(() => router.replace("/app"))
+      .then(() => router.replace(next))
       .catch(() => setCheckingAuth(false));
-  }, [router]);
+  }, [router, next]);
 
   useEffect(() => {
     if (resendCooldown <= 0) {
@@ -188,7 +223,8 @@ export default function StartPage() {
       setResendCooldown(30);
     } catch (err) {
       const apiErr = err as ApiError;
-      const msg = apiErr?.detail ?? "Something went wrong. Please try again.";
+      const msg =
+        apiErr?.detail ?? "We couldn't send your code. Please check the details and try again.";
       setFormErrors({ form: msg });
     } finally {
       setLoading(false);
@@ -203,12 +239,18 @@ export default function StartPage() {
       const customer = await verifyOtp({
         phone: form.phone.trim(),
         code: otp.replace(/\s/g, ""),
+        // Only meaningful on signup, and the server ignores it for an existing
+        // customer - but sending it unconditionally keeps the call site honest.
+        referral_code: readReferral() ?? undefined,
       });
+      // Attribution is recorded server-side now; holding the code would only
+      // mean re-sending it on a future sign-in.
+      clearReferral();
       if (tab === "signup") {
         setCustomerName(customer.full_name ?? form.full_name.trim());
         setDone(true);
       } else {
-        router.replace("/app");
+        router.replace(next);
       }
     } catch (err) {
       const apiErr = err as ApiError;
@@ -257,16 +299,23 @@ export default function StartPage() {
             </span>
           </div>
           <div className="space-y-2.5">
-            <h1 className="font-syne text-[26px] font-bold text-white">
+            {/* 24, not 26: DESIGN.md's ramp is 11·12·13·14·16·19·24·32·46·76. */}
+            <h1 className="font-syne text-[24px] font-bold text-white">
               Welcome, {customerName.split(" ")[0]}.
             </h1>
+            {/* Someone who came here from a full cart is mid-purchase; telling
+                them the pharmacy will call to confirm an order they have not
+                placed yet is both wrong and a reason to stop. Say what happens
+                next for the thing they were actually doing. */}
             <p className="text-sm leading-relaxed text-white/55">
-              You&apos;re registered with Peaceway Online. We&apos;ll reach out on Telegram or by phone to confirm your first order.
+              {next === "/checkout"
+                ? "You're registered. Your cart is waiting — let's finish your order."
+                : "You're registered with Peaceway Online. We'll reach out on Telegram or by phone to confirm your first order."}
             </p>
           </div>
           <div className="flex flex-col gap-3">
-            <TactileLink href="/app">
-              Open the Web App
+            <TactileLink href={next}>
+              {next === "/checkout" ? "Back to Checkout" : "Open the Web App"}
               <ChevronRight className="h-4 w-4" />
             </TactileLink>
             <a
@@ -285,6 +334,7 @@ export default function StartPage() {
 
   return (
     <main className="flex min-h-svh items-center justify-center bg-[#0b0c09] px-5 py-10">
+      <PageTitle title="Sign in" />
       <div className="w-full max-w-md space-y-6">
 
         {/* Brand mark */}
@@ -356,7 +406,7 @@ export default function StartPage() {
                       placeholder="e.g. Amaka Johnson"
                       value={form.full_name}
                       onChange={(e) => updateField("full_name", e.target.value)}
-                      className="flex-1 bg-transparent text-sm text-white placeholder-[#b1bdb0] outline-none"
+                      className="flex-1 bg-transparent text-base text-white placeholder-[#b1bdb0] outline-none"
                       autoComplete="name"
                     />
                   </FieldGroup>
@@ -372,7 +422,7 @@ export default function StartPage() {
                     placeholder="e.g. 08012345678"
                     value={form.phone}
                     onChange={(e) => updateField("phone", e.target.value)}
-                    className="flex-1 bg-transparent text-sm text-white placeholder-[#b1bdb0] outline-none"
+                    className="flex-1 bg-transparent text-base text-white placeholder-[#b1bdb0] outline-none"
                     autoComplete="tel"
                   />
                 </FieldGroup>
@@ -388,7 +438,7 @@ export default function StartPage() {
                       placeholder="For your verification code"
                       value={form.email}
                       onChange={(e) => updateField("email", e.target.value)}
-                      className="flex-1 bg-transparent text-sm text-white placeholder-[#b1bdb0] outline-none"
+                      className="flex-1 bg-transparent text-base text-white placeholder-[#b1bdb0] outline-none"
                       autoComplete="email"
                     />
                   </FieldGroup>
@@ -505,5 +555,17 @@ export default function StartPage() {
         </div>
       </div>
     </main>
+  );
+}
+
+/**
+ * `useSearchParams` opts a statically-rendered page into client rendering, and
+ * Next requires the boundary to say so explicitly. Same shape as /track.
+ */
+export default function StartPage() {
+  return (
+    <Suspense fallback={<div className="min-h-svh bg-[#0b0c09]" />}>
+      <StartPageContent />
+    </Suspense>
   );
 }

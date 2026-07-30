@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Clock, CalendarPlus } from "lucide-react";
+import { ArrowLeft, Clock, CalendarPlus, ShoppingCart } from "lucide-react";
 import {
   getReminder,
   pauseReminder,
@@ -21,6 +21,8 @@ import {
 } from "@/components/app/ui";
 import { GenericIcon } from "@/components/app/drug-icons";
 import { TactileButton } from "@/components/app/tactile-button";
+import { isAuthError } from "@/lib/api";
+import { PageTitle } from "@/components/app/page-title";
 
 type State =
   | { kind: "loading" }
@@ -68,23 +70,36 @@ export default function ReminderDetailPage() {
   const [state, setState] = useState<State>({ kind: "loading" });
   const [acting, setActing] = useState(false);
   const [confirmStop, setConfirmStop] = useState(false);
+  // Pause, stop and delete used to fail silently. On a medication surface that
+  // is the worst possible outcome: the customer taps Stop, the request fails,
+  // the UI snaps back, and they walk away believing the reminder is off.
+  const [actionError, setActionError] = useState("");
 
   useEffect(() => {
     if (!id) return;
     getReminder(id)
       .then((r) => setState({ kind: "ready", reminder: r }))
-      .catch(() =>
-        setState({ kind: "error", message: "Could not load this reminder." })
+      .catch((e) =>
+        setState({
+          kind: "error",
+          // A 401 is not a missing reminder. Saying "could not load this
+          // reminder" to someone whose session expired sends them looking for a
+          // problem with their medication instead of signing back in.
+          message: isAuthError(e)
+            ? "Please sign in again to see this reminder."
+            : "We couldn't reach the pharmacy to load this reminder.",
+        })
       );
   }, [id]);
 
-  async function act(fn: () => Promise<MedicationReminder>) {
+  async function act(fn: () => Promise<MedicationReminder>, verb: string) {
     setActing(true);
+    setActionError("");
     try {
       const updated = await fn();
       setState({ kind: "ready", reminder: updated });
     } catch {
-      // silently ignore - user can retry
+      setActionError(`We couldn't ${verb} this reminder. It is unchanged — please try again.`);
     } finally {
       setActing(false);
       setConfirmStop(false);
@@ -93,10 +108,12 @@ export default function ReminderDetailPage() {
 
   async function handleDelete() {
     setActing(true);
+    setActionError("");
     try {
       await deleteReminder(id);
       router.push("/reminders");
     } catch {
+      setActionError("We couldn't delete this reminder. It is still active — please try again.");
       setActing(false);
     }
   }
@@ -109,7 +126,7 @@ export default function ReminderDetailPage() {
         <div className="flex flex-col items-center gap-4 px-5 py-20 text-center">
           <p className="text-white/60">{state.message}</p>
           <Link href="/reminders" className="text-sm text-emerald-400 hover:underline">
-            ← Back to Medications
+            ← Back to Reminders
           </Link>
         </div>
       </AppShell>
@@ -124,6 +141,7 @@ export default function ReminderDetailPage() {
 
   return (
     <AppShell>
+      <PageTitle title={reminder.medicine_name} />
       <div className="pb-8 space-y-6">
         {/* Sub-header */}
         <div className="flex items-center gap-3 px-5 pt-8">
@@ -133,7 +151,7 @@ export default function ReminderDetailPage() {
           >
             <ArrowLeft className="h-4 w-4 text-white/70" />
           </Link>
-          <p className="flex-1 truncate text-[13px] text-[#b1bdb0]">My Medications</p>
+          <p className="flex-1 truncate text-[13px] text-[#b1bdb0]">Reminders</p>
         </div>
 
         {/* Hero */}
@@ -200,15 +218,37 @@ export default function ReminderDetailPage() {
             <CalendarPlus className="h-4 w-4 text-[#4285F4]" />
             Add to Google Calendar
           </a>
+
+          {/* The refill path. This page knows exactly which medicine the
+              customer takes and when they run out, and its only two exits were
+              the reminder list and Google Calendar - in a product whose stated
+              success metric is refills. Searching the catalogue by name is the
+              smallest honest version: it does not assume the pharmacy stocks
+              this exact item, it just stops making the customer retype it. */}
+          <Link
+            href={`/shop?q=${encodeURIComponent(reminder.medicine_name)}`}
+            className="mt-1 inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-emerald-500/30 px-4 py-2.5 text-[13px] font-semibold text-emerald-400 transition hover:bg-emerald-500/10"
+          >
+            <ShoppingCart className="h-4 w-4" />
+            Order a refill
+          </Link>
         </div>
 
         {/* Controls */}
         <div className="px-5 space-y-2.5">
+          {actionError && (
+            <p
+              role="alert"
+              className="rounded-xl border border-red-500/25 bg-red-500/[0.08] px-4 py-3 text-[13px] leading-relaxed text-red-400"
+            >
+              {actionError}
+            </p>
+          )}
           {isActive && (
             <>
               <button
                 disabled={acting}
-                onClick={() => act(() => pauseReminder(id))}
+                onClick={() => act(() => pauseReminder(id), "pause")}
                 className="w-full rounded-xl border border-amber-500/30 py-3.5 text-sm font-semibold text-amber-400 transition hover:bg-amber-500/10 disabled:opacity-50"
               >
                 {acting ? "Updating…" : "Pause Reminder"}
@@ -235,7 +275,7 @@ export default function ReminderDetailPage() {
                     </button>
                     <button
                       disabled={acting}
-                      onClick={() => act(() => stopReminder(id))}
+                      onClick={() => act(() => stopReminder(id), "stop")}
                       className="flex-1 rounded-xl bg-red-500/20 border border-red-500/30 py-2.5 text-sm font-semibold text-red-400 disabled:opacity-50"
                     >
                       {acting ? "Stopping…" : "Yes, Stop"}
@@ -250,14 +290,14 @@ export default function ReminderDetailPage() {
             <>
               <TactileButton
                 disabled={acting}
-                onClick={() => act(() => resumeReminder(id))}
+                onClick={() => act(() => resumeReminder(id), "resume")}
                 className="w-full disabled:opacity-50"
               >
                 {acting ? "Resuming…" : "Resume Reminder"}
               </TactileButton>
               <button
                 disabled={acting}
-                onClick={() => act(() => stopReminder(id))}
+                onClick={() => act(() => stopReminder(id), "stop")}
                 className="w-full rounded-xl border border-red-500/25 py-2.5 text-sm font-medium text-red-400 transition hover:bg-red-500/10 disabled:opacity-50"
               >
                 Stop Reminder
