@@ -1,12 +1,14 @@
-# Handoff — product images
+# Handoff — product images, and the app-open loader
 
-Written 2026-07-27, updated 2026-07-28. `main` is at `7077f272`, pushed, `web` deploy
-green, 666 tests pass.
+Written 2026-07-27, updated 2026-07-30. `main` is at `e751db56`, pushed, deployed to
+both hosts (Vercel and Railway green), 666 tests pass.
 
-**There is unmerged work.** Branch `refactor/button-system` (7 commits, pushed, Vercel
-preview only — nothing deployed to production) carries the button-system refactor, two
-repo-hygiene changes and the lint fix. Lint, typecheck and build all pass there; lint
-fails on `main`. See §9 before merging it.
+Nothing is unmerged. `refactor/button-system` was merged and shipped on 2026-07-29
+(see §9), and the brand loader plus the SEO fixes went out on 2026-07-30 (see §10).
+
+This file now covers two workstreams. §§1-8 are the product-images push, which is still
+the live piece of work. §10 is the app-open loader and the search-visibility fixes found
+while shipping it; that work is finished and deployed.
 
 (Replaces the previous handoff covering the staff checklist / meeting tracker — that
 work shipped and had no blocking steps; see git history for `handoff.md` before this.)
@@ -230,15 +232,18 @@ Bugs fixed, worth knowing:
    Pricing them is what turns those photos into storefront value.
 4. **Demo video still paused** — `docs/video/RECORDING-GUIDE.md`; resumes once hero
    products have photos.
-5. Untouched issues: `peacewayonline.com.ng` DNS-fails but is hardcoded in
-   `app/core/config.py` and `web/public/sitemap.xml`; `app/api/v1/prescriptions.py`
-   discards web-uploaded prescription images.
+5. Untouched issue: `app/api/v1/prescriptions.py` discards web-uploaded prescription
+   images. (The `peacewayonline.com.ng` hardcoding is **fixed** — see §10. One mention
+   survives in `app/core/config.py:103`, inside a comment showing CORS value format,
+   with no runtime effect.)
 
-## 9. Unmerged: `refactor/button-system`
+## 9. Shipped: `refactor/button-system`
 
-Seven commits, pushed, **not merged**. A Vercel *preview* fired; no production deploy
-on either host. `main` was never touched. `npm run lint`, `typecheck` and `build` all
-pass on this branch — lint had been failing on `main`, see below.
+**Merged and deployed 2026-07-29** as part of the push to `458cdd07`. Kept here because
+the CSS-layering lesson below generalises and has not been acted on.
+
+Eight commits, fast-forwarded into `main` with no conflicts. `main` had been failing
+lint on its own before this landed; the fix is in this batch.
 
     4aa3f558  chore(web): silence no-img-element with the reason, not with next/image
     20e93656  docs: record the unmerged button-system branch and what merging it moves
@@ -278,7 +283,7 @@ Any bare class written after `@tailwind utilities` in `globals.css` beats the
 utilities and fails silently, with no error and no visual warning. `.pw-tile*` sits in
 the same file under the same conditions and has not been audited.
 
-### Open on that branch
+### Notes carried over from that branch
 
 - ~~`npm run lint` fails~~ **fixed in `4aa3f558`.** It had been failing on `main`
   since `1f459897` on 2 `@next/next/no-img-element` warnings against
@@ -300,3 +305,206 @@ the same file under the same conditions and has not been audited.
   in this repo**, and the scripts hardcode `C:\Projects\peaceway-online\presentations\`
   so they only run from that absolute path. They are ignored, so a fresh clone will
   not have them and cannot rebuild them.
+
+## 10. Shipped: the app-open loader, and the SEO defects it uncovered
+
+All deployed 2026-07-30. `main` at `e751db56`. Vercel and Railway both green; typecheck,
+lint and production build all pass.
+
+Started as "add the commissioned logo animation as an app loader". Verifying the deploy
+turned up several things that were quietly suppressing the site in search, which is most
+of what this section is about.
+
+### 10.1 The loader
+
+`web/components/brand/app-loader.tsx`, mounted in `app/layout.tsx`. Plays the client's
+Higgsfield animation full-screen, once, then resolves into the app.
+
+**Server-rendered, and that is the point.** An effect-mounted overlay let the page paint
+first and dropped the loader on top a frame later — a visible flash of the real app
+before the brand moment. Being in the SSR HTML puts it in the first painted frame. The
+page still renders behind it, so it does not delay the page's own paint.
+
+That choice is paid for in two places, and both must survive any refactor:
+
+- **No JS at all** — a CSS-only backstop animation retires the overlay. `.js-ready`
+  cancels it the instant React mounts, so the animation and the JS transitions never
+  fight over `opacity`. Without the backstop, a server-rendered overlay with dead
+  scripting is a permanently blank site.
+- **Skip-on-return** — a blocking inline script in `<head>` reads `sessionStorage` and
+  adds `pw-loader-skip` to `<html>` before first paint. It has to be pre-paint and
+  pre-React, which is why it is a raw `<script>` and not the component's job. It is only
+  emitted when `LOADER_SCOPE` actually gates replays, and it imports the constant so the
+  two cannot drift.
+
+Five independent exits: video end, a 6s hard cap, a stall watchdog (a video frozen at 1s
+would otherwise hold the screen for the whole cap), tap or Escape, and the CSS backstop.
+
+`LOADER_SCOPE` defaults to `"every-app-open"`. The tighter `"first-visit-per-session"`
+gate is implemented and tested but **not** the default, deliberately: it hid the loader
+twice during the build and both times read as "the animation is gone". A brand moment you
+cannot reliably see is worse than one seen slightly too often. Note that neither setting
+replays on client-side navigation — the component lives in the root layout, which
+survives routing and never re-mounts. Only crossing between the marketing site and the
+app (a real document load) replays it.
+
+**The asset.** Delivered at 40.7 MB, 1920x1080, 46 Mbps, 7.04s — with content occupying
+only the middle 50% of the frame, so on a phone the logo rendered ~195px wide adrift in
+an 844px field. Trimmed to 5.0s (the last 2.17s was a static hold), cropped to
+`1080x990` around the content's true extent **across the whole 5s** — not the final
+frame, or elements flying in from the margins clip — and re-encoded:
+
+    peaceway-loader.webm         183 KB   VP9 CRF 34
+    peaceway-loader.mp4          231 KB   H.264 CRF 24, faststart
+    peaceway-loader-poster.webp   20 KB   final frame, also the never-blank fallback
+    peaceway-loader-mark.webp     85 KB   transparent cut-out, the travelling element
+
+To regenerate after a re-render, the ffmpeg crop is `crop=1080:990:413:64` against the
+original 1920x1080 source. If the crop changes, `LOCKUP` in `app-loader.tsx` must be
+re-measured — it is the lockup's position as fractions of the delivered frame, and the
+handoff geometry is derived from it.
+
+**The exit.** On finishing, the transparent cut-out is laid exactly where the video drew
+the lockup (imperceptible swap) and travels to the app's own header logo while the ground
+resolves from the animation's `#F3F3F3` to the app's `#0b0c09`. Without that the loader
+ends and the app begins across a 17.7:1 luminance flip with nothing carried over, which
+is what made it read as a title card in front of the product rather than the product
+opening. Routes with no header logo take the plain fade rather than an invented target.
+
+Two traps, both hit and both fixed, worth knowing before editing this:
+
+- The render condition must include the `leaving` phase. Without it React falls back to
+  the `<video>` branch the moment the fade begins, remounting the video and snapping the
+  logo to full size at the worst possible instant.
+- The travelling element must mount at identity and receive its transform on a **later**
+  frame. Given the final transform at mount there is nothing to animate from, and the
+  logo teleports.
+
+**The ground colour is set inline, not by the `.pw-loader.is-handoff` class.** The class
+is in the shipped CSS, correctly ordered, at the right specificity, and it resolves to
+`#0b0c09` in a dev build — and it still did not repaint in production. Rather than keep
+hunting the cascade, the handoff assigns the colour inline, which wins unconditionally.
+The class remains as the no-JS path. If you ever need to debug that: the stylesheet is
+cross-origin to the apex host so `cssRules` is unreadable from the page, and a browser
+pane that is not compositing freezes transitions while timers keep firing — both produced
+convincing false readings during this work.
+
+### 10.2 Removed, because the loader replaces them
+
+- **The route curtain.** A branded full-screen interstitial used to sweep the viewport on
+  every navigation. It fired dozens of times per session, where motion reads as latency
+  rather than craft. `app/template.tsx` is back to the 180ms `.pw-route` fade and nothing
+  else. Do not re-add it; the brand moment belongs on app open, where it happens once.
+- **`components/app/peaceway-loader.tsx`.** The data-loading state was a full-screen
+  overlay of the logo mark, pinned over the viewport, hiding the header and bottom nav
+  behind a brand moment the user saw seconds earlier on the splash. `Spinner` in
+  `components/app/ui.tsx` (11 call sites) now renders a skeleton stack in the flow. A
+  skeleton answers "what am I waiting for"; a logo only answers "whose app is this".
+- **The vector splash system** — `brand-splash.tsx`, `splash-stage.tsx`,
+  `peaceway-logo.tsx`, `peaceway-logo-paths.ts`, `peaceway-mark.tsx` and the two
+  `/brand-preview` dev routes. Recoverable from git history if wanted: it included a
+  potrace vector trace of the logo verified at **IoU 0.956** against the source raster,
+  with the script-letter join positions measured from the wordmark's column-density
+  profile. `scripts/trace_logo.py` (untracked) regenerates it.
+
+### 10.3 The SEO defects — the part that mattered most
+
+Found while verifying the deploy, all pre-existing, all fixed.
+
+1. **`metadataBase` pointed at `https://peacewayonline.com.ng`, a domain with no DNS at
+   all** (`curl` returns 000). Every canonical tag and every OpenGraph image URL the site
+   emitted was therefore unreachable. The live host is `www.peacewayonline.com` — the
+   apex 308-redirects to it, so `www` is what canonicals must name. The origin now lives
+   in `siteConfig.url` (`web/lib/constants.ts`) and `metadataBase` reads it.
+2. **`robots.txt` and `sitemap.xml` named the same dead domain.** A `Sitemap:` directive
+   on unreachable DNS means a crawler cannot fetch the sitemap at all.
+3. **The sitemap listed one URL.** Now generated from the routes — `web/app/sitemap.ts`,
+   258 URLs, revalidating hourly so a new medicine appears without a deploy. The static
+   `public/sitemap.xml` had to be deleted: a file in `public/` is served directly and
+   shadows the generated route.
+
+   Note for anyone extending it: "returns 200" is **not** a usable test for what belongs
+   in a sitemap here. Every route answers 200 anonymously because they are client-rendered
+   shells whose guest wall appears only after hydration. Personal surfaces, staff
+   surfaces, `/offline` and `/showcase` are excluded on judgement, not status code.
+4. **All 250 product pages served the root layout's title.** `/shop/[id]` was a client
+   component, so `generateMetadata` could not run. 250 pages sharing one title is
+   duplicate content, which is why they were initially kept out of the sitemap.
+
+### 10.4 Product slugs and metadata
+
+`/shop/[id]` became `/shop/[slug]`, split into a server component (`page.tsx`, owning
+`generateMetadata`) around the interactive client part (`product-detail.tsx`).
+
+URLs went from `/shop/4094c822-8450-4cfc-b330-f46a304d95d3` to
+`/shop/afrab-loratadine-tablets-10-mg-3bf9718c`. Old UUID URLs still resolve and **308**
+to the slug, so bookmarks and anything already indexed transfer rather than competing.
+
+**No database change.** There is no `slug` column and adding one means an Alembic
+migration plus a backfill against production. Slugs are derived from name + strength and
+resolved by matching the catalogue, which is 250 items in one ~90KB response, fetched
+server-side via `INTERNAL_API_URL` (not `NEXT_PUBLIC_API_URL` — a server component cannot
+fetch the relative `/api/v1` proxy path the browser uses) and cached for an hour.
+
+**The 8-character id suffix is unconditional**, and measured against the live catalogue
+there are currently **zero** base-slug collisions, so it is redundant today. It stays
+because suffixing only on collision requires the whole catalogue to build a link, and the
+pages that render product links hold a *filtered* list — two products would silently
+share a URL and both 404. Validated across all 250: 250 unique slugs, none unusable.
+
+`fetchCatalog` swallows its own errors and returns `[]`, so an unreachable backend
+degrades the sitemap to its 8 static routes and the product page to the client's own
+fetch. It can never fail a build or a render.
+
+### 10.5 Search Console and DNS
+
+Both `peacewayonline.com` and `bigquivdigitals.com` are verified as **Domain** properties
+(DNS TXT). Domain properties cover apex, `www`, http and https in one property, which
+matters here because the apex redirects to `www`.
+
+Two things that cost time and are worth writing down:
+
+- **A Domain property rejects a relative sitemap path.** It needs the full URL,
+  `https://www.peacewayonline.com/sitemap.xml`. Relative paths only work for URL-prefix
+  properties.
+- **Which control panel a DNS record goes in is a consequence of the nameservers, not a
+  choice.** `peacewayonline.com` is on Namecheap BasicDNS (`dns1/dns2.registrar-servers.com`)
+  so its records are edited at Namecheap. `bigquivdigitals.com` is on
+  `ns1/ns2.vercel-dns.com` so its records are edited in Vercel.
+
+**Incident, resolved.** `bigquivdigitals.com`'s nameservers were switched to Namecheap
+BasicDNS, which orphaned everything living only in the Vercel zone: DKIM, DMARC, the
+Resend and SES records, BIMI and CAA. Inbound mail still worked, so it was not obvious —
+but outbound mail was unsigned and unpoliced. Restored by switching back to Custom DNS
+with Vercel's nameservers; all records verified answering again.
+
+The lesson: on a domain serving live mail, the nameserver dropdown is the most
+destructive control on the page. Records inside a zone are additive and safe; the
+nameservers decide which zone is authoritative at all. `peacewayonline.com` carries the
+pharmacy site **and** Zoho MX — do not touch its nameservers.
+
+Also note `nslookup` on this machine cannot query CAA (`unknown query type: CAA`) and
+`dig` is not installed, which produced a false "CAA missing" reading during the incident.
+Use PowerShell's `Resolve-DnsName -Type CAA` or a web tool.
+
+### 10.6 Open items
+
+1. **The loader opens on `#F3F3F3` against the app's `#0b0c09`.** This is an approved
+   exception to the dark base that `docs`/PRODUCT.md calls settled, not an oversight: it
+   matches the supplied animation, and the owner chose it over re-rendering. The ground
+   transition bridges the flip rather than removing it. **If the animation is ever
+   re-rendered on `#0b0c09`, this becomes a one-value change** — `--pw-loader-bg` in
+   `globals.css` plus swapping the two video files. `APP_GROUND` in `app-loader.tsx`
+   would then be redundant.
+2. **Indexing lag.** 250 new URLs will take days to weeks and Google will not necessarily
+   accept all of them. The sitemap reads **Success**; its "discovered pages" count lagged
+   at 8 because Google read a cached copy from before the product deploy. Check **Pages**
+   in Search Console in a week to see what was actually accepted.
+3. **`/impeccable audit` scored 13/20** ("acceptable, significant work needed") against
+   the brand-motion work. The two live findings were the light loader ground
+   (item 1) and the client-bundle cost of the vector logo path data — the latter
+   is resolved, since that system was deleted in §10.2. The remaining ~50 detector advisories in
+   `globals.css` are colour, radius and font-size values predating this work.
+4. **Product pages could go further.** Slugs and metadata are in; structured data
+   (`Product` / `Offer` JSON-LD, price and availability) is not, and for a
+   pharmacy that is what produces rich results. The obvious next SEO step.
