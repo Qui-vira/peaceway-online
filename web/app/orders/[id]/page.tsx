@@ -8,6 +8,7 @@ import { isNotFound } from "@/lib/api";
 import { getOrder, type Order } from "@/lib/api/orders";
 import { AppShell } from "@/components/app/app-shell";
 import { LoadFailed, Spinner } from "@/components/app/ui";
+import { PageTitle } from "@/components/app/page-title";
 
 const STATUS_LABEL: Record<string, string> = {
   NEW: "Received",
@@ -99,6 +100,7 @@ export default function OrderDetailPage() {
 
   return (
     <AppShell>
+      <PageTitle title={`Order ${order.code}`} />
       <div className="space-y-6 pb-8">
         {/* Header */}
         <div className="flex items-center gap-3 px-5 pt-8">

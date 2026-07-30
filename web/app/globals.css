@@ -941,8 +941,12 @@ button:not(:disabled):not([aria-disabled="true"]),
     border-radius: 16px;
     font-size: 14px;
   }
+  /* 44px, not 40. This is the "small" button, but small means less horizontal
+     padding and a tighter radius - not a target below the documented minimum.
+     It is the Add button on every catalogue tile, tapped one-handed on a phone,
+     which is exactly the case the 44px floor exists for. */
   .pw-btn-sm {
-    min-height: 40px;
+    min-height: 44px;
     padding: 0 14px;
     border-radius: 12px;
     font-size: 12px;
@@ -975,9 +979,15 @@ button:not(:disabled):not([aria-disabled="true"]),
     outline: none;
     box-shadow: 0 4px 0 0 #0f673c, 0 0 0 3px rgba(52, 217, 138, 0.55);
   }
+  /* 0.55 opacity alone was not enough: a 55%-opacity brand green on a
+     near-black base still reads as a live button, so checkout's Place Order
+     looked tappable while doing nothing. Desaturating removes the "this is the
+     primary action" signal that colour alone was still sending. */
   .pw-btn:disabled,
   .pw-btn-sm:disabled {
-    opacity: 0.55;
+    opacity: 0.45;
+    filter: saturate(0.35);
+    cursor: not-allowed;
   }
   .pw-btn:disabled:active,
   .pw-btn-sm:disabled:active {
@@ -1571,6 +1581,15 @@ button:not(:disabled):not([aria-disabled="true"]),
     color 0.16s cubic-bezier(0.22, 0.61, 0.36, 1),
     box-shadow 0.16s cubic-bezier(0.22, 0.61, 0.36, 1);
   color: var(--m);
+}
+
+/* WhatsApp and Facebook are not live yet. They used to be anchors pointing at
+   "#": focusable, announced as links, and going nowhere. Same slot, same size,
+   visibly inactive - matching how the text links in the Legal column say
+   "Soon". */
+.fsi-soon {
+  opacity: 0.4;
+  cursor: default;
 }
 
 

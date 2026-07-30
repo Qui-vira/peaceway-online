@@ -16,6 +16,7 @@ import {
   StatusChip,
 } from "@/components/app/ui";
 import { GenericIcon } from "@/components/app/drug-icons";
+import { PageTitle } from "@/components/app/page-title";
 
 type State =
   | { kind: "loading" }
@@ -53,11 +54,12 @@ export default function RequestsPage() {
 
   return (
     <AppShell>
+      <PageTitle title="Requests" />
       <div className="space-y-6 px-5 pt-10 pb-4">
 
         {/* Header */}
         <div className="flex items-center justify-between">
-          <h1 className="font-syne text-[22px] font-bold text-white">My Requests</h1>
+          <h1 className="font-syne text-[22px] font-bold text-white">Requests</h1>
           {state.kind === "ready" && state.requests.length > 0 && (
             <span className="rounded-full border border-white/10 bg-white/6 px-2.5 py-0.5 text-xs font-semibold text-white/50">
               {state.requests.length}

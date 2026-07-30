@@ -91,6 +91,15 @@ class Customer(Base, TimestampMixin):
     email_opt_in_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     email_updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
+    # The code this customer shares. Minted server-side on first request so it
+    # exists in exactly one place; the web app used to derive it from name and
+    # phone at render time, which produced a code no lookup could ever match.
+    referral_code: Mapped[str | None] = mapped_column(String(16), unique=True, index=True)
+    # Who brought them in. Attribution only - rewards are not modelled here.
+    referred_by_customer_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("customers.id", ondelete="SET NULL"), index=True
+    )
+
     orders: Mapped[list["Order"]] = relationship(back_populates="customer")
     messages: Mapped[list["CustomerMessage"]] = relationship(back_populates="customer")
     notes: Mapped[list["CustomerNote"]] = relationship(back_populates="customer")

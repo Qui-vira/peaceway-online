@@ -188,6 +188,13 @@ function StaffOtpGate({ onLogin }: { onLogin: (admin: AdminMe) => void }) {
           });
       setAdminToken(token);
       const me = await adminFetch<AdminMe>("/admin/me");
+      // Staff who hit /admin/sourcing directly were bounced here and then left
+      // on the dashboard, having to navigate back to the screen they asked for.
+      const next = new URLSearchParams(window.location.search).get("next");
+      if (next && /^\/admin\/[a-z-]+$/.test(next)) {
+        window.location.href = next;
+        return;
+      }
       onLogin(me);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Invalid code.");
@@ -257,7 +264,7 @@ function StaffOtpGate({ onLogin }: { onLogin: (admin: AdminMe) => void }) {
                     onChange={(e) => setTelegramId(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && handleSendCode()}
                     placeholder="e.g. 123456789"
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-[#b1bdb0] outline-none focus:border-emerald-500/50"
+                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-base text-white placeholder-[#b1bdb0] outline-none focus:border-emerald-500/50"
                   />
                   <p className="text-[11px] text-[#b1bdb0]">
                     Send <code>/myid</code> to the Peaceway bot to find your ID.
@@ -273,7 +280,7 @@ function StaffOtpGate({ onLogin }: { onLogin: (admin: AdminMe) => void }) {
                     onChange={(e) => setEmail(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && handleSendCode()}
                     placeholder="operations@company.com"
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-[#b1bdb0] outline-none focus:border-emerald-500/50"
+                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-base text-white placeholder-[#b1bdb0] outline-none focus:border-emerald-500/50"
                   />
                   <p className="text-[11px] text-[#b1bdb0]">
                     Use the email assigned to your Peaceway operations account.
@@ -301,7 +308,7 @@ function StaffOtpGate({ onLogin }: { onLogin: (admin: AdminMe) => void }) {
                   onChange={(e) => setCode(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleVerify()}
                   placeholder="000000"
-                  className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-[#b1bdb0] outline-none focus:border-emerald-500/50 tracking-[0.3em]"
+                  className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-base text-white placeholder-[#b1bdb0] outline-none focus:border-emerald-500/50 tracking-[0.3em]"
                   autoFocus
                 />
                 <p className="text-[11px] text-[#b1bdb0]">
@@ -327,6 +334,16 @@ function StaffOtpGate({ onLogin }: { onLogin: (admin: AdminMe) => void }) {
             </>
           )}
         </div>
+        {/* A customer who taps "Staff sign in" on the app home had no way out of
+            this screen but the browser's back button. */}
+        <p className="text-center">
+          <Link
+            href="/app"
+            className="-my-2 inline-flex min-h-[44px] items-center rounded px-2 py-2 text-[12px] text-[#b1bdb0] transition hover:text-[#dcdddb]"
+          >
+            ← Back to Peaceway Online
+          </Link>
+        </p>
       </div>
     </div>
   );
@@ -645,13 +662,13 @@ function CatalogTab() {
             value={q}
             onChange={(event) => setQ(event.target.value)}
             placeholder="Search medicine, brand, generic name, NAFDAC..."
-            className="flex-1 bg-transparent text-sm text-white placeholder-[#b1bdb0] outline-none"
+            className="flex-1 bg-transparent text-base text-white placeholder-[#b1bdb0] outline-none"
           />
         </div>
         <select
           value={statusFilter}
           onChange={(event) => setStatusFilter(event.target.value)}
-          className="h-[46px] rounded-xl border border-white/10 bg-[#10110e] px-3 text-sm text-white outline-none"
+          className="h-[46px] rounded-xl border border-white/10 bg-[#10110e] px-3 text-base text-white outline-none"
         >
           <option value="all">All products</option>
           <option value="listed">Listed</option>
@@ -716,7 +733,7 @@ function CatalogTab() {
                       value={draft.selling_price}
                       onChange={(event) => updateDraft(product.id, { selling_price: event.target.value })}
                       placeholder="0"
-                      className="h-10 w-full rounded-xl border border-white/10 bg-black/20 px-3 text-sm text-white outline-none focus:border-emerald-500/50"
+                      className="h-10 w-full rounded-xl border border-white/10 bg-black/20 px-3 text-base text-white outline-none focus:border-emerald-500/50"
                     />
                   </label>
 
@@ -727,7 +744,7 @@ function CatalogTab() {
                       value={draft.stock_qty}
                       onChange={(event) => updateDraft(product.id, { stock_qty: event.target.value })}
                       placeholder="0"
-                      className="h-10 w-full rounded-xl border border-white/10 bg-black/20 px-3 text-sm text-white outline-none focus:border-emerald-500/50"
+                      className="h-10 w-full rounded-xl border border-white/10 bg-black/20 px-3 text-base text-white outline-none focus:border-emerald-500/50"
                     />
                   </label>
 

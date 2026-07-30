@@ -1,4 +1,17 @@
 User-agent: *
 Allow: /
 
+# Not for search. The sitemap already excludes these; robots keeps a crawler
+# that found them another way from indexing them.
+#   /showcase  - an internal second landing page, unlinked from the site
+#   /admin     - staff sign-in and dashboard
+#   /partners  - wholesaler/supplier portal
+#   /dispatch  - rider portal
+#   /offline   - the PWA fallback shell; an error page in results helps nobody
+Disallow: /showcase
+Disallow: /admin
+Disallow: /partners
+Disallow: /dispatch
+Disallow: /offline
+
 Sitemap: https://www.peacewayonline.com/sitemap.xml

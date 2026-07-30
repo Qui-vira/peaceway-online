@@ -28,7 +28,7 @@ import { TactileButton, TactileLink } from "@/components/app/tactile-button";
  */
 
 const FOCUS =
-  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0b0c09]";
+  "focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[rgba(52,217,138,0.5)] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0b0c09]";
 
 /** See product-card.tsx: "0.00" is a truthy string, so an unpriced item used to
  *  render as "₦0". Products are listed before staff price them, so this is common. */

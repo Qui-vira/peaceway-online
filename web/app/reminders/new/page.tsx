@@ -1,23 +1,34 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Plus, X, AlertTriangle } from "lucide-react";
 import { localDateKey } from "@/lib/date";
 import { AppShell } from "@/components/app/app-shell";
-import { SectionLabel } from "@/components/app/ui";
+import { GuestWall, SectionLabel, Spinner } from "@/components/app/ui";
+import { getMe } from "@/lib/api/customers";
+import { isAuthError } from "@/lib/api";
 import { createReminder } from "@/lib/api/reminders";
 import { TactileButton } from "@/components/app/tactile-button";
+import { PageTitle } from "@/components/app/page-title";
 
 type Step = 1 | 2 | 3;
 
 function StepDots({ current }: { current: Step }) {
   return (
-    <div className="flex items-center justify-center gap-2">
+    // The dots carry the only "where am I" signal in a three-step flow, and
+    // they carried it in colour and width alone - nothing to announce, nothing
+    // to read. The label states the position; the dots stay decorative.
+    <div
+      className="flex items-center justify-center gap-2"
+      role="group"
+      aria-label={`Step ${current} of 3`}
+    >
       {([1, 2, 3] as const).map((n) => (
         <span
           key={n}
+          aria-hidden="true"
           className={`h-2 rounded-full transition-all ${
             n === current
               ? "w-6 bg-emerald-500"
@@ -35,6 +46,16 @@ const PRESET_TIMES = ["06:00", "08:00", "12:00", "14:00", "18:00", "21:00"];
 
 export default function NewReminderPage() {
   const router = useRouter();
+
+  // Every sibling route walls a signed-out visitor immediately; this one let
+  // them fill in three steps and fail at submit. Same gate, same component.
+  const [authState, setAuthState] = useState<"checking" | "guest" | "ok">("checking");
+
+  useEffect(() => {
+    getMe()
+      .then(() => setAuthState("ok"))
+      .catch((e) => setAuthState(isAuthError(e) ? "guest" : "ok"));
+  }, []);
 
   const [step, setStep] = useState<Step>(1);
   const [name, setName] = useState("");
@@ -70,28 +91,41 @@ export default function NewReminderPage() {
       });
       router.push(`/reminders/${rem.id}`);
     } catch {
-      setError("Something went wrong. Please try again.");
+      setError("We couldn't save your reminder. Nothing was set — please try again.");
       setSubmitting(false);
     }
   }
 
   const today = localDateKey();
 
+  if (authState === "checking") return <AppShell><Spinner /></AppShell>;
+  if (authState === "guest")
+    return (
+      <AppShell>
+        <PageTitle title="Add reminder" />
+        <GuestWall message="So your reminders follow you to any phone you sign in on." />
+      </AppShell>
+    );
+
   return (
     <AppShell>
       <div className="px-5 pt-8 pb-8 space-y-6">
         {/* Header */}
         <div className="flex items-center gap-3">
+          {/* h-11, not h-9: this was a 36px, unlabelled, focus-ring-less back
+              button - a third implementation of a control the app already has
+              twice, and the smallest of the three. */}
           <button
             onClick={() => (step === 1 ? router.back() : setStep((s) => (s - 1) as Step))}
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5"
+            aria-label={step === 1 ? "Go back" : "Previous step"}
+            className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/5 transition hover:border-white/20 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[rgba(52,217,138,0.5)]"
           >
             <ArrowLeft className="h-4 w-4 text-white/70" />
           </button>
           <div className="flex-1 text-center">
-            <p className="font-syne text-[17px] font-bold text-white">Add Medication</p>
+            <h1 className="font-syne text-[19px] font-bold text-white">Add reminder</h1>
           </div>
-          <div className="h-9 w-9" />
+          <div className="h-11 w-11" />
         </div>
 
         <StepDots current={step} />
@@ -111,7 +145,7 @@ export default function NewReminderPage() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g. Paracetamol 500mg"
-                  className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-[#b1bdb0] outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/20"
+                  className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-base text-white placeholder-[#b1bdb0] outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/20"
                 />
               </div>
 
@@ -124,7 +158,7 @@ export default function NewReminderPage() {
                   onChange={(e) => setInstructions(e.target.value)}
                   placeholder="e.g. Take with food, twice daily"
                   rows={3}
-                  className="w-full resize-none rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-[#b1bdb0] outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/20"
+                  className="w-full resize-none rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-base text-white placeholder-[#b1bdb0] outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/20"
                 />
               </div>
             </div>
@@ -181,7 +215,7 @@ export default function NewReminderPage() {
                   type="time"
                   value={customTime}
                   onChange={(e) => setCustomTime(e.target.value)}
-                  className="flex-1 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white outline-none focus:border-emerald-500/50"
+                  className="flex-1 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-base text-white outline-none focus:border-emerald-500/50"
                 />
                 <button
                   onClick={() => {
@@ -221,7 +255,7 @@ export default function NewReminderPage() {
                   value={startDate}
                   min={today}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none focus:border-emerald-500/50"
+                  className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-base text-white outline-none focus:border-emerald-500/50"
                 />
               </div>
 
@@ -249,7 +283,7 @@ export default function NewReminderPage() {
                     value={endDate}
                     min={startDate}
                     onChange={(e) => setEndDate(e.target.value)}
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none focus:border-emerald-500/50"
+                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-base text-white outline-none focus:border-emerald-500/50"
                   />
                 </div>
               )}

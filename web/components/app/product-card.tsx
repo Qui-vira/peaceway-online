@@ -12,7 +12,7 @@ import { productSlug } from "@/lib/product-slug";
 import type { Product } from "@/lib/api/catalog";
 
 const FOCUS =
-  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0b0c09]";
+  "focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[rgba(52,217,138,0.5)] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0b0c09]";
 
 /**
  * A product with no price set must not render "₦0".
@@ -164,8 +164,12 @@ export function ProductCard({
              the tap feel acknowledged rather than merely obeyed. Both states are
              the same height, so nothing below reflows and the swap costs no CLS.
              `mode="wait"` would leave a 140ms hole in the grid; the two states
-             overlap in a fixed-height box instead. */
-          <div className="relative mt-auto min-h-[40px]">
+             overlap in a fixed-height box instead.
+
+             The box is 44px, not 40: this is the primary action on every tile in
+             the catalogue, tapped one-handed on a phone, which is exactly the
+             case the documented 44px floor exists for. */
+          <div className="relative mt-auto min-h-[44px]">
             <AnimatePresence initial={false}>
               {added ? (
                 <motion.div

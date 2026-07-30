@@ -79,8 +79,14 @@ export function HeroContent(): JSX.Element {
       >
         Order on Telegram
       </motion.a>
-      <motion.a className="bg2" href="/request" {...hover}>
-        Check Product Availability
+      {/* Was "Check Product Availability" → /request, which walls a stranger
+          behind a registration form before showing them anything. The
+          catalogue is 250 real products, ranks at 0.9 in our own sitemap, and
+          had no link from this page at all - the only two internal doors were
+          /app and /request. Browse first, ask second: /request is still one tap
+          away from the app home and the footer. */}
+      <motion.a className="bg2" href="/shop" {...hover}>
+        Browse Medicines
       </motion.a>
     </>
   );

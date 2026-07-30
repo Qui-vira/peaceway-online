@@ -16,6 +16,7 @@ import { isAuthError, type ApiError } from "@/lib/api";
 import { AppShell } from "@/components/app/app-shell";
 import { GuestWall, LoadFailed, SectionLabel, Spinner } from "@/components/app/ui";
 import { TactileButton } from "@/components/app/tactile-button";
+import { PageTitle } from "@/components/app/page-title";
 
 function FieldShell({
   icon,
@@ -115,6 +116,7 @@ export default function ProfilePage() {
 
   return (
     <AppShell>
+      <PageTitle title="Profile" />
       <div className="space-y-6 px-5 pt-10 pb-8">
 
         {loading && <Spinner />}
@@ -157,7 +159,7 @@ export default function ProfilePage() {
                       type="text"
                       value={form.full_name}
                       onChange={(e) => setForm((f) => ({ ...f, full_name: e.target.value }))}
-                      className="flex-1 bg-transparent text-sm text-white placeholder-[#b1bdb0] outline-none"
+                      className="flex-1 bg-transparent text-base text-white placeholder-[#b1bdb0] outline-none"
                       autoComplete="name"
                     />
                   </FieldShell>
@@ -181,7 +183,7 @@ export default function ProfilePage() {
                       placeholder="For receipts and updates"
                       value={form.email}
                       onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-                      className="flex-1 bg-transparent text-sm text-white placeholder-[#b1bdb0] outline-none"
+                      className="flex-1 bg-transparent text-base text-white placeholder-[#b1bdb0] outline-none"
                       autoComplete="email"
                     />
                   </FieldShell>
@@ -193,7 +195,7 @@ export default function ProfilePage() {
                     <select
                       value={form.delivery_area}
                       onChange={(e) => setForm((f) => ({ ...f, delivery_area: e.target.value }))}
-                      className="min-w-0 flex-1 appearance-none bg-transparent pr-2 text-sm text-white outline-none [&>option]:bg-[#0b0c09] [&>option]:text-white"
+                      className="min-w-0 flex-1 appearance-none bg-transparent pr-2 text-base text-white outline-none [&>option]:bg-[#0b0c09] [&>option]:text-white"
                     >
                       <option value="">Select your area…</option>
                       {form.delivery_area &&
@@ -246,7 +248,9 @@ export default function ProfilePage() {
               {[
                 { href: "/prescription", label: "Upload Prescription", sub: "Send a script for review" },
                 { href: "/orders", label: "My Orders", sub: "Track your deliveries" },
-                { href: "/referral", label: "Refer a Friend", sub: "Earn ₦200 per referral" },
+                // Was "Earn ₦200 per referral" - a promise nothing in the system
+                // could keep or track. It now says what the page actually does.
+                { href: "/referral", label: "Refer a Friend", sub: "Share your code" },
                 { href: "/track", label: "Track an Order", sub: "No account needed" },
               ].map((link) => (
                 <a

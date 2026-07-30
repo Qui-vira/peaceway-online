@@ -135,7 +135,7 @@ function LoginGate({ onToken }: { onToken: (t: string) => void }) {
             </button>
           </>
         )}
-        {err && <p className="text-[13px] text-[#e88]">{err}</p>}
+        {err && <p className="text-[13px] text-red-400">{err}</p>}
       </div>
     </div>
   );
@@ -213,7 +213,7 @@ function Deliveries({ onLogout }: { onLogout: () => void }) {
         </button>
       </div>
 
-      {err && <p className="mt-4 text-[14px] text-[#e88]">{err}</p>}
+      {err && <p className="mt-4 text-[14px] text-red-400">{err}</p>}
 
       {loading ? (
         <p className="mt-10 text-center text-[#868f85]">Loading...</p>
@@ -234,7 +234,7 @@ function Deliveries({ onLogout }: { onLogout: () => void }) {
                     </p>
                   </div>
                   {d.handling_flag === "RX_ID_CHECK" && (
-                    <span className="rounded-full bg-[#a80b1622] px-2.5 py-1 text-[11px] font-medium text-[#e79]">
+                    <span className="rounded-full bg-[#a80b1622] px-2.5 py-1 text-[11px] font-medium text-red-300">
                       ID check
                     </span>
                   )}
@@ -254,7 +254,7 @@ function Deliveries({ onLogout }: { onLogout: () => void }) {
                 </div>
 
                 {d.awaiting_pharmacist_verification && (
-                  <p className="mt-3 rounded-xl bg-[#a80b1618] px-3 py-2 text-[13px] text-[#e79]">
+                  <p className="mt-3 rounded-xl bg-[#a80b1618] px-3 py-2 text-[13px] text-red-300">
                     Awaiting pharmacist verification. Do not travel yet.
                   </p>
                 )}

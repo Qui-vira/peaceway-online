@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { Suspense, useEffect, useState, useCallback, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import { ShoppingCart, Search } from "lucide-react";
 import Link from "next/link";
 import { listCatalog, listCategories, type Product } from "@/lib/api/catalog";
@@ -9,6 +10,7 @@ import { AppShell } from "@/components/app/app-shell";
 import { Spinner, EmptyState, LoadFailed, SectionLabel } from "@/components/app/ui";
 import { ProductCard } from "@/components/app/product-card";
 import { StaggerItem, StaggerList } from "@/components/app/motion";
+import { PageTitle } from "@/components/app/page-title";
 
 // "failed" is not an empty catalogue. Rendering "No medicines found" because
 // the backend was unreachable tells a customer this pharmacy has no stock -
@@ -19,11 +21,15 @@ type State =
   | { kind: "ready"; products: Product[] };
 
 const FOCUS =
-  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0b0c09]";
+  "focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[rgba(52,217,138,0.5)] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0b0c09]";
 
-export default function ShopPage() {
+function ShopPageContent() {
+  const searchParams = useSearchParams();
   const [state, setState] = useState<State>({ kind: "loading" });
-  const [q, setQ] = useState("");
+  // Seeded from `?q=`, so "Order a refill" on a reminder arrives with the
+  // medicine name already in the box instead of asking the customer to retype
+  // the name of the drug they take every day.
+  const [q, setQ] = useState(searchParams?.get("q") ?? "");
   const [category, setCategory] = useState("All");
   const [cart, setCart] = useState<CartItem[]>([]);
   const [addedIds, setAddedIds] = useState<Set<string>>(new Set());
@@ -84,20 +90,27 @@ export default function ShopPage() {
   const cartCount = cart.reduce((s, c) => s + c.quantity, 0);
 
   return (
-    <AppShell back={{ title: "Shop", fallbackHref: "/app" }}>
+    <AppShell back={{ fallbackHref: "/app" }}>
+      <PageTitle title="Shop" />
       <div className="mx-auto w-full max-w-6xl px-5 pb-10 md:px-8">
+        {/* A real <h1>. The catalogue's only heading was the back bar's <p>, so
+            the page a customer buys from had no document structure at all. */}
+        <h1 className="pt-5 font-syne text-[22px] font-bold text-white">Shop</h1>
         {/* Search + mobile cart (desktop cart lives in the top nav) */}
-        <div className="flex items-center gap-3 pt-5">
-          <div className={`flex flex-1 items-center gap-3 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 focus-within:border-emerald-500/40 focus-within:ring-2 focus-within:ring-emerald-400/40`}>
-            <Search className="h-4 w-4 shrink-0 text-[#b1bdb0]" />
+        <div className="flex items-center gap-3 pt-4">
+          {/* A <label>, not a <div>: the field looks 50px tall but the <input>
+              inside it is 24px, so tapping the padding did nothing. Wrapping
+              makes the whole box focus the input. */}
+          <label className={`flex min-h-[44px] flex-1 items-center gap-3 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 focus-within:border-emerald-500/40 focus-within:ring-[3px] focus-within:ring-[rgba(52,217,138,0.5)]`}>
+            <Search className="h-4 w-4 shrink-0 text-[#b1bdb0]" aria-hidden="true" />
             <input
               value={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder="Search medicines..."
               aria-label="Search medicines"
-              className="min-w-0 flex-1 bg-transparent text-base text-white outline-none placeholder-[#b1bdb0] md:text-sm"
+              className="min-w-0 flex-1 bg-transparent text-base text-white outline-none placeholder-[#b1bdb0] md:text-base"
             />
-          </div>
+          </label>
           {cartCount > 0 && (
             <Link
               href="/cart"
@@ -119,7 +132,7 @@ export default function ShopPage() {
               key={c}
               onClick={() => setCategory(c)}
               aria-pressed={category === c}
-              className={`inline-flex min-h-[38px] shrink-0 items-center rounded-full border px-4 text-[13px] font-medium transition ${
+              className={`inline-flex min-h-[44px] shrink-0 items-center rounded-full border px-4 text-[13px] font-medium transition ${
                 category === c
                   ? "border-emerald-500/50 bg-emerald-500/15 text-emerald-400"
                   : "border-white/10 bg-white/[0.04] text-white/55 hover:border-white/20 hover:text-white/80"
@@ -160,5 +173,17 @@ export default function ShopPage() {
         )}
       </div>
     </AppShell>
+  );
+}
+
+/**
+ * `useSearchParams` needs a boundary on a statically-rendered route. Same shape
+ * as /track and /start.
+ */
+export default function ShopPage() {
+  return (
+    <Suspense fallback={<AppShell><Spinner /></AppShell>}>
+      <ShopPageContent />
+    </Suspense>
   );
 }

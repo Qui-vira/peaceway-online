@@ -67,6 +67,10 @@ class SendOtpResponse(BaseModel):
 class VerifyOtpRequest(BaseModel):
     phone: str
     code: str
+    # The `?ref=` code the customer arrived on, carried through the sign-up
+    # round trip by the web app. Optional and unvalidated here: an unknown code
+    # simply attributes nothing rather than blocking a registration.
+    referral_code: str | None = None
 
 
 # ── Endpoints ─────────────────────────────────────────────────────────────────
@@ -138,6 +142,7 @@ async def verify_otp(
         phone=body.phone,
         full_name=full_name,
         email=email,
+        referral_code=body.referral_code,
     )
 
     response.set_cookie(

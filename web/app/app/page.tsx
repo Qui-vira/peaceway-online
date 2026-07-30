@@ -26,6 +26,7 @@ import {
   ShopIcon,
 } from "@/components/app/drug-icons";
 import { siteConfig } from "@/lib/constants";
+import { PageTitle } from "@/components/app/page-title";
 
 function todayLabel(): string {
   return new Date().toLocaleDateString("en-NG", {
@@ -70,6 +71,7 @@ function TodayMedsSection() {
 
   return (
     <div className="space-y-3 px-5">
+      <PageTitle title="Home" />
       <div className="flex items-center justify-between">
         <SectionLabel>Today&apos;s Medications</SectionLabel>
         <Link
@@ -261,17 +263,21 @@ export default function AppDashboard() {
                 title="Ask a Pharmacist"
                 subtitle="Dosage & guidance"
               />
+              {/* Titles match the nav labels. The same two features were
+                  called "My Requests"/"Requests" and "My Medications"/
+                  "Reminders"/"Add Medication" depending on which screen you
+                  were looking at. */}
               <FeatureCard
                 href="/requests"
                 icon={<RequestsListIcon size={28} />}
-                title="My Requests"
-                subtitle="Track availability"
+                title="Requests"
+                subtitle="What you've asked us to find"
               />
               <FeatureCard
                 href="/reminders"
                 icon={<MedicationsIcon size={28} />}
-                title="My Medications"
-                subtitle="Reminders & schedule"
+                title="Reminders"
+                subtitle="Your medication schedule"
               />
             </div>
           </div>
@@ -279,6 +285,14 @@ export default function AppDashboard() {
           {/* Shop + Orders section */}
           <div className="px-5 space-y-3">
             <SectionLabel>Shop & Orders</SectionLabel>
+            {/* Two parallel purchase concepts shipped side by side and nothing
+                anywhere said how they differ: a customer sees "Check
+                Availability → Requests" and "Shop → Orders" and has to guess.
+                One sentence is cheaper than the support message. */}
+            <p className="text-[12px] leading-relaxed text-[#b1bdb0]">
+              In stock now? Shop and check out. Can&apos;t find it? Check
+              availability and a pharmacist will source it for you.
+            </p>
             <div className="grid grid-cols-2 gap-3">
               <FeatureCard
                 href="/shop"

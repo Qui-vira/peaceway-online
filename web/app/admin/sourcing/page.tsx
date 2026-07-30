@@ -62,7 +62,9 @@ export default function AdminSourcingPage() {
 
   useEffect(() => {
     if (!getAdminToken()) {
-      window.location.href = "/admin";
+      // Carry the destination, so signing in returns staff to the screen
+      // they asked for instead of dropping them on the dashboard.
+      window.location.href = "/admin?next=/admin/sourcing";
       return;
     }
     load();

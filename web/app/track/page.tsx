@@ -1,11 +1,13 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Search, CheckCircle2 } from "lucide-react";
 import { trackOrder } from "@/lib/api/orders";
+import { getMe } from "@/lib/api/customers";
 import { TactileButton } from "@/components/app/tactile-button";
+import { PageTitle } from "@/components/app/page-title";
 
 type TrackResult = {
   code: string;
@@ -51,6 +53,17 @@ function TrackPageContent() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<TrackResult | null>(null);
   const [error, setError] = useState("");
+  // This page is reachable two ways: signed out with a code (the point of it),
+  // and from Profile / an order detail by someone already signed in. It used to
+  // treat everyone as a stranger - no nav, exits only to the marketing site,
+  // and a "Create account" CTA shown to people who had one.
+  const [signedIn, setSignedIn] = useState(false);
+
+  useEffect(() => {
+    getMe()
+      .then(() => setSignedIn(true))
+      .catch(() => setSignedIn(false));
+  }, []);
 
   async function handleTrack() {
     if (!code.trim() || !phone.trim()) return;
@@ -64,7 +77,7 @@ function TrackPageContent() {
       if (status === 404) {
         setError("Order not found. Check the code and phone number and try again.");
       } else {
-        setError("Something went wrong on our end. Please try again in a moment.");
+        setError("We couldn't reach the pharmacy to look up your order. Please try again in a moment.");
       }
       setResult(null);
     } finally {
@@ -74,9 +87,10 @@ function TrackPageContent() {
 
   return (
     <div className="min-h-screen bg-[#0b0c09] px-5 py-12">
+      <PageTitle title="Track Your Order" />
       {/* Brand */}
       <div className="mb-10 text-center">
-        <Link href="/" className="inline-block">
+        <Link href={signedIn ? "/app" : "/"} className="inline-block">
           <span className="font-syne text-lg font-bold text-white">Peaceway Online</span>
         </Link>
         <p className="mt-1 text-[12px] text-[#b1bdb0]">Igando, Lagos</p>
@@ -98,7 +112,7 @@ function TrackPageContent() {
               value={code}
               onChange={(e) => setCode(e.target.value)}
               placeholder="e.g. PW-2025-0042"
-              className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-[#b1bdb0] outline-none focus:border-emerald-500/50"
+              className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-base text-white placeholder-[#b1bdb0] outline-none focus:border-emerald-500/50"
             />
           </div>
           <div className="space-y-1.5">
@@ -108,7 +122,7 @@ function TrackPageContent() {
               onChange={(e) => setPhone(e.target.value)}
               placeholder="08012345678"
               type="tel"
-              className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-[#b1bdb0] outline-none focus:border-emerald-500/50"
+              className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-base text-white placeholder-[#b1bdb0] outline-none focus:border-emerald-500/50"
             />
           </div>
 
@@ -194,17 +208,29 @@ function TrackPageContent() {
               </div>
             )}
 
+            {/* Offering "create an account" to someone who is signed in is the
+                app forgetting who it is talking to. Signed in, the useful
+                action is the order list they already have. */}
             <Link
-              href="/start"
+              href={signedIn ? "/orders" : "/start"}
               className="block w-full rounded-xl border border-emerald-500/30 py-3 text-center text-sm font-semibold text-emerald-400 transition hover:bg-emerald-500/10"
             >
-              Create account for real-time alerts
+              {signedIn ? "See all my orders" : "Create account for real-time alerts"}
             </Link>
           </div>
         )}
 
+        {/* Was `/` twice - the marketing homepage - so a signed-in customer who
+            tapped "Track an Order" in their profile was tipped out of the app
+            with no way back in but the landing page. hover made it dimmer, too:
+            #b1bdb0 (~10:1) fading to white/50 (~5.3:1) on hover is backwards. */}
         <p className="mt-8 text-center text-[12px] text-[#b1bdb0]">
-          <Link href="/" className="hover:text-white/50">← Back to home</Link>
+          <Link
+            href={signedIn ? "/app" : "/"}
+            className="-my-2 inline-flex min-h-[44px] items-center rounded px-2 py-2 transition hover:text-white"
+          >
+            ← {signedIn ? "Back to Peaceway" : "Back to home"}
+          </Link>
         </p>
       </div>
     </div>

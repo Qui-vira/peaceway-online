@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { ArrowLeft, ChevronRight, RefreshCw, UserPlus, WifiOff } from "lucide-react";
 import { DrugIcon } from "@/components/app/drug-icons";
 import type { MedicationReminder } from "@/lib/api/reminders";
@@ -97,30 +97,46 @@ export function Spinner() {
   );
 }
 
+/**
+ * The sign-in wall.
+ *
+ * The heading used to say "Create your profile first", the button "Start
+ * Profile", and callers passed bodies that said "register", "sign in" or
+ * "create a profile" - four verbs for one action, on a screen whose button
+ * appeared to lead to the "Profile" tab in the nav. One verb now, and the
+ * message says what the customer unlocks rather than restating the instruction.
+ */
 export function GuestWall({ message }: { message?: string }) {
+  // Return here after signing in, rather than landing on Home and making the
+  // customer find their way back to whatever they were doing.
+  const pathname = usePathname();
+  const href = pathname && pathname !== "/app" ? `/start?next=${pathname}` : "/start";
   return (
     <div className="flex flex-col items-center gap-6 px-5 py-16 text-center">
       <span className="inline-flex h-16 w-16 items-center justify-center rounded-full border border-white/10 bg-white/5">
         <UserPlus className="h-8 w-8 text-[#b1bdb0]" />
       </span>
       <div className="space-y-2">
-        <h2 className="text-xl font-bold text-white">Create your profile first</h2>
+        <h2 className="text-xl font-bold text-white">Sign in to continue</h2>
         <p className="max-w-xs text-sm leading-relaxed text-white/50">
           {message ??
-            "We need your contact details so our pharmacists can reach you."}
+            "Your orders, reminders and prescriptions live in your Peaceway account."}
         </p>
       </div>
-      <Link href="/start" className="pw-btn">
-        Start Profile
+      <Link href={href} className="pw-btn">
+        Sign in or create account
         <ChevronRight className="h-4 w-4" />
       </Link>
       {/* /app, not /. This wall only ever renders inside the app shell, where
           the bottom nav labels /app as "Home" - sending the customer to the
           marketing landing instead ejected them from the app they were using,
-          which is a dead end rather than a way back. */}
+          which is a dead end rather than a way back.
+
+          py-2 / -my-2: this was a 20px-tall text link, the smallest tap target
+          in the product, on six routes. */}
       <Link
         href="/app"
-        className="text-[13px] text-[#b1bdb0] hover:text-[#dcdddb] transition"
+        className="-my-2 inline-flex min-h-[44px] items-center rounded px-2 py-2 text-[13px] text-[#b1bdb0] transition hover:text-[#dcdddb]"
       >
         ← Back to Home
       </Link>

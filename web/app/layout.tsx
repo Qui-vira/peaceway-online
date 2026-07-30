@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { AppLoader, LOADER_SCOPE } from "@/components/brand/app-loader";
 import { MotionEffects } from "@/components/providers/motion-effects";
 import { PwaRegister } from "@/components/providers/pwa-register";
+import { ReferralCapture } from "@/components/providers/referral-capture";
 import "@/app/globals.css";
 import { siteConfig } from "@/lib/constants";
 
@@ -102,6 +103,8 @@ export default function RootLayout({ children }: RootLayoutProps): JSX.Element {
       <body>
         <PwaRegister />
         <MotionEffects />
+        {/* Records a `?ref=` code wherever a referral link happens to land. */}
+        <ReferralCapture />
         {/* App-open loader. Lives in the layout, not the template: a layout
             persists across client-side navigation, so this mounts once per real
             page load rather than re-firing on every route change. Client-only
