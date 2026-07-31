@@ -573,6 +573,38 @@ async def admin_list_customers(db: DbSession, auth: AdminSessionDep) -> list[dic
             select(Customer).order_by(Customer.created_at.desc()).limit(200)
         )
     ).scalars().all()
+
+    # Referral attribution is recorded at sign-up but paid out by hand, so the
+    # only place it can actually be honoured is here. Without it, staff have a
+    # customer telling them "my friend referred me" and nothing to check it
+    # against - which is how a manual reward scheme quietly stops being one.
+    #
+    # Two extra queries rather than a join per row: the referrer's name, and how
+    # many people each listed customer has brought in.
+    referrer_ids = {c.referred_by_customer_id for c in rows if c.referred_by_customer_id}
+    referrer_names: dict[UUID, str | None] = {}
+    if referrer_ids:
+        referrer_names = {
+            rid: name
+            for rid, name in (
+                await db.execute(
+                    select(Customer.id, Customer.full_name).where(
+                        Customer.id.in_(referrer_ids)
+                    )
+                )
+            ).all()
+        }
+
+    counts = dict(
+        (
+            await db.execute(
+                select(Customer.referred_by_customer_id, func.count())
+                .where(Customer.referred_by_customer_id.in_([c.id for c in rows]))
+                .group_by(Customer.referred_by_customer_id)
+            )
+        ).all()
+    )
+
     return [
         {
             "id": str(c.id),
@@ -580,6 +612,11 @@ async def admin_list_customers(db: DbSession, auth: AdminSessionDep) -> list[dic
             "phone": c.phone,
             "email": c.email,
             "created_at": c.created_at.isoformat(),
+            "referral_code": c.referral_code,
+            "referred_by": referrer_names.get(c.referred_by_customer_id)
+            if c.referred_by_customer_id
+            else None,
+            "referral_count": counts.get(c.id, 0),
         }
         for c in rows
     ]

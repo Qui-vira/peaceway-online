@@ -446,9 +446,7 @@ function Dashboard({ admin }: { admin: AdminMe }) {
         {tab === "orders" && (
           <OrdersTab orders={orders} loading={loading} />
         )}
-        {tab === "customers" && (
-          <div className="py-10 text-center text-[#b1bdb0]">Customer list - coming soon</div>
-        )}
+        {tab === "customers" && <CustomersTab />}
         {tab === "payments" && (
           <div className="py-10 text-center text-[#b1bdb0]">Payment records - coming soon</div>
         )}
@@ -499,6 +497,117 @@ function productToDraft(product: AdminProduct): ProductDraft {
 function formatMoney(value: string | null): string {
   if (!value || Number(value) <= 0) return "No price";
   return `₦${Number(value).toLocaleString("en-NG")}`;
+}
+
+// ── CustomersTab ──────────────────────────────────────────────────────────────
+
+type AdminCustomer = {
+  id: string;
+  full_name: string | null;
+  phone: string | null;
+  email: string | null;
+  created_at: string;
+  referral_code: string | null;
+  referred_by: string | null;
+  referral_count: number;
+};
+
+/**
+ * The customer list, and the only place a referral can actually be honoured.
+ *
+ * This tab was a "coming soon" stub even though `/admin/customers` had been
+ * serving data all along. That mattered more once referral attribution went in:
+ * the app records who referred whom, but paying the referrer is a manual
+ * decision, so if staff cannot see the attribution there is no scheme - just a
+ * customer claiming a friend sent them and nobody able to check.
+ */
+function CustomersTab() {
+  const [rows, setRows] = useState<AdminCustomer[] | null>(null);
+  const [failed, setFailed] = useState(false);
+  const [q, setQ] = useState("");
+
+  useEffect(() => {
+    adminFetch<AdminCustomer[]>("/admin/customers")
+      .then(setRows)
+      .catch(() => setFailed(true));
+  }, []);
+
+  const term = q.trim().toLowerCase();
+  const shown = (rows ?? []).filter(
+    (c) =>
+      !term ||
+      [c.full_name, c.phone, c.email, c.referral_code, c.referred_by]
+        .some((v) => v?.toLowerCase().includes(term))
+  );
+
+  return (
+    <div className="space-y-4">
+      <h2 className="font-syne text-lg font-bold text-white">Customers</h2>
+
+      <label className="block">
+        <span className="sr-only">Search customers</span>
+        <input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="Name, phone, email or referral code"
+          className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-base text-white outline-none transition placeholder-[#b1bdb0] focus:border-emerald-500/50 focus-visible:ring-[3px] focus-visible:ring-[rgba(52,217,138,0.5)]"
+        />
+      </label>
+
+      <div className="divide-y divide-white/6 rounded-2xl border border-white/8 bg-white/4">
+        {failed ? (
+          <div className="px-4 py-8 text-center text-[13px] text-[#b1bdb0]">
+            We couldn&apos;t load the customer list. Try again.
+          </div>
+        ) : rows === null ? (
+          <div className="px-4 py-8 text-center text-[13px] text-[#b1bdb0]">Loading…</div>
+        ) : shown.length === 0 ? (
+          <div className="px-4 py-8 text-center text-[13px] text-[#b1bdb0]">
+            {term ? "No customer matches that." : "No customers yet"}
+          </div>
+        ) : (
+          shown.map((c) => (
+            <div key={c.id} className="px-4 py-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold text-white">
+                    {c.full_name ?? "Unnamed"}
+                  </p>
+                  <p className="mt-0.5 text-[11px] text-[#b1bdb0]">
+                    {[c.phone, c.email].filter(Boolean).join(" · ") || "No contact details"}
+                  </p>
+                </div>
+                <p className="shrink-0 text-[11px] text-[#b1bdb0]">
+                  {new Date(c.created_at).toLocaleDateString("en-NG")}
+                </p>
+              </div>
+
+              {/* Only rendered when there is something to say. A row of "—"s on
+                  every customer would bury the handful that carry a referral. */}
+              {(c.referred_by || c.referral_count > 0 || c.referral_code) && (
+                <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px]">
+                  {c.referred_by && (
+                    <span className="rounded-full border border-emerald-500/25 bg-emerald-500/10 px-2 py-0.5 text-emerald-400">
+                      Referred by {c.referred_by}
+                    </span>
+                  )}
+                  {c.referral_count > 0 && (
+                    <span className="text-[#b1bdb0]">
+                      Brought in {c.referral_count}
+                      {c.referral_count === 1 ? " customer" : " customers"}
+                    </span>
+                  )}
+                  {c.referral_code && (
+                    <span className="font-mono text-[#868f85]">{c.referral_code}</span>
+                  )}
+                </div>
+              )}
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
 }
 
 // ── CatalogTab ────────────────────────────────────────────────────────────────
