@@ -172,7 +172,7 @@ export function LoadFailed({
         <WifiOff className="h-5 w-5 text-[#b1bdb0]" aria-hidden />
       </span>
       <div className="space-y-1.5">
-        <p className="text-[15px] font-semibold text-white">Couldn&apos;t load {what}</p>
+        <p className="text-base font-semibold text-white">Couldn&apos;t load {what}</p>
         <p className="mx-auto max-w-xs text-[13px] leading-relaxed text-[#b1bdb0]">
           {detail ?? "Check your connection and try again. Nothing has changed."}
         </p>
@@ -246,7 +246,7 @@ export function FeatureCard({
         {icon}
       </span>
       <span>
-        <span className="block text-[15px] font-semibold leading-tight text-white">
+        <span className="block text-base font-semibold leading-tight text-white">
           {title}
         </span>
         <span className="mt-0.5 block text-xs leading-snug text-white/45">
@@ -320,7 +320,7 @@ export function MedCard({
         <DrugIcon size={28} />
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-[15px] font-semibold text-white">
+        <span className="block truncate text-base font-semibold text-white">
           {reminder.medicine_name}
         </span>
         {reminder.instructions_text && (
@@ -388,7 +388,7 @@ export function PageHeader({
         <ArrowLeft className="h-4 w-4" />
       </button>
       {title && (
-        <p className="min-w-0 flex-1 truncate text-[15px] font-semibold text-white">{title}</p>
+        <p className="min-w-0 flex-1 truncate text-base font-semibold text-white">{title}</p>
       )}
       {right && <div className="ml-auto shrink-0">{right}</div>}
     </div>

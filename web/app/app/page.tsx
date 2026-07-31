@@ -26,7 +26,7 @@ import {
   ShopIcon,
 } from "@/components/app/drug-icons";
 import { siteConfig } from "@/lib/constants";
-import { PageTitle } from "@/components/app/page-title";
+import { usePageTitle } from "@/components/app/page-title";
 
 function todayLabel(): string {
   return new Date().toLocaleDateString("en-NG", {
@@ -71,7 +71,6 @@ function TodayMedsSection() {
 
   return (
     <div className="space-y-3 px-5">
-      <PageTitle title="Home" />
       <div className="flex items-center justify-between">
         <SectionLabel>Today&apos;s Medications</SectionLabel>
         <Link
@@ -157,6 +156,7 @@ type AuthState =
   | { kind: "unknown" };
 
 export default function AppDashboard() {
+  usePageTitle("Home");
   const [auth, setAuth] = useState<AuthState>({ kind: "loading" });
 
   const loadMe = useCallback(() => {
@@ -191,7 +191,7 @@ export default function AppDashboard() {
               </p>
               {me && <p className="text-[11px] text-[#b1bdb0]">{todayLabel()}</p>}
             </div>
-            <h1 className="mt-1 font-syne text-[26px] font-bold leading-tight text-white">
+            <h1 className="mt-1 font-syne text-2xl font-bold leading-tight text-white">
               {me ? `Hello, ${me.full_name?.split(" ")[0] ?? "there"}.` : "Welcome to Peaceway."}
             </h1>
             {!me && (

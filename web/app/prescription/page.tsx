@@ -7,7 +7,7 @@ import { submitPrescription } from "@/lib/api/orders";
 import { isAuthError } from "@/lib/api";
 import { AppShell } from "@/components/app/app-shell";
 import { TactileButton } from "@/components/app/tactile-button";
-import { PageTitle } from "@/components/app/page-title";
+import { usePageTitle } from "@/components/app/page-title";
 
 type State = "idle" | "submitting" | "done" | "error";
 
@@ -21,6 +21,7 @@ function fileToBase64(file: File): Promise<string> {
 }
 
 export default function PrescriptionPage() {
+  usePageTitle("Upload Prescription");
   const [description, setDescription] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [state, setState] = useState<State>("idle");
@@ -69,7 +70,6 @@ export default function PrescriptionPage() {
   if (state === "done") {
     return (
       <AppShell>
-        <PageTitle title="Upload Prescription" />
         <div className="flex flex-col items-center gap-6 px-5 py-16 text-center">
           <div className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-emerald-500">
             <CheckCircle2 className="h-8 w-8 text-emerald-400" />
@@ -111,12 +111,13 @@ export default function PrescriptionPage() {
         <div className="flex items-center gap-3">
           <Link
             href="/app"
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5"
+            aria-label="Go back"
+            className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/5 transition hover:border-white/20 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[rgba(52,217,138,0.5)]"
           >
             <ArrowLeft className="h-4 w-4 text-white/70" />
           </Link>
           <div>
-            <h1 className="font-syne text-[20px] font-bold text-white">Upload Prescription</h1>
+            <h1 className="font-syne text-lg font-bold text-white">Upload Prescription</h1>
             <p className="text-[12px] text-[#b1bdb0]">Send us your script</p>
           </div>
         </div>

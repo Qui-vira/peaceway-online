@@ -11,7 +11,7 @@ import { getMe } from "@/lib/api/customers";
 import { isAuthError } from "@/lib/api";
 import { createReminder } from "@/lib/api/reminders";
 import { TactileButton } from "@/components/app/tactile-button";
-import { PageTitle } from "@/components/app/page-title";
+import { usePageTitle } from "@/components/app/page-title";
 
 type Step = 1 | 2 | 3;
 
@@ -45,6 +45,7 @@ function StepDots({ current }: { current: Step }) {
 const PRESET_TIMES = ["06:00", "08:00", "12:00", "14:00", "18:00", "21:00"];
 
 export default function NewReminderPage() {
+  usePageTitle("Add reminder");
   const router = useRouter();
 
   // Every sibling route walls a signed-out visitor immediately; this one let
@@ -102,7 +103,6 @@ export default function NewReminderPage() {
   if (authState === "guest")
     return (
       <AppShell>
-        <PageTitle title="Add reminder" />
         <GuestWall message="So your reminders follow you to any phone you sign in on." />
       </AppShell>
     );
@@ -315,7 +315,7 @@ export default function NewReminderPage() {
                 </svg>
               </span>
               <div>
-                <p className="font-syne text-[18px] font-bold text-white">{name}</p>
+                <p className="font-syne text-lg font-bold text-white">{name}</p>
                 {instructions && (
                   <p className="mt-1 text-[13px] text-white/50">{instructions}</p>
                 )}

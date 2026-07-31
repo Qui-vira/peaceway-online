@@ -10,7 +10,7 @@ import {
 import { isAuthError, type ApiError } from "@/lib/api";
 import { AppShell } from "@/components/app/app-shell";
 import { GuestWall, LoadFailed, SectionLabel, Spinner } from "@/components/app/ui";
-import { PageTitle } from "@/components/app/page-title";
+import { usePageTitle } from "@/components/app/page-title";
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("en-NG", {
@@ -20,6 +20,7 @@ function formatDate(iso: string): string {
 }
 
 export default function AskPharmacistPage() {
+  usePageTitle("Ask a Pharmacist");
   const [questions, setQuestions] = useState<PharmacistQuestion[] | null>(null);
   const [guest, setGuest] = useState(false);
   const [failed, setFailed] = useState(false);
@@ -63,7 +64,6 @@ export default function AskPharmacistPage() {
 
   return (
     <AppShell>
-      <PageTitle title="Ask a Pharmacist" />
       <div className="space-y-6 px-5 pt-10 pb-6">
 
         {/* Header */}

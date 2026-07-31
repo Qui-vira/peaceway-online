@@ -177,7 +177,7 @@ function BackBar({ title, fallbackHref = "/app" }: { title?: string; fallbackHre
       >
         <ArrowLeft className="h-4 w-4" />
       </button>
-      {title && <p className="min-w-0 flex-1 truncate text-[15px] font-semibold text-white">{title}</p>}
+      {title && <p className="min-w-0 flex-1 truncate text-base font-semibold text-white">{title}</p>}
     </div>
   );
 }
@@ -256,7 +256,12 @@ function BottomNav({ pathname, cartCount }: { pathname: string; cartCount: numbe
 function Footer() {
   const year = new Date().getFullYear();
   return (
-    <footer className="border-t border-white/8 bg-[#0b0c09] px-6 pb-24 pt-10 text-sm text-white/45 md:px-8 md:pb-8">
+    // px-5, not px-6: the app shell's gutter is 20px everywhere else, so a
+    // 24px footer put the copyright line 4px inside the content above it.
+    // Measured at 390px on /shop, the left edge stepped 20 -> 21 -> 24 down a
+    // single page - small enough that nobody names it, and exactly the kind of
+    // thing that makes a page feel assembled rather than drawn.
+    <footer className="border-t border-white/8 bg-[#0b0c09] px-5 pb-24 pt-10 text-sm text-white/45 md:px-8 md:pb-8">
       <div className="mx-auto flex max-w-6xl flex-col gap-6 md:flex-row md:items-start md:justify-between">
         <div className="max-w-xs space-y-2">
           <span className="inline-flex rounded-lg bg-white px-2.5 py-1">

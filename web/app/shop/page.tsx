@@ -10,7 +10,7 @@ import { AppShell } from "@/components/app/app-shell";
 import { Spinner, EmptyState, LoadFailed, SectionLabel } from "@/components/app/ui";
 import { ProductCard } from "@/components/app/product-card";
 import { StaggerItem, StaggerList } from "@/components/app/motion";
-import { PageTitle } from "@/components/app/page-title";
+import { usePageTitle } from "@/components/app/page-title";
 
 // "failed" is not an empty catalogue. Rendering "No medicines found" because
 // the backend was unreachable tells a customer this pharmacy has no stock -
@@ -91,7 +91,6 @@ function ShopPageContent() {
 
   return (
     <AppShell back={{ fallbackHref: "/app" }}>
-      <PageTitle title="Shop" />
       <div className="mx-auto w-full max-w-6xl px-5 pb-10 md:px-8">
         {/* A real <h1>. The catalogue's only heading was the back bar's <p>, so
             the page a customer buys from had no document structure at all. */}
@@ -181,6 +180,7 @@ function ShopPageContent() {
  * as /track and /start.
  */
 export default function ShopPage() {
+  usePageTitle("Shop");
   return (
     <Suspense fallback={<AppShell><Spinner /></AppShell>}>
       <ShopPageContent />

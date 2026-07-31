@@ -16,7 +16,7 @@ import { isAuthError, type ApiError } from "@/lib/api";
 import { AppShell } from "@/components/app/app-shell";
 import { GuestWall, LoadFailed, SectionLabel, Spinner } from "@/components/app/ui";
 import { TactileButton } from "@/components/app/tactile-button";
-import { PageTitle } from "@/components/app/page-title";
+import { usePageTitle } from "@/components/app/page-title";
 
 function FieldShell({
   icon,
@@ -42,6 +42,7 @@ function Label({ children }: { children: React.ReactNode }) {
 }
 
 export default function ProfilePage() {
+  usePageTitle("Profile");
   const router = useRouter();
   const [me, setMe] = useState<CustomerProfile | null>(null);
   const [zones, setZones] = useState<Zone[]>([]);
@@ -116,7 +117,6 @@ export default function ProfilePage() {
 
   return (
     <AppShell>
-      <PageTitle title="Profile" />
       <div className="space-y-6 px-5 pt-10 pb-8">
 
         {loading && <Spinner />}
@@ -129,7 +129,7 @@ export default function ProfilePage() {
             {/* Avatar section */}
             <div className="flex flex-col items-center gap-3 py-4 text-center">
               <div className="flex h-16 w-16 items-center justify-center rounded-full border border-emerald-500/30 bg-emerald-500/15">
-                <span className="font-syne text-[26px] font-bold text-emerald-400">
+                <span className="font-syne text-2xl font-bold text-emerald-400">
                   {(me.full_name ?? "?").charAt(0).toUpperCase()}
                 </span>
               </div>

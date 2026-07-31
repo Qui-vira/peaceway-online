@@ -58,7 +58,14 @@ Existing raw vars stay; add a semantic layer on top.
 ## Typography
 - **Display/headings:** Syne (`--font-syne`), weights 700/800, tracking `-0.02em`.
 - **Body/UI:** DM Sans (`--font-dm-sans`), 400/500/600.
-- **Scale (px):** 11 · 12 · 13 · 14 · 16(base) · 19 · 24 · 32 · 46 · 76(hero, `clamp`).
+- **Scale (px):** 11 · 12 · 13 · 14 · 16(base) · 19 · **22** · 24 · 32 · 46 · 76(hero, `clamp`).
+  22px is the page-title size — it was always shipping (19 screens) and the prose
+  below described it ("Title 19–24px") while the token list omitted it.
+  The scale now lives in `tailwind.config.ts` under `fontSize`, so the Tailwind
+  aliases resolve to it too: `text-lg` is 19 (not Tailwind's 18), `text-xl` is 22
+  (not 20), `text-3xl` is 32 (not 30). Before that override the two systems
+  disagreed and 18 distinct sizes were rendering. `text-base` stays 16px — it is
+  the iOS no-zoom floor every form input depends on.
 - **Body min 16px** on mobile inputs (prevents iOS auto-zoom). Line-height 1.5–1.75.
 
 ## Spacing scale (formalize)

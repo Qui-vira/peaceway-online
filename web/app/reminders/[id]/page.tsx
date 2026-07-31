@@ -22,7 +22,7 @@ import {
 import { GenericIcon } from "@/components/app/drug-icons";
 import { TactileButton } from "@/components/app/tactile-button";
 import { isAuthError } from "@/lib/api";
-import { PageTitle } from "@/components/app/page-title";
+import { usePageTitle } from "@/components/app/page-title";
 
 type State =
   | { kind: "loading" }
@@ -68,6 +68,7 @@ export default function ReminderDetailPage() {
   const id = params?.id as string;
 
   const [state, setState] = useState<State>({ kind: "loading" });
+  usePageTitle(state.kind === "ready" ? state.reminder.medicine_name : "Reminder");
   const [acting, setActing] = useState(false);
   const [confirmStop, setConfirmStop] = useState(false);
   // Pause, stop and delete used to fail silently. On a medication surface that
@@ -141,13 +142,13 @@ export default function ReminderDetailPage() {
 
   return (
     <AppShell>
-      <PageTitle title={reminder.medicine_name} />
       <div className="pb-8 space-y-6">
         {/* Sub-header */}
         <div className="flex items-center gap-3 px-5 pt-8">
           <Link
             href="/reminders"
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5"
+            aria-label="Go back"
+            className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/5 transition hover:border-white/20 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[rgba(52,217,138,0.5)]"
           >
             <ArrowLeft className="h-4 w-4 text-white/70" />
           </Link>

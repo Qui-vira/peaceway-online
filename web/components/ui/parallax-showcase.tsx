@@ -77,7 +77,7 @@ export function ParallaxShowcase({
           <h2 className="mt-3 font-syne text-[32px] font-bold leading-tight text-white md:text-[46px]">
             {title}
           </h2>
-          <p className="mt-4 max-w-md text-[15px] leading-relaxed text-white/55">{body}</p>
+          <p className="mt-4 max-w-md text-base leading-relaxed text-white/55">{body}</p>
         </div>
 
         {/* Midground product image */}

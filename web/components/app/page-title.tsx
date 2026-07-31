@@ -10,10 +10,16 @@ import { useEffect } from "react";
  * `"use client"` pages and `export const metadata` is a server-component API.
  * With six tabs open on a phone, cart, order and shop were indistinguishable.
  *
- * A component rather than a hook so it can sit in the JSX next to the `<h1>` it
- * mirrors, which is the thing most likely to be edited alongside it.
+ * A hook, not a component in the JSX. The first version of this was
+ * `<PageTitle title="..." />` placed next to the `<h1>` it mirrored, which read
+ * nicely and was wrong: these pages return early for loading, guest, error and
+ * empty states - `/start` has eight returns, `/request` seven - so the title was
+ * only set on whichever branch happened to contain the element. A signed-out
+ * visitor to `/prescription` saw the homepage's title, because the tag sat in
+ * the success branch. A hook called at the top of the component runs on every
+ * render path by construction, which is the property this actually needs.
  */
-export function PageTitle({ title }: { title: string }) {
+export function usePageTitle(title: string): void {
   useEffect(() => {
     const previous = document.title;
     document.title = `${title} · Peaceway Online`;
@@ -23,5 +29,4 @@ export function PageTitle({ title }: { title: string }) {
       document.title = previous;
     };
   }, [title]);
-  return null;
 }

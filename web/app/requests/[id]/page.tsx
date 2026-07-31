@@ -8,7 +8,7 @@ import { getRequest, type ProductRequestDetail } from "@/lib/api/requests";
 import { AppShell } from "@/components/app/app-shell";
 import { GuestWall, LoadFailed, Spinner, StatusChip } from "@/components/app/ui";
 import { GenericIcon } from "@/components/app/drug-icons";
-import { PageTitle } from "@/components/app/page-title";
+import { usePageTitle } from "@/components/app/page-title";
 
 function formatDateTime(iso: string): string {
   return new Date(iso).toLocaleString("en-NG", {
@@ -35,6 +35,7 @@ export default function RequestDetailPage({
 }: {
   params: { id: string };
 }) {
+  usePageTitle("Request");
   const [req, setReq] = useState<ProductRequestDetail | null>(null);
   const [error, setError] = useState<"guest" | "notfound" | "failed" | null>(null);
 
@@ -52,7 +53,6 @@ export default function RequestDetailPage({
 
   return (
     <AppShell>
-      <PageTitle title="Request" />
       {/* Back link */}
       <div className="px-5 pt-8 pb-2">
         <Link

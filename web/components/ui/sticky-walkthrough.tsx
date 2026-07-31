@@ -73,7 +73,7 @@ export function StickyWalkthrough({
     <section className="bg-[#0b0c09] px-6 py-20 md:px-8 md:py-28">
       <div className="mx-auto max-w-6xl">
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-400">{eyebrow}</p>
-        <h2 className="mt-3 max-w-xl font-syne text-[30px] font-bold leading-tight text-white md:text-[42px]">
+        <h2 className="mt-3 max-w-xl font-syne text-3xl font-bold leading-tight text-white md:text-4xl">
           {heading}
         </h2>
 
@@ -98,10 +98,10 @@ export function StickyWalkthrough({
                   >
                     {i + 1}
                   </span>
-                  <h3 className="mt-4 font-syne text-[22px] font-bold text-white md:text-[26px]">
+                  <h3 className="mt-4 font-syne text-[22px] font-bold text-white md:text-2xl">
                     {s.title}
                   </h3>
-                  <p className="mt-2 max-w-md text-[15px] leading-relaxed text-white/55">{s.body}</p>
+                  <p className="mt-2 max-w-md text-base leading-relaxed text-white/55">{s.body}</p>
                 </div>
               );
             })}

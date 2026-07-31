@@ -7,7 +7,7 @@ import { Search, CheckCircle2 } from "lucide-react";
 import { trackOrder } from "@/lib/api/orders";
 import { getMe } from "@/lib/api/customers";
 import { TactileButton } from "@/components/app/tactile-button";
-import { PageTitle } from "@/components/app/page-title";
+import { usePageTitle } from "@/components/app/page-title";
 
 type TrackResult = {
   code: string;
@@ -87,7 +87,6 @@ function TrackPageContent() {
 
   return (
     <div className="min-h-screen bg-[#0b0c09] px-5 py-12">
-      <PageTitle title="Track Your Order" />
       {/* Brand */}
       <div className="mb-10 text-center">
         <Link href={signedIn ? "/app" : "/"} className="inline-block">
@@ -146,7 +145,7 @@ function TrackPageContent() {
               <p className="text-[11px] font-semibold uppercase tracking-wide text-emerald-400 mb-1">
                 {result.code}
               </p>
-              <p className="text-[18px] font-bold text-white">
+              <p className="text-lg font-bold text-white">
                 {STATUS_LABEL[result.status] ?? result.status}
               </p>
               {result.customer_facing_status && (
@@ -238,6 +237,7 @@ function TrackPageContent() {
 }
 
 export default function TrackPage() {
+  usePageTitle("Track Your Order");
   return (
     <Suspense fallback={<div className="min-h-screen bg-[#0b0c09]" />}>
       <TrackPageContent />

@@ -11,7 +11,7 @@ import { LoadFailed, Spinner } from "@/components/app/ui";
 import { TactileButton } from "@/components/app/tactile-button";
 import { siteConfig } from "@/lib/constants";
 import { feeForArea } from "@/lib/delivery";
-import { PageTitle } from "@/components/app/page-title";
+import { usePageTitle } from "@/components/app/page-title";
 
 const FOCUS =
   "focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[rgba(52,217,138,0.5)] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0b0c09]";
@@ -24,6 +24,7 @@ const PAY_OPTIONS: { value: PayMethod; label: string; sub: string }[] = [
 ];
 
 export default function CheckoutPage() {
+  usePageTitle("Checkout");
   const router = useRouter();
   const [cart, setCart] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -122,7 +123,6 @@ export default function CheckoutPage() {
   if (loading)
     return (
       <AppShell back={{ fallbackHref: "/cart" }}>
-        <PageTitle title="Checkout" />
         <Spinner />
       </AppShell>
     );
@@ -301,7 +301,7 @@ export default function CheckoutPage() {
               )}
               <div className="flex justify-between font-semibold">
                 <span className="text-white">Total</span>
-                <span className="text-[15px] text-emerald-400">₦{total.toLocaleString()}</span>
+                <span className="text-base text-emerald-400">₦{total.toLocaleString()}</span>
               </div>
             </section>
 

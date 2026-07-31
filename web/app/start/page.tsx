@@ -17,7 +17,7 @@ import { clearReferral, readReferral } from "@/lib/referral";
 import { OtpInput } from "@/components/app/otp-input";
 import { TactileButton, TactileLink } from "@/components/app/tactile-button";
 import type { ApiError } from "@/lib/api";
-import { PageTitle } from "@/components/app/page-title";
+import { usePageTitle } from "@/components/app/page-title";
 
 type Tab = "signup" | "login";
 
@@ -334,7 +334,6 @@ function StartPageContent() {
 
   return (
     <main className="flex min-h-svh items-center justify-center bg-[#0b0c09] px-5 py-10">
-      <PageTitle title="Sign in" />
       <div className="w-full max-w-md space-y-6">
 
         {/* Brand mark */}
@@ -563,6 +562,7 @@ function StartPageContent() {
  * Next requires the boundary to say so explicitly. Same shape as /track.
  */
 export default function StartPage() {
+  usePageTitle("Sign in");
   return (
     <Suspense fallback={<div className="min-h-svh bg-[#0b0c09]" />}>
       <StartPageContent />
