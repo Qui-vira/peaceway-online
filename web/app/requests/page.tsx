@@ -16,7 +16,7 @@ import {
   StatusChip,
 } from "@/components/app/ui";
 import { GenericIcon } from "@/components/app/drug-icons";
-import { PageTitle } from "@/components/app/page-title";
+import { usePageTitle } from "@/components/app/page-title";
 
 type State =
   | { kind: "loading" }
@@ -33,6 +33,7 @@ function formatDate(iso: string): string {
 }
 
 export default function RequestsPage() {
+  usePageTitle("Requests");
   const [state, setState] = useState<State>({ kind: "loading" });
 
   // A 401 means the backend looked and said "not you" - that is real.
@@ -54,7 +55,6 @@ export default function RequestsPage() {
 
   return (
     <AppShell>
-      <PageTitle title="Requests" />
       <div className="space-y-6 px-5 pt-10 pb-4">
 
         {/* Header */}
@@ -105,7 +105,7 @@ export default function RequestsPage() {
 
                 {/* Content */}
                 <span className="min-w-0 flex-1 space-y-1.5">
-                  <span className="block truncate text-[15px] font-semibold text-white">
+                  <span className="block truncate text-base font-semibold text-white">
                     {r.product_name}
                     {r.strength && (
                       <span className="ml-1.5 font-normal text-[#b1bdb0]">· {r.strength}</span>

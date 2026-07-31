@@ -167,7 +167,7 @@ export function ProductDetail({ productRef, initialProduct, isUuidRef }: Product
           {/* Info + CTA */}
           <div className="space-y-6">
             <div>
-              <h1 className="font-syne text-[26px] font-bold leading-tight text-white md:text-[32px]">
+              <h1 className="font-syne text-2xl font-bold leading-tight text-white md:text-[32px]">
                 {product.name}
               </h1>
               {product.strength && <p className="mt-1 text-sm text-white/50">{product.strength}</p>}

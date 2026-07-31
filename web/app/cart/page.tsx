@@ -11,12 +11,13 @@ import { getMe, listZones, type Zone } from "@/lib/api/customers";
 import { feeForArea, formatNaira as fmt } from "@/lib/delivery";
 import { isAuthError } from "@/lib/api";
 import { siteConfig } from "@/lib/constants";
-import { PageTitle } from "@/components/app/page-title";
+import { usePageTitle } from "@/components/app/page-title";
 
 const FOCUS =
   "focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[rgba(52,217,138,0.5)] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0b0c09]";
 
 export default function CartPage() {
+  usePageTitle("Your Cart");
   const [cart, setCart] = useState<CartItem[]>([]);
   // Null until we know: the fee depends on where the customer lives, and
   // guessing is what the old flat ₦500 did.
@@ -84,7 +85,6 @@ export default function CartPage() {
                 const line = item.selling_price * item.quantity;
                 return (
                   <li key={item.product_id} className="pw-tile p-3.5">
-                    <PageTitle title="Your Cart" />
                     <div className="flex min-w-0 items-start gap-3">
                       <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-emerald-500/20 bg-emerald-500/10">
                         <DrugIcon size={26} />
@@ -151,8 +151,8 @@ export default function CartPage() {
                 </div>
                 <div className="h-px bg-white/8" />
                 <div className="flex justify-between">
-                  <span className="text-[15px] font-semibold text-white">Total</span>
-                  <span className="text-[17px] font-bold text-emerald-400">
+                  <span className="text-base font-semibold text-white">Total</span>
+                  <span className="text-base font-bold text-emerald-400">
                     {pricing ? "…" : fmt(total)}
                   </span>
                 </div>

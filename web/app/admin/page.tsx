@@ -207,7 +207,7 @@ function StaffOtpGate({ onLogin }: { onLogin: (admin: AdminMe) => void }) {
     <div className="flex min-h-screen items-center justify-center px-5">
       <div className="w-full max-w-md space-y-6">
         <div className="text-center">
-          <p className="font-syne text-[20px] font-bold text-white">Peaceway Staff</p>
+          <p className="font-syne text-lg font-bold text-white">Peaceway Staff</p>
           <p className="mt-1 text-[13px] text-[#b1bdb0]">Internal team access for Peaceway staff and admins</p>
         </div>
         <div className="rounded-2xl border border-white/8 bg-white/4 p-6 space-y-4">
@@ -457,7 +457,7 @@ function Dashboard({ admin }: { admin: AdminMe }) {
         )}
         {tab === "sourcing" && (
           <div className="space-y-4">
-            <h2 className="font-syne text-[18px] font-bold text-white">Partner Sourcing</h2>
+            <h2 className="font-syne text-lg font-bold text-white">Partner Sourcing</h2>
             <div className="rounded-2xl border border-white/8 bg-white/4 p-5 text-sm text-white/60">
               Track out-of-stock rescue workflows, confirm partner stock, and keep the customer under Peaceway tracking.
               <div className="mt-4">
@@ -470,7 +470,7 @@ function Dashboard({ admin }: { admin: AdminMe }) {
         )}
         {tab === "dispatch" && (
           <div className="space-y-4">
-            <h2 className="font-syne text-[18px] font-bold text-white">Dispatch Readiness</h2>
+            <h2 className="font-syne text-lg font-bold text-white">Dispatch Readiness</h2>
             <div className="rounded-2xl border border-white/8 bg-white/4 p-5 text-sm text-white/60">
               View pickup-ready partner orders and keep last-mile delivery under Peaceway verification.
               <div className="mt-4">
@@ -625,7 +625,7 @@ function CatalogTab() {
     <div className="space-y-5">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <h2 className="font-syne text-[18px] font-bold text-white">Catalog Inventory</h2>
+          <h2 className="font-syne text-lg font-bold text-white">Catalog Inventory</h2>
           <p className="mt-1 text-[12px] text-[#b1bdb0]">
             Search all imported products. Price, stock, and listing changes update the shop immediately.
           </p>
@@ -648,7 +648,7 @@ function CatalogTab() {
             ["Need price", metrics.unpriced.toLocaleString("en-NG")],
           ].map(([label, value]) => (
             <div key={label} className="rounded-2xl border border-white/8 bg-white/4 p-4">
-              <p className="text-[20px] font-bold text-white">{value}</p>
+              <p className="text-lg font-bold text-white">{value}</p>
               <p className="mt-0.5 text-[11px] text-[#b1bdb0]">{label}</p>
             </div>
           ))}
@@ -823,7 +823,7 @@ function OverviewTab({
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-syne text-[20px] font-bold text-white">Overview</h1>
+        <h1 className="font-syne text-lg font-bold text-white">Overview</h1>
         <p className="text-[12px] text-[#b1bdb0] mt-0.5">
           {new Date().toLocaleDateString("en-NG", { weekday: "long", day: "numeric", month: "long" })}
         </p>
@@ -849,7 +849,7 @@ function OverviewTab({
         className="flex w-full items-center justify-between rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-4 text-left transition hover:border-emerald-500/40"
       >
         <div>
-          <p className="font-syne text-[15px] font-bold text-white">Open Inventory</p>
+          <p className="font-syne text-base font-bold text-white">Open Inventory</p>
           <p className="mt-1 text-[12px] text-white/50">
             Search all products, set price, update stock, and mark items out of stock.
           </p>
@@ -862,7 +862,7 @@ function OverviewTab({
           className="flex items-center justify-between rounded-2xl border border-white/8 bg-white/4 p-4 transition hover:border-emerald-500/30"
         >
           <div>
-            <p className="font-syne text-[15px] font-bold text-white">Sourcing Control</p>
+            <p className="font-syne text-base font-bold text-white">Sourcing Control</p>
             <p className="mt-1 text-[12px] text-white/50">
               Review out-of-stock orders, partner confirmations, and customer-facing sourcing status.
             </p>
@@ -874,7 +874,7 @@ function OverviewTab({
           className="flex items-center justify-between rounded-2xl border border-white/8 bg-white/4 p-4 transition hover:border-emerald-500/30"
         >
           <div>
-            <p className="font-syne text-[15px] font-bold text-white">Dispatch Readiness</p>
+            <p className="font-syne text-base font-bold text-white">Dispatch Readiness</p>
             <p className="mt-1 text-[12px] text-white/50">
               {dispatchReady} sourcing order{dispatchReady === 1 ? "" : "s"} are currently at pack-ready or later.
             </p>
@@ -886,7 +886,7 @@ function OverviewTab({
           className="flex items-center justify-between rounded-2xl border border-white/8 bg-white/4 p-4 transition hover:border-emerald-500/30 md:col-span-2"
         >
           <div>
-            <p className="font-syne text-[15px] font-bold text-white">Partner Directory</p>
+            <p className="font-syne text-base font-bold text-white">Partner Directory</p>
             <p className="mt-1 text-[12px] text-white/50">
               Onboard approved wholesalers and suppliers and manage their portal access.
             </p>
@@ -929,7 +929,7 @@ function OverviewTab({
 function RequestsTab({ requests, loading }: { requests: AdminRequest[]; loading: boolean }) {
   return (
     <div className="space-y-4">
-      <h2 className="font-syne text-[18px] font-bold text-white">All Requests</h2>
+      <h2 className="font-syne text-lg font-bold text-white">All Requests</h2>
       <div className="rounded-2xl border border-white/8 bg-white/4 divide-y divide-white/6">
         {loading ? (
           <div className="px-4 py-8 text-center text-[13px] text-[#b1bdb0]">Loading…</div>
@@ -978,7 +978,7 @@ function OrdersTab({ orders, loading }: { orders: AdminOrder[]; loading: boolean
   };
   return (
     <div className="space-y-4">
-      <h2 className="font-syne text-[18px] font-bold text-white">All Orders</h2>
+      <h2 className="font-syne text-lg font-bold text-white">All Orders</h2>
       <div className="rounded-2xl border border-white/8 bg-white/4 divide-y divide-white/6">
         {loading ? (
           <div className="px-4 py-8 text-center text-[13px] text-[#b1bdb0]">Loading…</div>

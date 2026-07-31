@@ -8,7 +8,7 @@ import { AppShell } from "@/components/app/app-shell";
 import { GuestWall, LoadFailed, SectionLabel } from "@/components/app/ui";
 import { TactileButton } from "@/components/app/tactile-button";
 import { siteConfig } from "@/lib/constants";
-import { PageTitle } from "@/components/app/page-title";
+import { usePageTitle } from "@/components/app/page-title";
 
 interface MeResponse {
   full_name: string | null;
@@ -18,6 +18,7 @@ interface MeResponse {
 }
 
 export default function ReferralPage() {
+  usePageTitle("Refer a Friend");
   const [me, setMe] = useState<MeResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
@@ -46,7 +47,6 @@ export default function ReferralPage() {
   if (failed)
     return (
       <AppShell>
-        <PageTitle title="Refer a Friend" />
         <div className="px-5 pt-6">
           <LoadFailed
             what="your referral code"
@@ -104,7 +104,7 @@ export default function ReferralPage() {
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-400/80 mb-2">
             Your referral code
           </p>
-          <p className="font-syne text-[28px] font-bold tracking-wider text-emerald-400">{code}</p>
+          <p className="font-syne text-2xl font-bold tracking-wider text-emerald-400">{code}</p>
           <p className="mt-2 text-[12px] text-[#b1bdb0]">
             Share it with anyone who needs a pharmacy they can trust
           </p>

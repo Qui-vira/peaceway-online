@@ -53,6 +53,36 @@ const config: Config = {
           900: "#3d0a0e"
         }
       },
+      // The type scale, as the only type scale.
+      //
+      // 18 distinct sizes were rendering against DESIGN.md's documented 10,
+      // from two parallel systems: 300-odd explicit `text-[Npx]` utilities and
+      // 156 Tailwind aliases. The aliases were the quiet half of the problem -
+      // `text-lg` is 18px and `text-3xl` is 30px, neither of which is a step in
+      // this design, so reaching for a perfectly ordinary Tailwind class
+      // introduced drift with nothing at the call site to suggest it had.
+      //
+      // Overriding them means an alias cannot land off-scale any more. lg moves
+      // 18 -> 19, xl 20 -> 22, 3xl 30 -> 32; the rest are already documented
+      // steps and do not move. `base` stays 16px deliberately - it is the iOS
+      // no-zoom floor every form input in the product now depends on.
+      //
+      // 22px is in the scale because the product has always had it: it is the
+      // page-title size on 19 screens, and DESIGN.md's own prose ("Title
+      // 19-24px") described a step the token list never named.
+      fontSize: {
+        "2xs": ["11px", { lineHeight: "1.45" }],
+        xs: ["12px", { lineHeight: "1.5" }],
+        "xs-plus": ["13px", { lineHeight: "1.5" }],
+        sm: ["14px", { lineHeight: "1.55" }],
+        base: ["16px", { lineHeight: "1.6" }],
+        lg: ["19px", { lineHeight: "1.45" }],
+        xl: ["22px", { lineHeight: "1.35" }],
+        "2xl": ["24px", { lineHeight: "1.3" }],
+        "3xl": ["32px", { lineHeight: "1.2" }],
+        "4xl": ["46px", { lineHeight: "1.1" }],
+        "5xl": ["76px", { lineHeight: "1.05" }],
+      },
       // Tailwind's opacity scale runs in steps of 5 (0,5,10,15,...,100). Every
       // other step this codebase reaches for was silently dropped at build:
       // the utility never compiled, so it painted nothing.

@@ -7,7 +7,7 @@ import { isAuthError } from "@/lib/api";
 import { listOrders, type Order } from "@/lib/api/orders";
 import { AppShell } from "@/components/app/app-shell";
 import { StaggerItem, StaggerList } from "@/components/app/motion";
-import { PageTitle } from "@/components/app/page-title";
+import { usePageTitle } from "@/components/app/page-title";
 import {
   EmptyState,
   GuestWall,
@@ -60,6 +60,7 @@ const STATUS_COLOR: Record<string, string> = {
 };
 
 export default function OrdersPage() {
+  usePageTitle("My Orders");
   const router = useRouter();
   const [state, setState] = useState<State>({ kind: "loading" });
 
@@ -82,7 +83,6 @@ export default function OrdersPage() {
 
   return (
     <AppShell back={{ title: "My Orders", fallbackHref: "/app" }}>
-      <PageTitle title="My Orders" />
       <div className="space-y-6 px-5 pt-6 pb-8">
         <h1 className="font-syne text-[22px] font-bold text-white">My Orders</h1>
 

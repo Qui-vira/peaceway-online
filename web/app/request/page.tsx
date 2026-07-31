@@ -22,7 +22,7 @@ import { AppShell } from "@/components/app/app-shell";
 import { GuestWall, LoadFailed, StatusChip } from "@/components/app/ui";
 import { TabletIcon } from "@/components/app/drug-icons";
 import { TactileButton } from "@/components/app/tactile-button";
-import { PageTitle } from "@/components/app/page-title";
+import { usePageTitle } from "@/components/app/page-title";
 
 type Field = "product_name" | "strength" | "form" | "quantity" | "urgency" | "note";
 type Errors = Partial<Record<Field | "form_error", string>>;
@@ -88,6 +88,7 @@ function FieldWrap({
 }
 
 export default function RequestPage() {
+  usePageTitle("Check Availability");
   const [authed, setAuthed] = useState<boolean | null>(null);
   // Separate from `authed`: unknown auth must not render as a guest wall, and
   // must not spin forever either.
@@ -245,7 +246,6 @@ export default function RequestPage() {
 
   return (
     <AppShell>
-      <PageTitle title="Check Availability" />
       <div className="space-y-6 px-5 pt-8 pb-6">
 
         {/* Header */}

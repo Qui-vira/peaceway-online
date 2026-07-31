@@ -92,7 +92,7 @@ function PartnerOtpGate({ onLogin }: { onLogin: (me: PartnerMe) => void }) {
     <div className="flex min-h-screen items-center justify-center bg-[#0b0c09] px-5">
       <div className="w-full max-w-md space-y-6">
         <div className="text-center">
-          <p className="font-syne text-[20px] font-bold text-white">Partner Portal</p>
+          <p className="font-syne text-lg font-bold text-white">Partner Portal</p>
           <p className="mt-1 text-[13px] text-[#b1bdb0]">Approved wholesalers and suppliers only</p>
         </div>
         <div className="rounded-2xl border border-white/8 bg-white/4 p-6 space-y-4">
@@ -423,7 +423,7 @@ function PartnerDashboard({ me }: { me: PartnerMe }) {
             <p className="mt-1 text-[11px] text-[#b1bdb0]">Pack-ready or dispatched</p>
           </div>
           <div className="rounded-2xl border border-white/8 bg-white/4 p-4">
-            <p className="truncate text-[15px] font-semibold text-white">{me.portal_login_email ?? me.key}</p>
+            <p className="truncate text-base font-semibold text-white">{me.portal_login_email ?? me.key}</p>
             <p className="mt-1 text-[11px] text-[#b1bdb0]">Signed in as</p>
           </div>
         </div>

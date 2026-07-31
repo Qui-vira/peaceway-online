@@ -19,7 +19,7 @@ import {
 } from "@/components/app/ui";
 import { GenericIcon } from "@/components/app/drug-icons";
 import { TactileLink } from "@/components/app/tactile-button";
-import { PageTitle } from "@/components/app/page-title";
+import { usePageTitle } from "@/components/app/page-title";
 
 type State =
   | { kind: "loading" }
@@ -28,6 +28,7 @@ type State =
   | { kind: "ready"; reminders: MedicationReminder[] };
 
 export default function RemindersPage() {
+  usePageTitle("Reminders");
   const router = useRouter();
   const [state, setState] = useState<State>({ kind: "loading" });
 
@@ -63,7 +64,6 @@ export default function RemindersPage() {
 
   return (
     <AppShell>
-      <PageTitle title="Reminders" />
       <div className="space-y-6 px-5 pt-10 pb-6">
 
         {/* Header */}

@@ -316,10 +316,14 @@ body::before {
 #s8 { z-index: 17; }
 #s9 { z-index: 18; }
 
-footer {
-  z-index: 19;
-  position: relative;
-}
+/* A `footer { z-index: 19; position: relative }` rule used to sit here, meant
+   to lift the marketing footer above the pinned scroll sections. It never did
+   that: `.ft` further down already sets both, and a class beats an element, so
+   the marketing footer has always been z-index 10. Its only live effect was on
+   the app shell's footer, which has no `.ft` class and was quietly given a
+   stacking context and a z-index it never asked for, on every route. Deleted
+   rather than renamed - a renamed copy would just be a dead duplicate of the
+   `.ft` block below. */
 
 /* Section backdrop: layered depth instead of flat near-black (Pro Max: never
    pure black). A soft green ambient glow top and bottom + a gentle vertical
@@ -1731,7 +1735,11 @@ button:not(:disabled):not([aria-disabled="true"]),
      wiring gone from motion-effects.tsx. */
 
   .nlinks { display: none; }
-  .ni, .hcon, .con, footer > div { padding-left: 20px !important; padding-right: 20px !important; }
+  /* `.ft > div`, not `footer > div`. This is the marketing page's mobile
+     gutter, but the bare element selector also hit the app shell's footer -
+     which already has its own px-5 - so every app route double-gutted its
+     footer text to 40px while the copyright line beside it sat at 20px. */
+  .ni, .hcon, .con, .ft > div { padding-left: 20px !important; padding-right: 20px !important; }
   .ni { padding-top: 14px; padding-bottom: 14px; }
   .g3 { grid-template-columns: 1fr; }
   .g2 { grid-template-columns: 1fr; gap: 32px; }

@@ -8,7 +8,7 @@ import { isNotFound } from "@/lib/api";
 import { getOrder, type Order } from "@/lib/api/orders";
 import { AppShell } from "@/components/app/app-shell";
 import { LoadFailed, Spinner } from "@/components/app/ui";
-import { PageTitle } from "@/components/app/page-title";
+import { usePageTitle } from "@/components/app/page-title";
 
 const STATUS_LABEL: Record<string, string> = {
   NEW: "Received",
@@ -57,6 +57,9 @@ export default function OrderDetailPage() {
   const justPlaced = searchParams?.get("placed") === "1";
 
   const [order, setOrder] = useState<Order | null>(null);
+  // Falls back to "Order" until the code arrives, rather than sitting on the
+  // previous route's title while this one loads.
+  usePageTitle(order ? `Order ${order.code}` : "Order");
   const [loading, setLoading] = useState(true);
   // Distinct from `order === null`, which renders "order not found". A failed
   // request is not evidence that the order does not exist.
@@ -100,13 +103,13 @@ export default function OrderDetailPage() {
 
   return (
     <AppShell>
-      <PageTitle title={`Order ${order.code}`} />
       <div className="space-y-6 pb-8">
         {/* Header */}
         <div className="flex items-center gap-3 px-5 pt-8">
           <Link
             href="/orders"
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5"
+            aria-label="Go back"
+            className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/5 transition hover:border-white/20 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[rgba(52,217,138,0.5)]"
           >
             <ArrowLeft className="h-4 w-4 text-white/70" />
           </Link>
@@ -188,7 +191,7 @@ export default function OrderDetailPage() {
             </div>
             <div className="flex justify-between font-semibold">
               <span className="text-white">Total</span>
-              <span className="text-[15px] text-emerald-400">₦{Number(order.total).toLocaleString()}</span>
+              <span className="text-base text-emerald-400">₦{Number(order.total).toLocaleString()}</span>
             </div>
           </div>
         </div>
