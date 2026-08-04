@@ -51,6 +51,10 @@ async def send_otp_email(to_email: str, code: str, pharmacy_name: str) -> None:
         return
 
     subject = f"Your {pharmacy_name} verification code"
+    # Signs off as a licensed pharmacy rather than an unattributed sender. A
+    # verification email is often the first thing a new customer sees from the
+    # business, and an unsigned code from an unfamiliar domain is exactly what a
+    # phishing attempt looks like.
     html_body = f"""
     <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px;">
       <h2 style="color:#1a1a1a;">{pharmacy_name}</h2>
@@ -59,7 +63,13 @@ async def send_otp_email(to_email: str, code: str, pharmacy_name: str) -> None:
                   padding:16px 0;">{code}</div>
       <p style="color:#666;font-size:14px;">
         This code expires in {OTP_EXPIRY_MINUTES} minutes.<br>
-        If you did not request this, you can safely ignore this email.
+        If you did not request this, you can ignore this email.
+      </p>
+      <p style="color:#888;font-size:12px;line-height:1.6;margin-top:24px;
+                border-top:1px solid #e5e5e5;padding-top:16px;">
+        {pharmacy_name} is a licensed pharmacy. Every order is reviewed by a
+        registered pharmacist before it is dispensed.<br>
+        We will never ask you for this code by phone or message.
       </p>
     </div>
     """

@@ -92,7 +92,7 @@ function TrackPageContent() {
         <Link href={signedIn ? "/app" : "/"} className="inline-block">
           <span className="font-syne text-lg font-bold text-white">Peaceway Online</span>
         </Link>
-        <p className="mt-1 text-[12px] text-[#b1bdb0]">Igando, Lagos</p>
+        <p className="mt-1 text-[12px] text-[#b1bdb0]">Licensed pharmacy</p>
       </div>
 
       <div className="mx-auto max-w-sm">

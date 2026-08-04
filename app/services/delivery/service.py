@@ -47,9 +47,9 @@ STATUS_MAP = {
 
 _CUSTOMER_MSG = {
     DeliveryStatus.PICKED_UP: "📦 Your order {code} has been picked up by the rider.",
-    DeliveryStatus.IN_TRANSIT: "🛵 Your order {code} is on the way!",
+    DeliveryStatus.IN_TRANSIT: "🛵 Your order {code} is on the way.",
     DeliveryStatus.NEAR_CUSTOMER: "📍 Your rider is nearby with order {code}.",
-    DeliveryStatus.DELIVERED: "🏁 Your order {code} has been delivered. Thank you!",
+    DeliveryStatus.DELIVERED: "🏁 Your order {code} has been delivered.",
     DeliveryStatus.FAILED_DELIVERY: "⚠️ Delivery of {code} failed. Our team will contact you.",
     DeliveryStatus.RETURNED_TO_PHARMACY: "↩️ Order {code} was returned to the pharmacy. We'll reach out.",
 }

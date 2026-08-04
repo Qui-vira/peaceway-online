@@ -15,8 +15,8 @@ import { media } from "@/lib/media";
  */
 export function ParallaxShowcase({
   eyebrow = "Peaceway Online",
-  title = "A real pharmacy, now a tap away.",
-  body = "Genuine medicines, pharmacist guidance, and fast delivery across Lagos - the same trusted service, reimagined online.",
+  title = "A licensed pharmacy, online.",
+  body = "NAFDAC-registered medicine from traceable suppliers. Every order is reviewed by a registered pharmacist before it is dispensed.",
   imageSrc = media.pharmacyPhoto,
 }: {
   eyebrow?: string;

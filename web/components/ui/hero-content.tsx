@@ -4,9 +4,19 @@ import { useEffect, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { siteConfig } from "@/lib/constants";
 
-const HEADLINE_LINES = ["YOUR LAGOS", "PHARMACY", "IS NOW ONLINE"];
+/**
+ * Was "YOUR LAGOS / PHARMACY / IS NOW ONLINE".
+ *
+ * Two problems with that line. It fixed the business to one city in the largest
+ * type on the site, and "is now online" sells the channel - being on the
+ * internet - when what is actually being sold is that a licensed pharmacist
+ * stands behind the order. The channel is not the product.
+ */
+const HEADLINE_LINES = ["A LICENSED", "PHARMACY,", "ONLINE"];
 const HEADLINE = HEADLINE_LINES.join("\n");
-const HEADLINE_LABEL = "Your Lagos pharmacy is now online";
+const HEADLINE_LABEL = "A licensed pharmacy, online";
+const SUBHEAD =
+  "Every order is reviewed by a registered pharmacist before it is dispensed.";
 const TYPE_MS = 35; // per-character cadence
 const EASE = [0.22, 0.61, 0.36, 1] as const;
 
@@ -68,25 +78,24 @@ export function HeroContent(): JSX.Element {
           whileTap: { scale: 0.97 },
           transition: { type: "spring" as const, stiffness: 420, damping: 24 },
         };
+  // Telegram used to be the primary action and the catalogue the secondary.
+  // That ordering sold the channel ahead of the pharmacy, and sent a first-time
+  // visitor off-site before they had seen a single product. The dispensary's own
+  // catalogue leads now; Telegram remains one tap away for customers who already
+  // order that way.
   const cta = (
     <>
+      <motion.a className="bp" href="/shop" {...hover}>
+        Browse Medicines
+      </motion.a>
       <motion.a
-        className="bp"
+        className="bg2"
         href={siteConfig.telegramBotUrl}
         target="_blank"
         rel="noreferrer noopener"
         {...hover}
       >
         Order on Telegram
-      </motion.a>
-      {/* Was "Check Product Availability" → /request, which walls a stranger
-          behind a registration form before showing them anything. The
-          catalogue is 250 real products, ranks at 0.9 in our own sitemap, and
-          had no link from this page at all - the only two internal doors were
-          /app and /request. Browse first, ask second: /request is still one tap
-          away from the app home and the footer. */}
-      <motion.a className="bg2" href="/shop" {...hover}>
-        Browse Medicines
       </motion.a>
     </>
   );
@@ -109,7 +118,7 @@ export function HeroContent(): JSX.Element {
     return (
       <div className="hcon">
         {headline}
-        <p className="hs">Genuine medicines, pharmacist guidance, and delivery across Lagos.</p>
+        <p className="hs">{SUBHEAD}</p>
         <div className="ctg">{cta}</div>
       </div>
     );
@@ -125,7 +134,7 @@ export function HeroContent(): JSX.Element {
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.3, ease: EASE, delay: 0.34 }}
       >
-        Genuine medicines, pharmacist guidance, and delivery across Lagos.
+        {SUBHEAD}
       </motion.p>
 
       <motion.div

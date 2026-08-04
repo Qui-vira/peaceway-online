@@ -16,7 +16,8 @@ router = Router(name="customer-menu")
 
 WELCOME = (
     "Welcome to <b>Peaceway Online</b>.\n\n"
-    "Your licensed pharmacy in Igando is now online and delivering across Lagos.\n\n"
+    "A licensed pharmacy. Every order is reviewed by a registered pharmacist "
+    "before it is dispensed.\n\n"
     "What do you need today?"
 )
 
@@ -28,7 +29,7 @@ HELP_TEXT = (
     "After checkout, transfer to our account and upload your proof of payment. "
     "We confirm it before preparing your order.\n\n"
     "🚚 <b>Delivery</b>\n"
-    "Pick your area at checkout to see the delivery fee. We deliver across Lagos.\n\n"
+    "Pick your area at checkout. The fee is shown before you pay.\n\n"
     "💬 <b>Ask the Pharmacist</b>\n"
     "Tap Ask the Pharmacist to send a question. Our pharmacist replies here in chat.\n\n"
     "📦 <b>Track your order</b>\n"
@@ -36,8 +37,9 @@ HELP_TEXT = (
     "👨‍⚕️ <b>Contact support</b>\n"
     "Tap Speak to Support for help with anything.\n\n"
     "💊 <b>Prescription safety</b>\n"
-    "Some medicines need pharmacist review or a valid prescription before we can supply them. "
-    "We never give diagnosis or emergency advice. For serious symptoms, please see a pharmacist "
+    "Prescription-only medicines are dispensed solely against a valid prescription from a "
+    "licensed healthcare provider in Nigeria. Our Superintendent Pharmacist reviews every one.\n"
+    "We do not give diagnosis or emergency advice. For serious symptoms, see a pharmacist "
     "in person or seek urgent medical care.\n\n"
     "Send /start anytime to return to the main menu."
 )
@@ -47,14 +49,14 @@ HOW_IT_WORKS_TEXT = (
     "1️⃣ <b>Order Medicine</b>\n"
     "Search or browse, then add items to your cart.\n\n"
     "2️⃣ <b>Checkout</b>\n"
-    "Enter your delivery details and pick your area.\n\n"
+    "Enter your details and pick your area. The delivery fee is shown before you pay.\n\n"
     "3️⃣ <b>Pay</b>\n"
     "Transfer to our account and upload your proof of payment.\n\n"
-    "4️⃣ <b>We prepare and dispatch</b>\n"
-    "You get live updates as your order moves.\n\n"
+    "4️⃣ <b>Pharmacist review, then dispensing</b>\n"
+    "A registered pharmacist checks the order before it is dispensed.\n\n"
     "5️⃣ <b>Delivered</b>\n"
-    "We check in 24 hours later to confirm all is well.\n\n"
-    "💊 Prescription medicines are reviewed by our pharmacist before they're supplied."
+    "We check in afterwards to confirm you received the right medicine.\n\n"
+    "💊 Prescription-only medicines are not supplied without a valid prescription."
 )
 
 

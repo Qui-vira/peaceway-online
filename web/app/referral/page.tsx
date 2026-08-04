@@ -77,7 +77,7 @@ export default function ReferralPage() {
       try {
         await navigator.share({
           title: "Peaceway Online",
-          text: `Order genuine medicine from Peaceway Pharmacy, Lagos - use my code ${code}.`,
+          text: `Peaceway Online, a licensed Nigerian pharmacy. Use my code ${code}.`,
           url: referralLink,
         });
       } catch {
@@ -151,7 +151,7 @@ export default function ReferralPage() {
           className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 py-3 text-[13px] text-white/50 transition hover:border-white/20 hover:text-white/70"
         >
           <Copy className="h-3.5 w-3.5" />
-          {copied ? "Copied!" : "Copy referral link"}
+          {copied ? "Copied" : "Copy referral link"}
         </button>
       </div>
     </AppShell>

@@ -15,11 +15,11 @@ const DEFAULT_STEPS: Step[] = [
   },
   {
     title: "A pharmacist reviews it",
-    body: "Every prescription order is checked by a licensed pharmacist before it's fulfilled, so you always get the right medicine.",
+    body: "Prescription-only medicine is dispensed solely against a valid prescription, reviewed by our Superintendent Pharmacist.",
   },
   {
-    title: "Delivered across Lagos",
-    body: "We package and dispatch to your door, then check in after delivery to make sure everything's okay.",
+    title: "Dispensed and sent out",
+    body: "Packed against the dispensing record, then checked afterwards to confirm you received the right medicine."
   },
 ];
 

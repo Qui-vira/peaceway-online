@@ -14,15 +14,88 @@ export const siteConfig = {
    * site could reach the referenced pages or preview images.
    */
   url: "https://www.peacewayonline.com",
-  title: "Peaceway Online | Lagos Pharmacy - Order Medicine on Telegram",
+  /**
+   * Positioning: the product is the pharmacy, not the delivery.
+   *
+   * Title and description used to lead with "Lagos" and "delivery across
+   * Lagos", which described a courier route rather than a pharmacy and capped
+   * the business at one city in every search result and social unfurl. What is
+   * actually being sold is pharmacist oversight and authentic medicine;
+   * delivery is how it arrives, and belongs on the product and checkout pages
+   * rather than in the title tag.
+   */
+  title: "Peaceway Online | Licensed Online Pharmacy in Nigeria",
   description:
-    "Genuine medicines, pharmacist guidance, and delivery across Lagos. Order through Telegram from Peaceway Pharmacy, Igando.",
+    "A licensed Nigerian pharmacy online. Every order is reviewed by a registered pharmacist. NAFDAC-registered medicine from traceable suppliers, with clear pricing.",
   telegramBotUrl: "https://t.me/Peacewayonline_bot",
   telegramChannelUrl: "https://t.me/peacewayonline",
   instagramUrl: "https://www.instagram.com/peacewayonline?igsh=MXdiZXZ3ajM2Zng5&utm_source=qr",
   email: "peacewaypharmacy@peacewayonline.com",
-  address: "Peaceway Pharmacy, Igando/Agodo Ikotun, Lagos",
-  footerNote: "Peaceway Online is an online service of Peaceway Pharmacy."
+  /**
+   * The registered premises. Kept in full because a licensed pharmacy has to be
+   * findable at a physical address - it is a compliance fact and a trust
+   * signal, not a service-area claim. It belongs in the footer and on the
+   * about/contact surfaces, not in a page title or a hero.
+   */
+  address: "Peaceway Pharmacy, Igando/Agodo Ikotun, Lagos, Nigeria",
+  footerNote: "Peaceway Online is the online pharmacy service of Peaceway Pharmacy.",
+  /** Named on-record so the Rx declaration and about copy cite a real role. */
+  superintendentPharmacistLabel: "Superintendent Pharmacist"
+} as const;
+
+/**
+ * Regulatory identity, displayed on the homepage.
+ *
+ * The Electronic Pharmacy Regulations 2026 require an EPSP to show, on its
+ * homepage: the authorised PCN logo, the online pharmacy licence number, the
+ * EPSP registration number, and a declaration that prescription-only medicines
+ * are supplied only against a valid prescription from a licensed Nigerian
+ * healthcare provider.
+ *
+ * THREE RULES FOR WHOEVER FILLS THIS IN:
+ *
+ * 1. Do not invent numbers. `null` renders an honest "application in progress"
+ *    line. A plausible-looking placeholder number rendered as fact is a false
+ *    regulatory claim, which is worse than an absent one.
+ * 2. Do not set `pcnLogoApproved` until the licence is actually issued AND the
+ *    PCN has authorised use of its logo. Displaying a regulator's mark before
+ *    it is granted implies an approval that does not exist.
+ * 3. The declaration text is not a marketing string. Change it only against the
+ *    regulation's wording.
+ */
+export const compliance = {
+  /** TODO: set to the online pharmacy licence number once PCN issues it. */
+  pharmacyLicenceNumber: null as string | null,
+  /** TODO: set to the EPSP registration number once issued. */
+  epspRegistrationNumber: null as string | null,
+  /** TODO: set to the Superintendent Pharmacist's name and PCN licence number. */
+  superintendentPharmacistName: null as string | null,
+  superintendentPharmacistPcnNumber: null as string | null,
+  /**
+   * TODO: flip to true ONLY when the licence is issued and the PCN has
+   * authorised display of its logo. Until then the logo is not rendered.
+   */
+  pcnLogoApproved: false,
+  /** Statutory declaration. Wording tracks the regulation, not the brand. */
+  prescriptionDeclaration:
+    "Prescription-only medicines are dispensed solely on presentation of a valid " +
+    "prescription issued by a licensed healthcare provider in Nigeria. " +
+    "Prescriptions are reviewed by our Superintendent Pharmacist before any " +
+    "medicine is dispensed.",
+  /**
+   * Shown where a licence or registration has not yet been issued. This is a
+   * statement about the regulator, not about us.
+   */
+  pendingLabel: "Application in progress",
+  /**
+   * Shown where the fact exists but has not been entered here yet - the
+   * Superintendent Pharmacist's name and PCN number, which the pharmacy has.
+   * Kept separate from `pendingLabel` on purpose: rendering "Application in
+   * progress" against the pharmacist would tell a reader the premises has no
+   * Superintendent, which is both false and a worse regulatory claim than the
+   * blank it replaced.
+   */
+  notPublishedLabel: "To be published"
 } as const;
 
 /*
@@ -38,106 +111,110 @@ export const siteConfig = {
  */
 
 export const heroActions = [
-  { label: "Order on Telegram", href: siteConfig.telegramBotUrl, variant: "primary" as const },
-  { label: "Join Our Community", href: siteConfig.telegramChannelUrl, variant: "secondary" as const }
+  { label: "Browse Medicines", href: "/shop", variant: "primary" as const },
+  { label: "Ask a Pharmacist", href: "/ask-pharmacist", variant: "secondary" as const }
 ] as const;
 
 export const sectionActions = {
-  order: { label: "Order on Telegram", href: siteConfig.telegramBotUrl, variant: "primary" as const },
-  pharmacist: { label: "Ask a Pharmacist", href: "#pharmacist", variant: "secondary" as const },
+  browse: { label: "Browse Medicines", href: "/shop", variant: "primary" as const },
+  pharmacist: { label: "Ask a Pharmacist", href: "/ask-pharmacist", variant: "secondary" as const },
+  prescription: { label: "Send a Prescription", href: "/prescription", variant: "secondary" as const },
   community: { label: "Join the Community", href: "#community", variant: "secondary" as const },
-  delivery: { label: "View Delivery Areas", href: "#delivery", variant: "secondary" as const },
-  contact: { label: "Contact Peaceway", href: "#contact", variant: "secondary" as const }
+  contact: { label: "Contact the Pharmacy", href: "#contact", variant: "secondary" as const }
 } as const;
 
 export const sectionCopy = {
   hero: {
-    eyebrow: "Peaceway Online · Igando, Lagos, Nigeria",
-    title: "Your Lagos pharmacy is now online.",
-    description: "Genuine medicines, pharmacist guidance, and delivery across Lagos."
+    eyebrow: "Peaceway Online · Licensed pharmacy · Nigeria",
+    title: "A licensed pharmacy, online.",
+    description:
+      "Every order is reviewed by a registered pharmacist before it is dispensed."
   },
   problem: {
     eyebrow: "Section 02",
-    title: "Buying medicine should not feel like guessing.",
+    title: "Most medicine is bought without a pharmacist involved.",
     description:
-      "In Lagos, getting the right medicine can feel risky. Wrong advice, counterfeit products, and unnecessary movement should not be part of healthcare."
+      "Counterfeit and substandard medicine circulates in Nigeria. Without a pharmacist, a patient has no way to tell the difference at the point of sale."
   },
   services: {
     eyebrow: "Section 03 · What We Do",
-    title: "Order medicine. Ask a pharmacist. Get it delivered.",
-    description: "A simple Telegram-first experience built around pharmacy service."
+    title: "Dispensing, with a pharmacist on every order.",
+    description:
+      "Stock is verified, prescriptions are reviewed, and the medicine is traceable to a licensed supplier."
   },
   trust: {
     eyebrow: "Section 04 · Why Trust Us",
-    title: "A real pharmacy behind the online service.",
+    title: "A registered pharmacy, not a marketplace.",
     description:
-      "Peaceway Online extends an existing pharmacy service into a clean, digital ordering experience."
+      "Peaceway Online is operated by Peaceway Pharmacy, a PCN-registered premises with a Superintendent Pharmacist on record."
   },
   howItWorks: {
     eyebrow: "Section 05 · How It Works",
-    title: "From message to delivery.",
-    description: "Ten simple steps. Telegram first, no heavy app install required."
+    title: "Order, review, dispense.",
+    description:
+      "Prescription items are held until the Superintendent Pharmacist has reviewed them."
   },
   pharmacist: {
     eyebrow: "Section 06 · Ask a Pharmacist",
-    title: "Need help before you buy?",
+    title: "Speak to a pharmacist before you buy.",
     description:
-      "Use Telegram to ask questions about medicine choices, availability, or whether a product needs pharmacist review."
+      "Questions about a medicine, an interaction, or whether an item needs a prescription are answered by a registered pharmacist."
   },
-  delivery: {
-    eyebrow: "Section 07 · Delivery Areas",
-    title: "Delivery across Lagos, starting from Igando.",
+  sourcing: {
+    eyebrow: "Section 07 · Sourcing",
+    title: "Traceable to a licensed supplier.",
     description:
-      "We focus on nearby Lagos communities first and can expand coverage as operations grow."
+      "Stock is bought through licensed distribution channels. NAFDAC registration is checked before an item is listed."
   },
   community: {
     eyebrow: "Section 08 · Community",
-    title: "Join the Peaceway health community.",
-    description: "Stay informed, get updates, and ask questions in a simple Telegram-native flow."
+    title: "Medicine information from a pharmacist.",
+    description:
+      "Updates on stock, medicine safety notices, and answers to common questions."
   },
   contact: {
     eyebrow: "Section 09 · Contact",
-    title: "Talk to Peaceway.",
-    description: "Use the channels below to reach the pharmacy or continue on Telegram."
+    title: "Contact the pharmacy.",
+    description: "Reach the pharmacy directly, or continue on Telegram."
   }
 } as const;
 
 export const serviceCards = [
   {
-    title: "OTC Medicine Delivery",
-    text: "Order over-the-counter medicines directly through Telegram."
+    title: "Pharmacist review on every order",
+    text: "A registered pharmacist checks each order before it is dispensed."
   },
   {
-    title: "Pharmacist Questions via Telegram",
-    text: "Ask a pharmacist before ordering if you want guidance."
+    title: "Prescription handling",
+    text: "Prescriptions are reviewed by our Superintendent Pharmacist. Prescription-only medicine is not supplied without one."
   },
   {
-    title: "Product Availability Check",
-    text: "We verify stock before confirming an order."
+    title: "NAFDAC-registered medicine",
+    text: "Registration is checked before an item is listed for sale."
   },
   {
-    title: "Prescription Review",
-    text: "Prescription products can be reviewed before supply."
+    title: "Traceable sourcing",
+    text: "Stock is bought through licensed distribution channels, not open markets."
   },
   {
-    title: "Delivery Across Selected Lagos Areas",
-    text: "Start with Igando and nearby Lagos communities."
+    title: "Clear pricing",
+    text: "The price you see is the price charged. Any fee is itemised before you pay."
   },
   {
-    title: "Customer Support and Follow-up",
-    text: "A simple customer experience with post-delivery follow-up."
+    title: "Ask a pharmacist",
+    text: "Questions about a medicine or an interaction are answered by a pharmacist, not a script."
   }
 ] as const;
 
-export const deliveryAreas = [
-  "Igando",
-  "Agodo",
-  "Ikotun",
-  "Egbeda",
-  "Isheri",
-  "Idimu",
-  "Iyana Ipaja",
-  "Egbe",
-  "Ejigbo",
-  "Ijegun"
-] as const;
+/*
+ * `deliveryAreas` was removed here.
+ *
+ * It was a hardcoded list of ten Lagos neighbourhoods rendered as a homepage
+ * section, which framed the business as a courier with a coverage map. Delivery
+ * is a fulfilment detail now: it appears on the product and checkout pages,
+ * priced per area from the `delivery_zones` table, and nowhere else.
+ *
+ * The live areas were already coming from that table via `listZones()` - this
+ * const was a second, drifting copy of it. See `FALLBACK_ZONES` in
+ * `lib/api/customers.ts` for the offline fallback.
+ */

@@ -236,7 +236,7 @@ async def handle_action(call: CallbackQuery, state: FSMContext) -> None:
         elif action == "dispatched":
             await orders_svc.transition_status(session, order, OrderStatus.DISPATCHED, by)
             await orders_svc.transition_delivery(session, order, DeliveryStatus.IN_TRANSIT, by)
-            customer_msg = f"🚚 Your order {code} has been dispatched and is on the way!"
+            customer_msg = f"🚚 Your order {code} has been dispensed and sent out."
 
         elif action == "delivered":
             await orders_svc.transition_status(session, order, OrderStatus.DELIVERED, by)
@@ -253,7 +253,7 @@ async def handle_action(call: CallbackQuery, state: FSMContext) -> None:
                     delivery_proof="staff-confirmed",
                     by=by,
                 )
-            customer_msg = f"🏁 Your order {code} has been delivered. Thank you for choosing us!"
+            customer_msg = f"🏁 Your order {code} has been delivered."
             # Stamp the 24h follow-up; the scheduler worker sends it (DB-driven,
             # so it survives restarts and doesn't tie scheduling to this process).
             order.followup_due_at = datetime.now(timezone.utc) + timedelta(hours=24)
