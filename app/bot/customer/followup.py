@@ -13,7 +13,7 @@ router = Router(name="customer-followup")
 @router.callback_query(F.data == "fu:ok")
 async def followup_ok(call: CallbackQuery) -> None:
     await call.message.edit_text(
-        "🙏 Wonderful! Thank you for choosing Peaceway Online. Stay healthy!",
+        "🙏 Thank you. If anything about your medicine is unclear, ask the pharmacist.",
         reply_markup=back_to_menu(),
     )
     await call.answer()

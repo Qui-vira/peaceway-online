@@ -310,7 +310,7 @@ function StartPageContent() {
             <p className="text-sm leading-relaxed text-white/55">
               {next === "/checkout"
                 ? "You're registered. Your cart is waiting — let's finish your order."
-                : "You're registered with Peaceway Online. We'll reach out on Telegram or by phone to confirm your first order."}
+                : "You're registered with Peaceway Online. A pharmacist reviews every order before it is dispensed."}
             </p>
           </div>
           <div className="flex flex-col gap-3">
@@ -341,7 +341,7 @@ function StartPageContent() {
           <PeacewayMark />
           <div>
             <p className="font-syne text-lg font-bold text-white">Peaceway Online</p>
-            <p className="text-xs text-[#b1bdb0]">Igando · Lagos · Licensed Pharmacy</p>
+            <p className="text-xs text-[#b1bdb0]">Licensed pharmacy · Nigeria</p>
           </div>
         </div>
 

@@ -40,7 +40,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 
   if (!hit) {
     return {
-      title: "Medicine not found | Peaceway Pharmacy",
+      title: "Medicine not found | Peaceway Online",
       robots: { index: false, follow: true },
     };
   }
@@ -52,23 +52,28 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   // assembled from real attributes rather than padded with adjectives: a generic
   // marketing sentence repeated 250 times is the same duplicate-content problem
   // in a different field.
+  // The fallback used to end "...with pharmacist guidance and delivery across
+  // Lagos", which put a courier radius into the meta description of all 250
+  // products - the single largest concentration of "we are a delivery service"
+  // on the site, and the one a search result shows first. Delivery is a
+  // fulfilment detail; it belongs on the page body and at checkout, not here.
   const facts = [p.dosage_form, p.category].filter(Boolean).join(", ");
   const description = p.description
     ? summarise(p.description)
     : summarise(
-        `${name}${facts ? ` (${facts})` : ""} from Peaceway Pharmacy, Igando, Lagos. ` +
+        `${name}${facts ? ` (${facts})` : ""} from Peaceway Pharmacy, a licensed Nigerian pharmacy. ` +
           `${p.requires_prescription ? "Prescription required. " : ""}` +
-          `Genuine medicine with pharmacist guidance and delivery across Lagos.`
+          `NAFDAC-registered medicine, dispensed after pharmacist review.`
       );
 
   const canonical = `/shop/${hit.slug}`;
 
   return {
-    title: `${name} | Peaceway Pharmacy Lagos`,
+    title: `${name} | Peaceway Online`,
     description,
     alternates: { canonical },
     openGraph: {
-      title: `${name} | Peaceway Pharmacy`,
+      title: `${name} | Peaceway Online`,
       description,
       url: canonical,
       type: "website",

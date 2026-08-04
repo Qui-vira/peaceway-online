@@ -34,6 +34,24 @@ export const metadata: Metadata = {
     description: siteConfig.description,
     type: "website",
     url: "/",
+    siteName: siteConfig.name,
+    locale: "en_NG",
+    images: [
+      {
+        url: "/images/pharmacy_photos-1782916474882.jpg",
+        width: 1400,
+        height: 900,
+        alt: "The Peaceway Pharmacy dispensary"
+      }
+    ]
+  },
+  // The site had no Twitter card at all, so shares fell back to a bare link.
+  // `summary_large_image` because the unfurl is doing the same job as the
+  // homepage: showing that a physical dispensary exists behind the domain.
+  twitter: {
+    card: "summary_large_image",
+    title: siteConfig.title,
+    description: siteConfig.description,
     images: ["/images/pharmacy_photos-1782916474882.jpg"]
   },
   icons: {

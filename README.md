@@ -1,9 +1,27 @@
 # Peaceway Online
 
-A 24/7 Telegram ordering + pharmacy-operations bot for **Peaceway Pharmacy**
-(Igando/Agodo Ikotun, Lagos). Customers browse and order medicines; staff manage
-payments, packaging, dispatch, and prescriptions — all from Telegram.
+The online pharmacy service of **Peaceway Pharmacy**, a PCN-registered premises
+in Nigeria with a Superintendent Pharmacist on record.
 
+Customers browse and order medicine through the web app or Telegram; a
+registered pharmacist reviews every order before it is dispensed. Staff manage
+payments, packaging, dispatch, and prescription review from the same system.
+
+**Positioning:** the product is the pharmacy, not the delivery. Copy leads with
+pharmacist oversight, NAFDAC-registered medicine and traceable sourcing.
+Delivery is a fulfilment detail — it belongs on product and checkout pages, and
+never in a page title, meta description, or tagline. See
+[`web/lib/constants.ts`](web/lib/constants.ts) for the copy source of truth.
+
+**Regulatory:** as an Electronic Pharmaceutical Service Provider the homepage
+must display the authorised PCN logo, the online pharmacy licence number, the
+EPSP registration number, and the prescription-only declaration. These live in
+the `compliance` object in `web/lib/constants.ts` and render through
+`web/components/brand/regulatory-notice.tsx`. **Licence and registration numbers
+are `null` until issued — do not fill them with placeholder values, and do not
+enable the PCN logo until its use is authorised.**
+
+Web: [peacewayonline.com](https://www.peacewayonline.com) ·
 Bot: [@Peacewayonline_bot](https://t.me/Peacewayonline_bot)
 
 ## Stack

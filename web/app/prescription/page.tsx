@@ -77,7 +77,7 @@ export default function PrescriptionPage() {
           <div>
             <h2 className="font-syne text-[22px] font-bold text-white">Prescription received</h2>
             <p className="mt-2 text-[13px] leading-relaxed text-white/50">
-              A pharmacist will review your prescription and contact you via Telegram with the price.
+              Our Superintendent Pharmacist will review your prescription and contact you with the price.
             </p>
           </div>
           <div className="w-full rounded-2xl border border-white/8 bg-white/4 px-4 py-4 text-left space-y-3">
@@ -173,7 +173,7 @@ export default function PrescriptionPage() {
         <div className="flex items-start gap-2.5 rounded-xl border border-amber-500/25 bg-amber-500/8 px-3.5 py-2.5">
           <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-400" />
           <p className="text-[11px] leading-relaxed text-amber-300/80">
-            Prescriptions are reviewed by a licensed pharmacist before any medicine is dispensed.
+            Prescription-only medicines are dispensed solely against a valid prescription from a licensed healthcare provider in Nigeria. Our Superintendent Pharmacist reviews every prescription before dispensing.
           </p>
         </div>
 

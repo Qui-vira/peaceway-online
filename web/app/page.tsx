@@ -20,7 +20,8 @@ import {
   Users
 } from "lucide-react";
 import { media } from "@/lib/media";
-import { siteConfig } from "@/lib/constants";
+import { compliance, siteConfig } from "@/lib/constants";
+import { RegulatoryNotice } from "@/components/brand/regulatory-notice";
 
 type IconBadgeProps = {
   children: ReactNode;
@@ -43,7 +44,7 @@ export default function Page(): JSX.Element {
             <a className="nl" href="#s2">About</a>
             <a className="nl" href="#s3">Services</a>
             <a className="nl" href="#s5">How It Works</a>
-            <a className="nl" href="#s7">Delivery</a>
+            <a className="nl" href="#s7">Sourcing</a>
             <a className="nl" href="#s9">Contact</a>
           </div>
           <div className="flex items-center gap-3">
@@ -79,8 +80,8 @@ export default function Page(): JSX.Element {
             <div className="vign" />
             <div className="snbg" aria-hidden="true">02</div>
             <div className="con">
-              <SplitText as="h2" effect="mask-words" className="shead" style={{ maxWidth: "700px" }} text="Buying medicine should not feel like guessing." />
-              <p className="ssub">In Lagos, getting the right medicine can feel risky. Wrong advice, fake products, and unnecessary movement should not be part of healthcare.</p>
+              <SplitText as="h2" effect="mask-words" className="shead" style={{ maxWidth: "700px" }} text="Most medicine is bought without a pharmacist involved." />
+              <p className="ssub">Counterfeit and substandard medicine circulates in Nigeria. Wrong advice and unverified products should not be part of healthcare.</p>
               <div className="g3">
                 <div className="pc">
                   <div className="ic-r">!</div>
@@ -94,8 +95,8 @@ export default function Page(): JSX.Element {
                 </div>
                 <div className="pc">
                   <div className="ic-r">!</div>
-                  <div className="cn2">Unnecessary movement across Lagos</div>
-                  <div className="cd">Getting medicine should not mean hours in traffic. A working pharmacy model should bring medicine to you.</div>
+                  <div className="cn2">No pharmacist involved</div>
+                  <div className="cd">Most medicine online is sold without a pharmacist reviewing what is being bought, or who is buying it.</div>
                 </div>
               </div>
             </div>
@@ -110,14 +111,14 @@ export default function Page(): JSX.Element {
             <div className="vign" />
             <div className="snbg" aria-hidden="true">03</div>
             <div className="con">
-              <SplitText as="h2" effect="lines" className="shead" text={"Order medicine. Ask a pharmacist.\nGet it delivered."} />
+              <SplitText as="h2" effect="lines" className="shead" text={"Dispensing, with a pharmacist\non every order."} />
               <div className="g3" style={{ marginTop: "8px" }}>
-                <div className="gc"><div className="ic-g">+</div><div className="cn2">OTC Medicine Delivery</div><div className="cd">Order over-the-counter medicines directly through Telegram. Availability confirmed before you pay.</div></div>
-                <div className="gc"><div className="ic-g">+</div><div className="cn2">Pharmacist Questions via Telegram</div><div className="cd">Ask a pharmacist directly through our bot before ordering. Get proper, qualified guidance.</div></div>
+                <div className="gc"><div className="ic-g">+</div><div className="cn2">Pharmacist Review On Every Order</div><div className="cd">A registered pharmacist checks each order before it is dispensed. Stock is confirmed before you pay.</div></div>
+                <div className="gc"><div className="ic-g">+</div><div className="cn2">NAFDAC-Registered Medicine</div><div className="cd">Registration is checked before an item is listed. Sourced through licensed distributors only.</div></div>
                 <div className="gc"><div className="ic-g">+</div><div className="cn2">Product Availability Check</div><div className="cd">We verify stock before confirming your order. No surprises, no delays on unavailable items.</div></div>
-                <div className="gc"><div className="ic-g">+</div><div className="cn2">Prescription Review Where Required</div><div className="cd">Prescription-only medicines require pharmacist review before supply. We take this seriously.</div></div>
-                <div className="gc"><div className="ic-g">+</div><div className="cn2">Delivery Across Selected Lagos Areas</div><div className="cd">Starting from Igando. Covering Agodo, Ikotun, Egbeda, Idimu, Iyana Ipaja, Egbe, Ejigbo, and more.</div></div>
-                <div className="gc"><div className="ic-g">+</div><div className="cn2">Customer Support and Follow-up</div><div className="cd">We check in after every delivery to confirm you received the right product and that all is in order.</div></div>
+                <div className="gc"><div className="ic-g">+</div><div className="cn2">Prescription Handling</div><div className="cd">Prescriptions are reviewed by our Superintendent Pharmacist. Prescription-only medicine is not supplied without one.</div></div>
+                <div className="gc"><div className="ic-g">+</div><div className="cn2">Clear Pricing</div><div className="cd">The price shown is the price charged. Delivery, where it applies, is itemised before you pay.</div></div>
+                <div className="gc"><div className="ic-g">+</div><div className="cn2">Follow-Up After Dispensing</div><div className="cd">We check that you received the right medicine and that you know how to take it.</div></div>
               </div>
             </div>
           </div>
@@ -133,16 +134,20 @@ export default function Page(): JSX.Element {
             <div className="con">
               <div className="g2">
                 <div>
-                  <Image className="phimg" src={media.pharmacyPhoto} alt="Peaceway Pharmacy, Igando Lagos" width={1400} height={900} />
+                  <Image className="phimg" src={media.pharmacyPhoto} alt="The Peaceway Pharmacy dispensary" width={1400} height={900} />
                 </div>
                 <div>
                   <TextFX as="h2" effect="blur" className="shead">A real pharmacy behind the online service.</TextFX>
-                  <p style={{ fontSize: 14, color: "var(--m)", lineHeight: 1.7, marginBottom: 20 }}>Peaceway Online is not a startup guessing at healthcare. It is a real, physical pharmacy extending its service online.</p>
-                  <div className="titem"><div className="tdot"><div className="tdi" /></div><div><div className="tt">Physical pharmacy in Igando/Agodo Ikotun</div><div className="tb">A real building, real address, real staff.</div></div></div>
+                  <p style={{ fontSize: 14, color: "var(--m)", lineHeight: 1.7, marginBottom: 20 }}>Peaceway Online is operated by Peaceway Pharmacy, a PCN-registered premises with a Superintendent Pharmacist on record. The dispensary is the business; the website is how you reach it.</p>
+                  <div className="titem"><div className="tdot"><div className="tdi" /></div><div><div className="tt">A registered physical premises</div><div className="tb">PCN-registered, with a Superintendent Pharmacist on record.</div></div></div>
                   <div className="titem"><div className="tdot"><div className="tdi" /></div><div><div className="tt">Pharmacist-led service</div><div className="tb">Every order and question is handled by qualified pharmacy staff.</div></div></div>
                   <div className="titem"><div className="tdot"><div className="tdi" /></div><div><div className="tt">Genuine, properly sourced medicines</div><div className="tb">Sourced through legitimate supply chains only.</div></div></div>
                   <div className="titem"><div className="tdot"><div className="tdi" /></div><div><div className="tt">Prescription products require pharmacist review</div><div className="tb">No Rx supply without proper review. This is non-negotiable.</div></div></div>
-                  <div className="titem" style={{ borderBottom: "none" }}><div className="tdot"><div className="tdi" /></div><div><div className="tt">PCN Registration <span style={{ fontSize: 11, color: "var(--m2)", fontWeight: 400 }}>[Placeholder - to be confirmed]</span></div><div className="tb">Registered with the Pharmacists Council of Nigeria.</div></div></div>
+                  {/* Reads from `compliance` so this cannot say "registered"
+                      with a bracketed placeholder beside it. Until a number is
+                      issued the line states the application is in progress,
+                      which is the true position. */}
+                  <div className="titem" style={{ borderBottom: "none" }}><div className="tdot"><div className="tdi" /></div><div><div className="tt">Online pharmacy licence <span style={{ fontSize: 11, color: "var(--m2)", fontWeight: 400 }}>{compliance.pharmacyLicenceNumber ?? compliance.pendingLabel}</span></div><div className="tb">Regulated by the Pharmacists Council of Nigeria. Full disclosures are set out at the foot of this page.</div></div></div>
                 </div>
               </div>
             </div>
@@ -157,7 +162,7 @@ export default function Page(): JSX.Element {
             <div className="vign" />
             <div className="snbg" aria-hidden="true">05</div>
             <div className="con">
-              <SplitText as="h2" effect="letters" className="shead" text="From message to delivery." />
+              <SplitText as="h2" effect="letters" className="shead" text="Order, review, dispense." />
               <p className="ssub">Ten steps. No complicated apps. Just Telegram, a pharmacist, and your door.</p>
               <div className="sgrid">
                 {[
@@ -168,7 +173,7 @@ export default function Page(): JSX.Element {
                   ["3", "Confirm product and quantity", "Review details before proceeding."],
                   ["8", "Logistics partner delivers", "A trusted partner picks up and delivers to you."],
                   ["4", "Enter your delivery area", "Confirm we cover your location."],
-                  ["9", "You track the order", "Stay updated via the Telegram bot."],
+                  ["9", "You track the order", "Status updates as the order moves."],
                   ["5", "Confirm total and delivery fee", "Review final amount before paying."],
                   ["10", "Peaceway follows up", "We check in after delivery to confirm all is well."]
                 ].map(([num, title, desc]) => (
@@ -193,8 +198,8 @@ export default function Page(): JSX.Element {
             <div className="con">
               <div className="g2">
                 <div>
-                  <SplitText as="h2" effect="flip" className="shead" text="Need help before you buy?" />
-                  <p style={{ fontSize: 15, color: "var(--m)", lineHeight: 1.75, maxWidth: 420, marginBottom: 20 }}>Our pharmacist is available through the Telegram bot. Ask questions about medicines, dosage, interactions, or side effects before you order.</p>
+                  <SplitText as="h2" effect="flip" className="shead" text="Speak to a pharmacist before you buy." />
+                  <p style={{ fontSize: 15, color: "var(--m)", lineHeight: 1.75, maxWidth: 420, marginBottom: 20 }}>A registered pharmacist answers questions about medicines, interactions, and whether an item needs a prescription. Ask questions about medicines, dosage, interactions, or side effects before you order.</p>
                   <p style={{ fontSize: 13, color: "var(--m2)", maxWidth: 380, lineHeight: 1.65, marginBottom: 32 }}>Prescription-only products require review before supply. This is how we keep you safe.</p>
                   <a className="bp" href={siteConfig.telegramBotUrl} target="_blank" rel="noreferrer noopener">Ask a Pharmacist</a>
                 </div>
@@ -210,7 +215,7 @@ export default function Page(): JSX.Element {
         </div>
 
         <div className="scene" id="s7" style={{ height: "160vh" }}>
-          <div className="pw-sticky" data-screen-label="Delivery Areas">
+          <div className="pw-sticky" data-screen-label="Sourcing">
             <div className="sv-fb" />
             <div className="ov" />
             <div className="ovg" />
@@ -219,37 +224,24 @@ export default function Page(): JSX.Element {
             <div className="con">
               <div className="g2" style={{ alignItems: "flex-start" }}>
                 <div>
-                  <SplitText as="h2" effect="lines" className="shead" text={"Delivery across Lagos,\nstarting from Igando."} />
-                  <p style={{ fontSize: 15, color: "var(--m)", lineHeight: 1.7, maxWidth: 420, marginBottom: 32 }}>We deliver to communities around our pharmacy first. Coverage is expanding. If your area is not listed, ask us.</p>
-                  <div className="ag">
-                    {["Igando ★", "Agodo", "Ikotun", "Egbeda", "Isheri", "Idimu", "Iyana Ipaja", "Egbe", "Ejigbo", "Ijegun", "Other Lagos Mainland"].map((label, index) => (
-                      <span key={label} className={index < 3 ? "ab pri" : "ab sec"}>{label}</span>
-                    ))}
-                  </div>
-                  <p style={{ fontSize: 12, color: "var(--m2)", marginTop: 18, lineHeight: 1.6 }}>★ Primary delivery zones around Igando/Agodo Ikotun. Fees vary by location.</p>
+                  {/* This section was a Lagos delivery-coverage map: eleven
+                      neighbourhood chips and an SVG with a pulsing dot over
+                      Igando. It framed the business as a courier with a
+                      service radius, and it capped the proposition at one
+                      city on the most-scrolled part of the page. What a
+                      customer buying medicine online actually needs to know is
+                      where the medicine came from. Delivery areas still exist -
+                      priced per zone at checkout, which is where a fulfilment
+                      detail belongs. */}
+                  <SplitText as="h2" effect="lines" className="shead" text={"Traceable to a\nlicensed supplier."} />
+                  <p style={{ fontSize: 15, color: "var(--m)", lineHeight: 1.7, maxWidth: 420, marginBottom: 32 }}>Counterfeit and substandard medicine circulates in Nigeria. The defence against it is not a promise. It is a supply chain you can name.</p>
+                  <div className="titem"><div className="tdot"><div className="tdi" /></div><div><div className="tt">Licensed distributors only</div><div className="tb">Stock is bought through licensed distribution channels, never open markets.</div></div></div>
+                  <div className="titem"><div className="tdot"><div className="tdi" /></div><div><div className="tt">NAFDAC registration checked</div><div className="tb">Registration is verified before an item is listed for sale.</div></div></div>
+                  <div className="titem"><div className="tdot"><div className="tdi" /></div><div><div className="tt">Batch and expiry recorded</div><div className="tb">Held against the dispensing record for every order.</div></div></div>
+                  <div className="titem" style={{ borderBottom: "none" }}><div className="tdot"><div className="tdi" /></div><div><div className="tt">Pharmacist sign-off</div><div className="tb">Nothing leaves the dispensary without a pharmacist check.</div></div></div>
                 </div>
                 <div>
-                  <svg viewBox="0 0 320 280" width="100%" style={{ maxWidth: 320, display: "block" }} fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M28 250 Q48 222 76 205 Q106 187 144 177 Q178 170 210 175 Q242 180 270 163 Q292 149 302 127 Q297 90 278 64 Q256 36 222 28 Q188 20 156 32 Q124 44 100 66 Q76 88 58 114 Q40 138 32 168 Z" fill="rgba(15,103,60,0.06)" stroke="rgba(15,103,60,0.18)" strokeWidth="1.5" />
-                    <circle cx="138" cy="195" r="16" fill="rgba(15,103,60,0.2)" stroke="#0F673C" strokeWidth="1.5" />
-                    <circle cx="138" cy="195" r="5" fill="#0F673C" />
-                    <circle cx="138" cy="195" r="26" fill="rgba(15,103,60,0.08)">
-                      <animate attributeName="r" from="16" to="32" dur="2.5s" repeatCount="indefinite" />
-                      <animate attributeName="opacity" from="0.3" to="0" dur="2.5s" repeatCount="indefinite" />
-                    </circle>
-                    <text x="156" y="200" fontSize="11" fill="#0F673C" fontFamily="DM Sans,sans-serif" fontWeight="700">Igando</text>
-                    <circle cx="162" cy="172" r="5" fill="rgba(15,103,60,0.45)" stroke="#0F673C" strokeWidth="1" />
-                    <text x="170" y="180" fontSize="11" fill="#b1bdb0" fontWeight="600" fontFamily="DM Sans,sans-serif">Agodo</text>
-                    <circle cx="108" cy="215" r="5" fill="rgba(15,103,60,0.4)" stroke="rgba(15,103,60,0.6)" strokeWidth="1" />
-                    <text x="116" y="219" fontSize="11" fill="#b1bdb0" fontWeight="600" fontFamily="DM Sans,sans-serif">Ikotun</text>
-                    <circle cx="198" cy="163" r="4" fill="rgba(177,189,176,0.2)" stroke="rgba(177,189,176,0.3)" strokeWidth="1" />
-                    <text x="206" y="167" fontSize="11" fill="#b1bdb0" fontFamily="DM Sans,sans-serif">Egbeda</text>
-                    <circle cx="88" cy="180" r="4" fill="rgba(177,189,176,0.2)" stroke="rgba(177,189,176,0.3)" strokeWidth="1" />
-                    <text x="96" y="184" fontSize="11" fill="#b1bdb0" fontFamily="DM Sans,sans-serif">Idimu</text>
-                    <circle cx="236" cy="145" r="4" fill="rgba(177,189,176,0.2)" stroke="rgba(177,189,176,0.3)" strokeWidth="1" />
-                    <text x="244" y="149" fontSize="11" fill="#b1bdb0" fontFamily="DM Sans,sans-serif">Ejigbo</text>
-                    <text x="86" y="258" fontSize="11" fill="#b1bdb0" fontFamily="DM Sans,sans-serif">Lagos State, Nigeria</text>
-                  </svg>
+                  <Image className="phimg" src={media.pharmacyPhoto} alt="Medicine shelves inside the Peaceway Pharmacy dispensary" width={1400} height={900} />
                 </div>
               </div>
             </div>
@@ -269,7 +261,7 @@ export default function Page(): JSX.Element {
                 Join the Peaceway{" "}
                 <RotatingWords words={["health", "care", "wellness"]} className="fx-gradient" /> community.
               </h2>
-              <p style={{ fontSize: 15, color: "var(--m)", maxWidth: 440, margin: "0 auto 44px", lineHeight: 1.7 }}>Stay informed. Get health tips. Ask questions. Be part of a growing Lagos health community.</p>
+              <p style={{ fontSize: 15, color: "var(--m)", maxWidth: 440, margin: "0 auto 44px", lineHeight: 1.7 }}>Stock notices, medicine safety information, and answers to common questions. Part of a growing Lagos health community.</p>
               <div style={{ display: "flex", flexDirection: "column", gap: 16, width: "100%", maxWidth: 620 }}>
                 <a className="tgcard tgc1" href={siteConfig.telegramChannelUrl} target="_blank" rel="noreferrer noopener">
                   <IconBadge
@@ -305,14 +297,14 @@ export default function Page(): JSX.Element {
               <div className="g2" style={{ alignItems: "flex-start" }}>
                 <div>
                   <h2 className="shead"><ScrambleText text="Talk to Peaceway." /></h2>
-                  <p style={{ fontSize: 15, color: "var(--m)", maxWidth: 380, lineHeight: 1.75, marginBottom: 16 }}>We are a real pharmacy with real people. Reach us through any of the channels below.</p>
-                  <p style={{ fontSize: 13, color: "var(--m2)", maxWidth: 360, lineHeight: 1.65 }}>For orders, use the Telegram bot. For general inquiries or pharmacist questions, any channel works.</p>
+                  <p style={{ fontSize: 15, color: "var(--m)", maxWidth: 380, lineHeight: 1.75, marginBottom: 16 }}>A registered premises with a Superintendent Pharmacist on record. Reach us through any of the channels below.</p>
+                  <p style={{ fontSize: 13, color: "var(--m2)", maxWidth: 360, lineHeight: 1.65 }}>For orders, use the web app or the Telegram bot. For general inquiries or pharmacist questions, any channel works.</p>
                 </div>
                 <div className="ctcard">
                   <div className="ctitem"><div className="ctico"><Mail size={18} strokeWidth={2} /></div><div><div className="ctlb">Email</div><div className="ctva">{siteConfig.email}</div></div></div>
                   <div className="ctitem"><div className="ctico"><Send size={18} strokeWidth={2} /></div><div><div className="ctlb">Telegram Bot</div><a className="ctva" href={siteConfig.telegramBotUrl} target="_blank" rel="noreferrer noopener" style={{ color: "var(--t)" }}>t.me/Peacewayonline_bot</a></div></div>
                   <div className="ctitem"><div className="ctico"><Send size={18} strokeWidth={2} /></div><div><div className="ctlb">Telegram Channel</div><a className="ctva" href={siteConfig.telegramChannelUrl} target="_blank" rel="noreferrer noopener" style={{ color: "var(--t)" }}>t.me/peacewayonline</a></div></div>
-                  <div className="ctitem"><div className="ctico"><MapPin size={18} strokeWidth={2} /></div><div><div className="ctlb">Address</div><div className="ctva">Peaceway Pharmacy, Igando/Agodo Ikotun, Lagos</div></div></div>
+                  <div className="ctitem"><div className="ctico"><MapPin size={18} strokeWidth={2} /></div><div><div className="ctlb">Registered premises</div><div className="ctva">{siteConfig.address}</div></div></div>
                   <div className="ctitem"><div className="ctico"><Camera size={18} strokeWidth={2} /></div><div><div className="ctlb">Instagram</div><a className="ctva" href={siteConfig.instagramUrl} target="_blank" rel="noreferrer noopener" style={{ color: "var(--t)" }}>@peacewayonline</a></div></div>
                   <div className="ctitem"><div className="ctico"><MessageCircle size={18} strokeWidth={2} /></div><div><div className="ctlb">WhatsApp</div><div className="ctva" style={{ color: "var(--m2)" }}>[Placeholder - to be added]</div></div></div>
                 </div>
@@ -322,10 +314,15 @@ export default function Page(): JSX.Element {
         </div>
       {/* Footer lives inside main so it becomes the last slide in the
           mobile carousel; on desktop it flows after the scenes as before. */}
+      {/* Statutory EPSP disclosures. Homepage, above the footer, in the
+          server-rendered HTML - a regulator or a crawler must be able to read
+          them without running JavaScript. */}
+      <RegulatoryNotice />
+
       <footer className="ft" id="footer" data-screen-label="Footer">
         <div className="ft-marquee" aria-hidden="true">
           <Marquee speed={34}>
-            {["Genuine medicines", "Pharmacist-led guidance", "Delivery across Lagos", "A real Igando pharmacy", "Prescription review"].map((t) => (
+            {["NAFDAC-registered medicine", "Pharmacist-reviewed orders", "Traceable sourcing", "PCN-registered premises", "Prescription review"].map((t) => (
               <span key={t} className="ft-marquee-item">
                 {t}
                 <span className="ft-marquee-dot">✦</span>
@@ -338,7 +335,7 @@ export default function Page(): JSX.Element {
             <div>
               <Image className="flogo" src={media.logo} alt="Peaceway Pharmacy" width={180} height={72} />
               <div className="fbd">Peaceway Online</div>
-              <div className="fbs">An online extension of Peaceway Pharmacy, Igando/Agodo Ikotun, Lagos, Nigeria.</div>
+              <div className="fbs">The online pharmacy service of Peaceway Pharmacy, a PCN-registered premises in Nigeria.</div>
               <div className="fsa">
                 <a className="fsi" href={siteConfig.telegramChannelUrl} target="_blank" rel="noreferrer noopener" aria-label="Telegram Channel"><Send size={16} strokeWidth={2} /></a>
                 <a className="fsi" href={siteConfig.instagramUrl} target="_blank" rel="noreferrer noopener" aria-label="Instagram"><Camera size={16} strokeWidth={2} /></a>
@@ -381,10 +378,18 @@ export default function Page(): JSX.Element {
             </div>
           </div>
           <div className="fdiv" />
+          {/* The licence and registration numbers used to be a single inline
+              string reading "PCN Registration: [Placeholder - to be confirmed]".
+              A bracketed placeholder shipped to production reads, to anyone who
+              is not the developer, as a registration that exists and simply is
+              not typed out. The disclosures now come from `compliance` in
+              lib/constants.ts, where an unissued number is `null` and renders as
+              "Application in progress" - see RegulatoryNotice. */}
           <div className="fleg">
-            <p>PCN Registration: [Placeholder - to be confirmed] | Peaceway Pharmacy, Igando/Agodo Ikotun, Lagos, Nigeria | {siteConfig.email}</p>
-            <p style={{ marginTop: 6 }}>&copy; 2026 Peaceway Online. All rights reserved. Peaceway Online is an online service of Peaceway Pharmacy.</p>
-            <p style={{ marginTop: 6 }}>Prescription-only medicines require a valid prescription and pharmacist review before supply. This website does not provide medical diagnosis or treatment advice.</p>
+            <p>{siteConfig.address} | {siteConfig.email}</p>
+            <p style={{ marginTop: 6 }}>&copy; 2026 Peaceway Online. All rights reserved. {siteConfig.footerNote}</p>
+            <p style={{ marginTop: 6 }}>{compliance.prescriptionDeclaration}</p>
+            <p style={{ marginTop: 6 }}>This website does not provide medical diagnosis or treatment advice. For urgent symptoms, seek medical care in person.</p>
           </div>
         </div>
       </footer>
